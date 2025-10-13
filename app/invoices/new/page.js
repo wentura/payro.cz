@@ -17,9 +17,9 @@ import {
   formatNumber,
 } from "@/app/lib/utils";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 
-export default function NewInvoicePage() {
+function NewInvoiceForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const preselectedClientId = searchParams.get("client_id");
@@ -400,5 +400,19 @@ export default function NewInvoicePage() {
         </form>
       </div>
     </div>
+  );
+}
+
+export default function NewInvoicePage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          <p>Načítání...</p>
+        </div>
+      }
+    >
+      <NewInvoiceForm />
+    </Suspense>
   );
 }

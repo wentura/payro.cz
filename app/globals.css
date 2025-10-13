@@ -24,3 +24,46 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+form input,
+form select,
+form textarea {
+  color: #374151;
+}
+
+/* Print Styles */
+@media print {
+  @page {
+    margin: 2cm;
+    size: A4;
+  }
+
+  body {
+    background: white;
+    color: black;
+  }
+
+  /* Hide non-printable elements */
+  .print\:hidden {
+    display: none !important;
+  }
+
+  /* Ensure content fits on page */
+  .print\:p-0 {
+    padding: 0 !important;
+  }
+
+  /* Avoid page breaks inside elements */
+  table,
+  tr,
+  td,
+  th {
+    page-break-inside: avoid;
+  }
+
+  /* Make sure colors print correctly */
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

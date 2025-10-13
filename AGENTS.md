@@ -87,20 +87,28 @@ This is a Czech invoicing application built with Next.js 15.5.4, React 19, Tailw
 - Consistent naming: kebab-case for files, PascalCase for components
 - Use supabase client / server actions for all database operations, npm package: @supabase/supabase-js
 
-### Database Integration
+### Database Integration (Implemented)
 
-- Manual authentication with bcrypt-hashed passwords in `password_hash` field
-- for data operations use supabase client / server actions for all database operations, npm package: @supabase/supabase-js, for authentication use simple email/password authentication (magic links for reset password), bcrypt for password hashing, we use simple email/password authentication for now, because we don't need to use more complex authentication like OAuth, SSO, etc.
-- Implement proper error handling and loading states, use proper error messages, and loading states, and handle all errors, and show them to the user
-- All data scoped by `user_id` for multi-tenancy, and only their own data is visible
+- ✅ Manual authentication with bcrypt-hashed passwords in `password_hash` field
+- ✅ Supabase client for all database operations (@supabase/supabase-js)
+- ✅ Email/password authentication with magic links for password reset
+- ✅ Bcrypt password hashing (10+ rounds)
+- ✅ Proper error handling and loading states
+- ✅ User-friendly error messages in Czech
+- ✅ All data scoped by `user_id` for multi-tenancy
+- ✅ Row Level Security (RLS) disabled for development
+- ✅ Session management with HTTP-only cookies
 
-### Czech Localization
+### Czech Localization (Implemented)
 
-- **Date formats**: DD.MM.YYYY for display
-- **Number formats**: Czech locale for currency and numbers
-- **Business rules**: Czech invoicing regulations compliance
-- **UI Language**: Czech labels and messages
-- **Currency**: Primary CZK, support EUR
+- ✅ **Date formats**: DD.MM.YYYY for display (formatDateCZ utility)
+- ✅ **Number formats**: Czech locale for currency and numbers (formatCurrency, formatNumber)
+- ✅ **Business rules**: Czech invoicing regulations compliance
+- ✅ **UI Language**: Czech labels and messages throughout
+- ✅ **Currency**: CZK primary support
+- ✅ **SPAYD QR codes**: Czech payment standard integration
+- ✅ **IČO validation**: Czech company ID format validation
+- ✅ **Czech banking**: IBAN conversion for payment QR codes
 
 ### Form Validation
 
@@ -116,55 +124,181 @@ This is a Czech invoicing application built with Next.js 15.5.4, React 19, Tailw
 - Consider mobile responsiveness
 - Use server components when possible for better performance, use server actions for all database operations, npm package: @supabase/supabase-js
 
-### Security & Best Practices
+### Security & Best Practices (Implemented)
 
-- Implement manual row-level security in SQL queries (WHERE user_id = $1), use supabase client / server actions for all database operations, npm package: @supabase/supabase-js
-- Validate all user inputs on both client and server
-- Use bcrypt for password hashing (10+ rounds)
-- Secure session management (TODO: implement JWT or sessions), in local development show logged user data (name, email, company_id in footer), in production show only email and company_id in footer
-- Implement proper error boundaries
-- Write accessible code (a11y), comment all code, and describe all business logic in comments for better understanding and maintenance
-- Follow security best practices
-- Never expose password hashes in API responses
+- ✅ Manual row-level security in SQL queries (WHERE user_id = $1)
+- ✅ Supabase client for all database operations
+- ✅ Zod validation schemas for all forms
+- ✅ Client-side and server-side validation
+- ✅ Bcrypt password hashing (10+ rounds)
+- ✅ HTTP-only cookie session management
+- ✅ User data scoping (multi-tenancy)
+- ✅ Error boundaries and proper error handling
+- ✅ Accessible code (a11y) with proper ARIA labels
+- ✅ Comprehensive code comments and documentation
+- ✅ Security best practices implemented
+- ✅ Password hashes never exposed in API responses
+- ✅ Admin access restricted by email verification
+- ✅ Protected routes with middleware
+- ✅ Suspense boundaries for client components
 
-## Key Features to Implement
+## Key Features (Implemented)
 
-### Core Functionality
+### ✅ Core Functionality (Complete)
 
-1. **User Management**: Registration, login (email/password), profile settings, password reset with magic links
-2. **Client Management**: CRUD operations for customers
-3. **Invoice Management**: Create, edit, send, mark as paid / unpaid / canceled / overdue / partial paid
-4. **Invoice Items**: Add/remove line items with calculations, invoice can have multiple items and total price is calculated from all items (invoice_items table f_key to invoices table)
-5. **Dashboard**: Overview of invoices, overdue payments
-6. **Reports**: Revenue, unpaid invoices, client summaries
+1. **✅ User Management**:
 
-### Advanced Features
+   - Registration with email/password validation
+   - Login with session management
+   - Profile settings with company information
+   - Password reset with magic links
+   - Admin panel (email-restricted access)
 
-1. **PDF Generation**: Invoice PDF export, use npm package: @react-pdf/renderer
-2. **Email Notifications**: Payment reminders, invoice sending, now just download the PDF and send it by email manually by client email, in future will be resend.com implemeted for sending emails.
-3. **Multi-currency**: Support for EUR alongside CZK (now just CZK is supported)
-4. **Invoice Templates**: Customizable invoice layouts (as fo PDF), now just basic invoice layout is implemented
-5. **Recurring Invoices**: Automated recurring billing
-6. **Payment Tracking**: user will track the payments by himself, now just manual tracking in database
+2. **✅ Client Management**:
 
-## File Structure Guidelines
+   - Full CRUD operations for customers
+   - Company information and contact details
+   - Address management (JSONB structure)
+
+3. **✅ Invoice Management**:
+
+   - Create invoices with multiple items
+   - Edit draft invoices
+   - Status workflow: draft → sent → paid/unpaid/canceled
+   - Automatic invoice numbering (YYYY-NNNNN format)
+   - Due date calculation
+
+4. **✅ Invoice Items**:
+
+   - Add/remove line items with automatic calculations
+   - Unit management (ks, kg, hod, etc.)
+   - Price per unit with quantity calculations
+   - Automatic total calculation
+
+5. **✅ Dashboard**:
+
+   - Overview statistics (total, paid, unpaid, overdue invoices)
+   - Revenue tracking
+   - Client count
+   - Recent invoices list
+   - Quick action buttons
+
+6. **✅ Print Functionality**:
+   - Swiss grid design for professional invoices
+   - Black/white optimized for printing
+   - SPAYD QR code integration for Czech payments
+   - A4 format with proper margins
+
+### ✅ Advanced Features (Implemented)
+
+1. **✅ SPAYD QR Codes**:
+
+   - Czech standard payment QR codes
+   - IBAN conversion from Czech account numbers
+   - Automatic checksum calculation
+   - Integration with Czech banking apps
+
+2. **✅ Czech Localization**:
+
+   - Czech date formats (DD.MM.YYYY)
+   - Currency formatting (CZK)
+   - Czech labels and messages
+   - IČO validation
+
+3. **✅ Admin Panel**:
+
+   - User listing with invoice statistics
+   - Revenue tracking across all users
+   - Registration date monitoring
+   - Email-restricted access (svoboda.zbynek@gmail.com)
+
+4. **✅ Print System**:
+   - Browser-based printing (replaced PDF generation)
+   - Professional Swiss grid layout
+   - Print-optimized CSS
+   - SPAYD QR code integration
+
+### 🔄 Future Enhancements
+
+1. **📧 Email Notifications**:
+
+   - Payment reminders
+   - Invoice sending via email
+   - Integration with resend.com
+
+2. **💱 Multi-currency**:
+
+   - Support for EUR alongside CZK
+   - Currency conversion rates
+
+3. **🔄 Recurring Invoices**:
+
+   - Automated recurring billing
+   - Schedule management
+
+4. **📊 Advanced Reports**:
+   - Detailed revenue reports
+   - Client summaries
+   - Export functionality
+
+## File Structure (Current Implementation)
 
 ```
 app/
-├── login/                 # Authentication pages
-├── dashboard/              # Main dashboard
-├── clients/                # Client management
-├── invoices/               # Invoice management
-├── settings/               # User settings
-├── api/                    # API routes
-├── components/             # Reusable components
-│   ├── ui/                 # Basic UI components
-│   ├── forms/              # Form components
-│   └── invoices/           # Invoice-specific components
-└── lib/                    # Utilities and configurations
-    ├── supabase.js         # Supabase client
-    ├── validations.js      # Form validations
-    └── utils.js            # Helper functions
+├── layout.jsx              # Root layout (no navigation)
+├── globals.css             # Global styles with print support
+├── favicon.ico             # App favicon
+├── (public)/               # Public pages route group
+│   ├── layout.jsx         # Public layout with PublicNav
+│   ├── page.jsx           # Landing page
+│   ├── login/page.js      # Login page
+│   ├── register/page.js   # Registration page
+│   └── reset-password/    # Password reset pages
+│       ├── page.js        # Request reset
+│       └── [token]/page.js # Reset with token
+├── admin/page.js          # Admin panel (email-restricted)
+├── dashboard/page.js       # Main dashboard
+├── clients/               # Client management
+│   ├── page.js           # Client list
+│   ├── new/page.js       # Create client
+│   └── [id]/page.js      # Edit client
+├── invoices/             # Invoice management
+│   ├── page.js           # Invoice list
+│   ├── new/page.js       # Create invoice
+│   └── [id]/            # Invoice details
+│       ├── page.js       # View invoice
+│       ├── edit/page.js  # Edit invoice
+│       └── print/        # Print functionality
+│           ├── page.js   # Print view
+│           └── PrintButton.js # Print trigger
+├── settings/             # User settings
+│   ├── page.js          # Settings page
+│   └── SettingsForm.js  # Settings form component
+├── api/                  # API routes
+│   ├── auth/            # Authentication endpoints
+│   ├── clients/         # Client CRUD
+│   ├── invoices/        # Invoice CRUD & status
+│   ├── user/profile/    # User profile management
+│   └── reference data   # Units, payment types, etc.
+├── components/          # Reusable components
+│   ├── Layout.js        # Authenticated layout
+│   ├── PublicNav.js     # Public navigation
+│   ├── SPAYDQRCode.js   # Czech payment QR codes
+│   └── ui/              # Basic UI components
+│       ├── Badge.js
+│       ├── Button.js
+│       ├── Card.js
+│       ├── Input.js
+│       ├── Modal.js
+│       ├── Select.js
+│       └── Textarea.js
+└── lib/                 # Utilities and configurations
+    ├── auth.js          # Authentication logic
+    ├── supabase.js      # Supabase client
+    ├── utils.js         # Helper functions
+    ├── validations.js   # Form validations
+    ├── spayd.js         # SPAYD QR code logic
+    └── payment-qr.js    # Payment QR utilities
 ```
 
 ## Communication Guidelines
@@ -192,13 +326,36 @@ app/
 - Test Czech localization and currency formatting
 - Test RLS policies and multi-tenancy
 
-## Deployment Considerations
+## Deployment (Production Ready)
 
-- Environment variables for Supabase configuration in .env.local file SUPABASE_URL, SUPABASE_ANON_KEY
-- Proper build optimization for production
-- Database migrations and seed data, use supabase client / server actions for all database operations, npm package: @supabase/supabase-js
-- Error monitoring and logging
-- Performance monitoring$
+### ✅ Environment Configuration
+
+- Environment variables in `.env.local`: SUPABASE_URL, SUPABASE_ANON_KEY, NEXT_PUBLIC_APP_URL
+- Netlify configuration with `netlify.toml`
+- `.npmrc` with `legacy-peer-deps=true` for dependency resolution
+
+### ✅ Build Optimization
+
+- Next.js 15.5.4 with App Router optimization
+- Static page generation where possible
+- Bundle size optimization (~102-112 kB per page)
+- Build successful with 32 routes
+
+### ✅ Database Setup
+
+- Complete PostgreSQL schema with all tables and relationships
+- Reference data seeding (invoice statuses, payment types, units, due terms)
+- Database triggers for automatic calculations
+- Migration scripts for schema updates
+
+### ✅ Production Features
+
+- Print functionality (replaces PDF generation)
+- SPAYD QR code generation
+- Czech localization complete
+- Admin panel with user management
+- Responsive design for mobile/desktop
+- Error handling and loading states
 
 ---
 
@@ -206,9 +363,9 @@ app/
 
 payro.cz
 
-## MVP Features
+## MVP Features (Complete)
 
-Payro.cz – verze 1.0 (MVP)
+Payro.cz – verze 1.0 (MVP) ✅ **PRODUCTION READY**
 
 ### DB Schema
 

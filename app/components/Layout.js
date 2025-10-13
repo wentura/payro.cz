@@ -15,11 +15,15 @@ export default function Layout({ children, user }) {
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+  const ADMIN_EMAIL = "svoboda.zbynek@gmail.com";
+  const isAdmin = user?.contact_email === ADMIN_EMAIL;
+
   const navigation = [
     { name: "Dashboard", href: "/dashboard", icon: "📊" },
     { name: "Faktury", href: "/invoices", icon: "🧾" },
     { name: "Klienti", href: "/clients", icon: "👥" },
     { name: "Nastavení", href: "/settings", icon: "⚙️" },
+    ...(isAdmin ? [{ name: "Admin", href: "/admin", icon: "🔧" }] : []),
   ];
 
   const handleLogout = async () => {

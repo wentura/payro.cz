@@ -6,6 +6,7 @@
  * Form for creating a new client
  */
 
+import ARESModal from "@/app/components/ARESModal";
 import Button from "@/app/components/ui/Button";
 import Card from "@/app/components/ui/Card";
 import Input from "@/app/components/ui/Input";
@@ -17,6 +18,7 @@ export default function NewClientPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [isARESModalOpen, setIsARESModalOpen] = useState(false);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -69,6 +71,21 @@ export default function NewClientPage() {
     }
   };
 
+  const handleARESSelect = (company) => {
+    setFormData({
+      ...formData,
+      name: company.name || "",
+      company_id: company.company_id || "",
+      contact_email: company.contact_email || "",
+      contact_phone: company.contact_phone || "",
+      street: company.address?.street || "",
+      house_number: company.address?.houseNumber || "",
+      city: company.address?.city || "",
+      zip: company.address?.zip || "",
+      country: company.address?.country || "Česká republika",
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -89,9 +106,19 @@ export default function NewClientPage() {
 
             {/* Basic Information */}
             <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4">
-                Základní informace
-              </h3>
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-medium text-gray-900">
+                  Základní informace
+                </h3>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setIsARESModalOpen(true)}
+                >
+                  🔍 Vyhledat v ARES
+                </Button>
+              </div>
               <div className="grid grid-cols-1 gap-4">
                 <Input
                   label="Název / Jméno"
@@ -218,6 +245,13 @@ export default function NewClientPage() {
           </form>
         </Card>
       </div>
+
+      {/* ARES Search Modal */}
+      <ARESModal
+        isOpen={isARESModalOpen}
+        onClose={() => setIsARESModalOpen(false)}
+        onSelectCompany={handleARESSelect}
+      />
     </div>
   );
 }

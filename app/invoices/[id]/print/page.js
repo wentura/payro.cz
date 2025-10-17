@@ -170,6 +170,9 @@ export default async function InvoicePrintPage({ params }) {
               {invoice.clients?.company_id && (
                 <p className="text-black">IČO: {invoice.clients.company_id}</p>
               )}
+              {invoice.clients?.vat_number && (
+                <p className="text-black">DIČ: {invoice.clients.vat_number}</p>
+              )}
               {clientAddress.street && (
                 <p className="text-black">
                   {clientAddress.street} {clientAddress.house_number}

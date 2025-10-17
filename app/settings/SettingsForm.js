@@ -132,28 +132,27 @@ export default function SettingsForm() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Nastavení</h1>
-        <p className="mt-2 text-gray-600">
-          Spravujte své údaje a nastavení účtu
-        </p>
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+          Nastavení
+        </h1>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-6 px-1 text-left">
         {error && (
-          <div className="rounded-md bg-red-50 p-4">
+          <div className="rounded-md bg-red-50 p-4 text-left">
             <p className="text-sm text-red-800">{error}</p>
           </div>
         )}
 
         {success && (
-          <div className="rounded-md bg-green-50 p-4">
+          <div className="rounded-md bg-green-50 p-4 text-left">
             <p className="text-sm text-green-800">{success}</p>
           </div>
         )}
 
         {/* Basic Information */}
-        <Card title="Základní informace">
-          <div className="grid grid-cols-1 gap-4">
+        <Card title="Základní informace" className="text-left px-1">
+          <div className="grid grid-cols-1 gap-2 sm:gap-4 text-left">
             <Input
               label="Jméno / Název firmy"
               name="name"
@@ -174,8 +173,8 @@ export default function SettingsForm() {
         </Card>
 
         {/* Contact Information */}
-        <Card title="Kontaktní údaje">
-          <div className="grid grid-cols-1 gap-4">
+        <Card title="Kontaktní údaje" className="text-left px-1">
+          <div className="grid grid-cols-1 gap-2 sm:gap-4 text-left">
             <Input
               label="Email"
               name="contact_email"
@@ -208,7 +207,7 @@ export default function SettingsForm() {
 
         {/* Banking Information */}
         <Card title="Bankovní údaje">
-          <div className="grid grid-cols-1 gap-4">
+          <div className="grid grid-cols-1 gap-2 sm:gap-4 text-left">
             <Input
               label="Číslo účtu"
               name="bank_account"
@@ -216,16 +215,16 @@ export default function SettingsForm() {
               onChange={handleChange}
               placeholder="123456789/0100"
             />
-            <p className="text-xs text-gray-500">
-              Číslo účtu bude zobrazeno na vytištěné faktuře pro platby
+            <p className="text-xs text-gray-500 text-left">
+              Číslo účtu bude zobrazeno na faktuře pro platby
             </p>
           </div>
         </Card>
 
         {/* Billing Address */}
-        <Card title="Fakturační adresa">
-          <div className="grid grid-cols-1 gap-4">
-            <div className="grid grid-cols-4 gap-4">
+        <Card title="Fakturační adresa" className="text-left px-1">
+          <div className="grid grid-cols-1 gap-2 sm:gap-4 text-left">
+            <div className="grid grid-cols-4 gap-2 sm:gap-4 text-left">
               <Input
                 label="Ulice"
                 name="street"

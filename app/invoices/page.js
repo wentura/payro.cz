@@ -68,7 +68,7 @@ export default async function InvoicesPage() {
   const invoices = await getInvoices(user.id);
 
   return (
-    <Layout user={user}>
+    <Layout user={user} className="flex-grow flex flex-col">
       <div className="space-y-6">
         {/* Page Header */}
         <div className="flex justify-between items-center">
@@ -130,24 +130,24 @@ export default async function InvoicesPage() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <Link
                           href={`/invoices/${invoice.id}`}
-                          className="text-blue-600 hover:text-blue-900 font-medium"
+                          className="text-blue-600 hover:text-blue-900 font-medium text-left"
                         >
                           {invoice.invoice_number || "Koncept"}
                         </Link>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-left">
                         {invoice.clients?.name || "N/A"}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-left">
                         {formatDateCZ(invoice.issue_date)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-left">
                         {formatDateCZ(invoice.due_date)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 text-left">
                         {formatCurrency(invoice.total_amount, invoice.currency)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-6 py-4 whitespace-nowrap text-left justify-start">
                         <Badge variant={statusVariants[invoice.status_id]}>
                           {statusLabels[invoice.status_id]}
                         </Badge>

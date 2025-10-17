@@ -9,17 +9,20 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
+import Footer from "./Footer";
 
-export default function Layout({ children, user }) {
+export default function Layout({
+  children,
+  user,
+  isAdmin = false,
+  className = "flex-grow flex flex-col",
+}) {
   const pathname = usePathname();
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const ADMIN_EMAIL = "svoboda.zbynek@gmail.com";
-  const isAdmin = user?.contact_email === ADMIN_EMAIL;
-
   const navigation = [
-    { name: "Dashboard", href: "/dashboard", icon: "📊" },
+    { name: "Přehled", href: "/dashboard", icon: "📊" },
     { name: "Faktury", href: "/invoices", icon: "🧾" },
     { name: "Klienti", href: "/clients", icon: "👥" },
     { name: "Nastavení", href: "/settings", icon: "⚙️" },
@@ -37,7 +40,7 @@ export default function Layout({ children, user }) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className={`${className} bg-gray-50`}>
       {/* Top Navigation */}
       <nav className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -85,7 +88,7 @@ export default function Layout({ children, user }) {
                   )}
                   <button
                     onClick={handleLogout}
-                    className="text-sm text-gray-700 hover:text-gray-900"
+                    className="text-sm text-gray-700 hover:text-gray-900 cursor-pointer"
                   >
                     Odhlásit se
                   </button>
@@ -148,27 +151,10 @@ export default function Layout({ children, user }) {
       </nav>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-8">
         {children}
       </main>
-
-      {/* Footer */}
-      <footer className="bg-white border-t border-gray-200 mt-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="text-center text-sm text-gray-500">
-            {user && (
-              <div className="mb-2">
-                Přihlášen jako:{" "}
-                <span className="font-medium text-gray-700">
-                  {user.contact_email}
-                </span>
-                {user.company_id && <span> • IČO: {user.company_id}</span>}
-              </div>
-            )}
-            <div>© 2025 Payro.cz • Fakturační systém</div>
-          </div>
-        </div>
-      </footer>
+      <Footer user={user ? user : null} />
     </div>
   );
 }

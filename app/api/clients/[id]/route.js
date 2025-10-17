@@ -73,6 +73,7 @@ export async function PUT(request, { params }) {
     const {
       name,
       company_id,
+      vat_number,
       contact_email,
       contact_phone,
       note,
@@ -106,6 +107,7 @@ export async function PUT(request, { params }) {
       .update({
         name,
         company_id: company_id || null,
+        vat_number: vat_number || null,
         contact_email: contact_email || null,
         contact_phone: contact_phone || null,
         note: note || null,

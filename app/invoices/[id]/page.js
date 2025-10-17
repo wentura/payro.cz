@@ -137,89 +137,106 @@ export default async function InvoiceDetailPage({ params }) {
 
         {/* Invoice Info */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card title="Informace o faktuře">
-            <dl className="space-y-3">
-              <div>
-                <dt className="text-sm font-medium text-gray-500">
-                  Číslo faktury
-                </dt>
-                <dd className="mt-1 text-sm text-gray-900">
+          <Card
+            title="Informace o faktuře"
+            className="px-1 md:px-4 md:pt-4 pt-2"
+          >
+            <dl className="space-y-3 text-left px-1 md:px-4">
+              <div className="text-sm font-medium text-gray-500">
+                Číslo faktury:{" "}
+                <span className="font-bold text-gray-900">
                   {invoice.invoice_number || "Bude přiděleno"}
-                </dd>
+                </span>
               </div>
-              <div>
-                <dt className="text-sm font-medium text-gray-500">
-                  Datum vystavení
-                </dt>
-                <dd className="mt-1 text-sm text-gray-900">
-                  {formatDateCZ(invoice.issue_date)}
-                </dd>
+              <div className="text-sm font-medium text-gray-500">
+                Datum vystavení: {formatDateCZ(invoice.issue_date)}
               </div>
-              <div>
-                <dt className="text-sm font-medium text-gray-500">
-                  Datum splatnosti
-                </dt>
-                <dd className="mt-1 text-sm text-gray-900">
-                  {formatDateCZ(invoice.due_date)}
-                </dd>
+              <div className="text-sm font-medium text-gray-500">
+                Datum splatnosti: {formatDateCZ(invoice.due_date)}
               </div>
-              <div>
-                <dt className="text-sm font-medium text-gray-500">
-                  Datum úhrady
-                </dt>
-                <dd className="mt-1 text-sm text-gray-900">
+              <div className="text-sm font-medium text-gray-500">
+                Datum úhrady:{" "}
+                <span className="font-bold text-gray-900">
                   {invoice.payment_date
                     ? formatDateCZ(invoice.payment_date)
                     : "Nezaplaceno"}
-                </dd>
+                </span>
               </div>
-              <div>
-                <dt className="text-sm font-medium text-gray-500">Měna</dt>
-                <dd className="mt-1 text-sm text-gray-900">
+              <div className="text-sm font-medium text-gray-500">
+                Měna:{" "}
+                <span className="font-bold text-gray-900">
                   {invoice.currency}
-                </dd>
+                </span>
               </div>
             </dl>
           </Card>
 
-          <Card title="Informace o klientovi">
-            <dl className="space-y-3">
-              <div>
-                <dt className="text-sm font-medium text-gray-500">Název</dt>
-                <dd className="mt-1 text-sm text-gray-900">
+          <Card
+            title="Informace o klientovi"
+            className="px-1 md:px-4 md:pt-4 pt-2"
+          >
+            <dl className="space-y-3 text-left px-1 md:px-4">
+              <div className="text-sm font-medium text-gray-500">
+                Název:{" "}
+                <span className="font-bold text-gray-900">
                   {invoice.clients?.name}
-                </dd>
+                </span>
               </div>
+
               {invoice.clients?.company_id && (
-                <div>
-                  <dt className="text-sm font-medium text-gray-500">IČO</dt>
-                  <dd className="mt-1 text-sm text-gray-900">
+                <div className="text-sm font-medium text-gray-500">
+                  IČO:{" "}
+                  <span className="font-bold text-gray-900">
                     {invoice.clients.company_id}
-                  </dd>
+                  </span>
+                </div>
+              )}
+              {invoice.clients?.vat_number && (
+                <div className="text-sm font-medium text-gray-500">
+                  DIČ:{" "}
+                  <span className="font-bold text-gray-900">
+                    {invoice.clients.vat_number}
+                  </span>
+                </div>
+              )}
+              {invoice.clients?.address && (
+                <div className="text-sm font-medium text-gray-500">
+                  Adresa:{" "}
+                  <span className="font-bold text-gray-900">
+                    {invoice.clients.address.street}{" "}
+                    {invoice.clients.address.house_number},{" "}
+                    {invoice.clients.address.city} {invoice.clients.address.zip}
+                    , {invoice.clients.address.country}
+                  </span>
                 </div>
               )}
               {invoice.clients?.contact_email && (
-                <div>
-                  <dt className="text-sm font-medium text-gray-500">Email</dt>
-                  <dd className="mt-1 text-sm text-gray-900">
+                <div className="text-sm font-medium text-gray-500">
+                  Email:{" "}
+                  <span className="font-bold text-gray-900">
                     {invoice.clients.contact_email}
-                  </dd>
+                  </span>
                 </div>
               )}
               {invoice.clients?.contact_phone && (
-                <div>
-                  <dt className="text-sm font-medium text-gray-500">Telefon</dt>
-                  <dd className="mt-1 text-sm text-gray-900">
+                <div className="text-sm font-medium text-gray-500">
+                  Telefon:{" "}
+                  <span className="font-bold text-gray-900">
                     {invoice.clients.contact_phone}
-                  </dd>
+                  </span>
                 </div>
               )}
             </dl>
+            {invoice.clients?.note && (
+              <div className="text-sm font-light text-gray-500 border-1 border-gray-300 rounded-md p-1 mt-4 text-left">
+                Poznámka: {invoice.clients.note}
+              </div>
+            )}
           </Card>
         </div>
 
         {/* Invoice Items */}
-        <Card title="Položky faktury">
+        <Card title="Položky faktury" className="px-1 md:px-4 md:pt-4 pt-2">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead>
@@ -233,9 +250,6 @@ export default async function InvoiceDetailPage({ params }) {
                   <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">
                     Množství
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                    Jednotka
-                  </th>
                   <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">
                     Cena/jedn.
                   </th>
@@ -247,16 +261,14 @@ export default async function InvoiceDetailPage({ params }) {
               <tbody className="divide-y divide-gray-200">
                 {invoice.items.map((item, index) => (
                   <tr key={item.id}>
-                    <td className="px-4 py-4 text-sm text-gray-500">
+                    <td className="px-4 py-4 text-sm text-gray-500 text-left">
                       {index + 1}
                     </td>
-                    <td className="px-4 py-4 text-sm text-gray-900">
+                    <td className="px-4 py-4 text-sm text-gray-900 text-left">
                       {item.description}
                     </td>
                     <td className="px-4 py-4 text-sm text-right text-gray-900">
-                      {formatNumber(item.quantity, 3)}
-                    </td>
-                    <td className="px-4 py-4 text-sm text-gray-500">
+                      {formatNumber(item.quantity, item.unit_id < 3 ? 0 : 3)}{" "}
                       {item.unit_id && unitLookup[item.unit_id]
                         ? unitLookup[item.unit_id].abbreviation
                         : "-"}
@@ -276,7 +288,7 @@ export default async function InvoiceDetailPage({ params }) {
               <tfoot className="border-t-2 border-gray-300">
                 <tr>
                   <td
-                    colSpan="5"
+                    colSpan="4"
                     className="px-4 py-4 text-right text-base font-bold text-gray-900"
                   >
                     Celkem k úhradě:
@@ -292,16 +304,16 @@ export default async function InvoiceDetailPage({ params }) {
 
         {/* Note */}
         {invoice.note && (
-          <Card title="Poznámka">
-            <p className="text-sm text-gray-700 whitespace-pre-wrap">
+          <Card title="Poznámka" className="px-1 md:px-4 md:pt-4 pt-2">
+            <p className="text-sm text-gray-700 whitespace-pre-wrap px-1 md:px-4 text-left">
               {invoice.note}
             </p>
           </Card>
         )}
 
         {/* Actions */}
-        <Card title="Akce">
-          <div className="flex flex-wrap gap-4">
+        <Card title="Akce" className="px-1 md:px-4 md:pt-4 pt-2">
+          <div className="flex flex-wrap gap-4 text-left">
             {invoice.status_id === 1 && (
               <>
                 <Link href={`/invoices/${invoice.id}/edit`}>

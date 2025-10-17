@@ -11,7 +11,7 @@ import Card from "@/app/components/ui/Card";
 import Input from "@/app/components/ui/Input";
 import Textarea from "@/app/components/ui/Textarea";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export default function EditClientPage({ params }) {
   const router = useRouter();
@@ -24,6 +24,7 @@ export default function EditClientPage({ params }) {
   const [formData, setFormData] = useState({
     name: "",
     company_id: "",
+    vat_number: "",
     contact_email: "",
     contact_phone: "",
     street: "",
@@ -34,13 +35,10 @@ export default function EditClientPage({ params }) {
     note: "",
   });
 
-  useEffect(() => {
-    fetchClient();
-  }, []);
-
-  const fetchClient = async () => {
+  const fetchClient = useCallback(async () => {
     try {
-      const response = await fetch(`/api/clients/${params.id}`);
+      const { id } = await params;
+      const response = await fetch(`/api/clients/${id}`);
       const result = await response.json();
 
       if (!response.ok || !result.success) {
@@ -59,6 +57,7 @@ export default function EditClientPage({ params }) {
       setFormData({
         name: clientData.name || "",
         company_id: clientData.company_id || "",
+        vat_number: clientData.vat_number || "",
         contact_email: clientData.contact_email || "",
         contact_phone: clientData.contact_phone || "",
         street: address.street || "",
@@ -75,7 +74,11 @@ export default function EditClientPage({ params }) {
       setError("Chyba při načítání klienta");
       setIsLoading(false);
     }
-  };
+  }, [params]);
+
+  useEffect(() => {
+    fetchClient();
+  }, [fetchClient]);
 
   const handleChange = (e) => {
     setFormData({
@@ -90,7 +93,8 @@ export default function EditClientPage({ params }) {
     setIsSaving(true);
 
     try {
-      const response = await fetch(`/api/clients/${params.id}`, {
+      const { id } = await params;
+      const response = await fetch(`/api/clients/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -127,7 +131,8 @@ export default function EditClientPage({ params }) {
     setIsDeleting(true);
 
     try {
-      const response = await fetch(`/api/clients/${params.id}`, {
+      const { id } = await params;
+      const response = await fetch(`/api/clients/${id}`, {
         method: "DELETE",
       });
 
@@ -202,13 +207,23 @@ export default function EditClientPage({ params }) {
                   placeholder="Jan Novák / Firma s.r.o."
                 />
 
-                <Input
-                  label="IČO"
-                  name="company_id"
-                  value={formData.company_id}
-                  onChange={handleChange}
-                  placeholder="12345678"
-                />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Input
+                    label="IČO"
+                    name="company_id"
+                    value={formData.company_id}
+                    onChange={handleChange}
+                    placeholder="12345678"
+                  />
+
+                  <Input
+                    label="DIČ"
+                    name="vat_number"
+                    value={formData.vat_number}
+                    onChange={handleChange}
+                    placeholder="CZ12345678"
+                  />
+                </div>
               </div>
             </div>
 

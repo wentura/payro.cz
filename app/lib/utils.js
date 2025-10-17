@@ -53,11 +53,15 @@ export function formatNumber(number, decimals = 2) {
 /**
  * Generate invoice number
  * @param {number} year - Year
+ * @param {number} month - Month (1-12)
  * @param {number} sequence - Sequence number
- * @returns {string} Invoice number (YYYY-NNNNN)
+ * @returns {string} Invoice number (YYYY-MM-NNN)
  */
-export function generateInvoiceNumber(year, sequence) {
-  return `${year}-${String(sequence).padStart(5, "0")}`;
+export function generateInvoiceNumber(year, month, sequence) {
+  return `${year}-${String(month).padStart(2, "0")}-${String(sequence).padStart(
+    3,
+    "0"
+  )}`;
 }
 
 /**

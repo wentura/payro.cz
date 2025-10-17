@@ -10,6 +10,7 @@ import { supabase } from "./supabase";
 
 const SESSION_COOKIE_NAME = "payro_session";
 const SESSION_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "svoboda.zbynek@gmail.com";
 
 /**
  * Hash a password using bcrypt
@@ -33,12 +34,16 @@ export async function comparePassword(password, hash) {
 /**
  * Create a session for a user
  * @param {string} userId - User ID
+ * @param {string} userEmail - User email (for admin verification)
  * @returns {Promise<void>}
  */
-export async function createSession(userId) {
+export async function createSession(userId, userEmail = null) {
   const cookieStore = await cookies();
+  const isAdmin = userEmail === ADMIN_EMAIL;
+
   const sessionData = {
     userId,
+    isAdmin,
     createdAt: Date.now(),
   };
 
@@ -123,6 +128,15 @@ export async function getCurrentUser() {
 }
 
 /**
+ * Check if current user is admin (from session cookie)
+ * @returns {Promise<boolean>} True if user is admin
+ */
+export async function isCurrentUserAdmin() {
+  const session = await getSession();
+  return session?.isAdmin === true;
+}
+
+/**
  * Require authentication - throws if not authenticated
  * @returns {Promise<Object>} User object
  * @throws {Error} If not authenticated
@@ -189,7 +203,7 @@ export async function registerUser(userData) {
     }
 
     // Create session
-    await createSession(newUser.id);
+    await createSession(newUser.id, newUser.contact_email);
 
     return {
       success: true,
@@ -261,7 +275,7 @@ export async function loginUser(email, password) {
 
     // Create session
     console.log("🍪 Creating session...");
-    await createSession(user.id);
+    await createSession(user.id, user.contact_email);
     console.log("✓ Session created");
 
     return {

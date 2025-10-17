@@ -12,7 +12,7 @@ A modern invoicing application built with Next.js 15, React 19, Tailwind CSS v4,
 - **Czech Localization**: Date formats (DD.MM.YYYY), currency (CZK), Czech labels
 - **Multi-tenancy**: Each user has isolated data with row-level security
 - **Status Workflow**: Draft → Sent → Paid/Canceled workflow
-- **Automatic Invoice Numbering**: Format YYYY-NNNNN (e.g., 2025-00001)
+- **Automatic Invoice Numbering**: Format YYYY-MM-NNN (e.g., 2025-01-001)
 
 ## 📋 Tech Stack
 
@@ -128,8 +128,8 @@ payro.cz/
 ### Invoice Numbering
 
 - Auto-generated when status changes from "draft" to "sent"
-- Format: `YYYY-NNNNN` (e.g., 2025-00001)
-- Unique per user and year
+- Format: `YYYY-MM-NNN` (e.g., 2025-01-001)
+- Unique per user, year, and month
 
 ### Invoice Statuses
 

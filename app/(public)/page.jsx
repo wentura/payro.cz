@@ -9,19 +9,21 @@ import Link from "next/link";
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="bg-gradient-to-br from-blue-50 to-indigo-100 flex-grow flex flex-col">
       {/* Hero Section */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <div className="text-center">
-          <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
-            Fakturace pro podnikatele a freelancery
-            <br />
-            <span className="text-blue-600">jednoduše a rychle</span>
+          <h1 className="text-3xl md:text-6xl font-bold mb-4 text-blue-600 pt-8">
+            Jednoduchá a rychlá fakturace
           </h1>
-          <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-            Moderní fakturační systém postavený přímo pro české podnikatele a
-            freelancery. Vystavujte faktury, spravujte klienty a sledujte
-            splatnosti na jednom místě.
+          <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-8">
+            pro podnikatele a freelancery
+          </h2>
+
+          <p className="text-base text-gray-600 mb-8 max-w-3xl mx-auto hidden">
+            Minimalistický fakturační systém postavený přímo pro české
+            podnikatele a freelancery. Vytvářejte faktury, spravujte klienty a
+            sledujte splatnosti faktur na jednom místě.
           </p>
           <div className="flex justify-center space-x-4">
             {/* <Link
@@ -41,9 +43,8 @@ export default function HomePage() {
 
         {/* Features */}
         <div className="mt-24 grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="bg-white p-8 rounded-xl shadow-md">
-            <div className="text-4xl mb-4">🧾</div>
-            <h3 className="text-xl font-bold text-gray-900 mb-3">
+          <div className="bg-white p-8 rounded-xl shadow-lg border border-gray-200">
+            <h3 className="text-xl font-bold text-gray-900 mb-3 text-center">
               Snadné fakturování
             </h3>
             <p className="text-gray-600">
@@ -53,8 +54,7 @@ export default function HomePage() {
           </div>
 
           <div className="bg-white p-8 rounded-xl shadow-md">
-            <div className="text-4xl mb-4">👥</div>
-            <h3 className="text-xl font-bold text-gray-900 mb-3">
+            <h3 className="text-xl font-bold text-gray-900 mb-3 text-center">
               Správa klientů
             </h3>
             <p className="text-gray-600">
@@ -64,8 +64,7 @@ export default function HomePage() {
           </div>
 
           <div className="bg-white p-8 rounded-xl shadow-md">
-            <div className="text-4xl mb-4">📊</div>
-            <h3 className="text-xl font-bold text-gray-900 mb-3">
+            <h3 className="text-xl font-bold text-gray-900 mb-3 text-center">
               Přehled plateb
             </h3>
             <p className="text-gray-600">
@@ -82,7 +81,6 @@ export default function HomePage() {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="flex items-start">
-              <div className="text-green-500 text-2xl mr-3">✓</div>
               <div>
                 <h4 className="font-semibold text-gray-900">České prostředí</h4>
                 <p className="text-gray-600">
@@ -91,18 +89,16 @@ export default function HomePage() {
               </div>
             </div>
             <div className="flex items-start">
-              <div className="text-green-500 text-2xl mr-3">✓</div>
               <div>
                 <h4 className="font-semibold text-gray-900">
                   Automatické číslování
                 </h4>
                 <p className="text-gray-600">
-                  Formát YYYY-NNNNN, automaticky při odeslání faktury
+                  Formát YYYY-MM-xxx, automaticky při odeslání faktury
                 </p>
               </div>
             </div>
             <div className="flex items-start">
-              <div className="text-green-500 text-2xl mr-3">✓</div>
               <div>
                 <h4 className="font-semibold text-gray-900">Více položek</h4>
                 <p className="text-gray-600">
@@ -111,29 +107,11 @@ export default function HomePage() {
               </div>
             </div>
             <div className="flex items-start">
-              <div className="text-green-500 text-2xl mr-3">✓</div>
               <div>
                 <h4 className="font-semibold text-gray-900">Stavy faktur</h4>
                 <p className="text-gray-600">
-                  Koncept, odeslaná, zaplacená, po splatnosti, stornovaná
-                </p>
-              </div>
-            </div>
-            <div className="flex items-start">
-              <div className="text-green-500 text-2xl mr-3">✓</div>
-              <div>
-                <h4 className="font-semibold text-gray-900">Vaše data</h4>
-                <p className="text-gray-600">
-                  Všechna data jsou oddělená pro každého uživatele
-                </p>
-              </div>
-            </div>
-            <div className="flex items-start">
-              <div className="text-green-500 text-2xl mr-3">✓</div>
-              <div>
-                <h4 className="font-semibold text-gray-900">Moderní design</h4>
-                <p className="text-gray-600">
-                  Rychlé a responzivní rozhraní postavené na Next.js 15
+                  Koncept, odeslaná, zaplacená, částečně zaplacená, po
+                  splatnosti, stornovaná
                 </p>
               </div>
             </div>
@@ -146,25 +124,16 @@ export default function HomePage() {
             Připraveni začít?
           </h2>
           <p className="text-xl text-gray-600 mb-8">
-            Zaregistrujte se zdarma a vytvořte svou první fakturu během 2 minut
+            Zaregistrujte se zdarma a vytvořte svou první fakturu během minuty.
           </p>
-          {/* <Link
+          <Link
             href="/register"
             className="inline-block bg-blue-600 text-white hover:bg-blue-700 px-8 py-4 rounded-lg text-lg font-semibold transition-colors shadow-lg hover:shadow-xl"
           >
-            Začít fakturovat zdarma →
-          </Link> */}
+            Začít fakturovat zdarma
+          </Link>
         </div>
       </div>
-
-      {/* Footer */}
-      <footer className="bg-white border-t border-gray-200 mt-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-center text-sm text-gray-500">
-            © 2025 Payro.cz • Fakturační systém pro podnikatele a freelancery
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }

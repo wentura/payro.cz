@@ -84,6 +84,9 @@ export default async function ClientsPage() {
                       IČO
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      DIČ
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Email
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -107,20 +110,23 @@ export default async function ClientsPage() {
                     return (
                       <tr key={client.id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">
+                          <div className="text-sm font-medium text-gray-900 text-left">
                             {client.name}
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-left">
                           {client.company_id || "-"}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-left">
+                          {client.vat_number || "-"}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-left">
                           {client.contact_email || "-"}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-left">
                           {client.contact_phone || "-"}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-left">
                           {address?.city || "-"}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -146,7 +152,7 @@ export default async function ClientsPage() {
           )}
         </Card>
 
-        {/* Statistics */}
+        {/* Statistics
         {clients.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Card>
@@ -172,7 +178,7 @@ export default async function ClientsPage() {
               </div>
             </Card>
           </div>
-        )}
+        )} */}
       </div>
     </Layout>
   );

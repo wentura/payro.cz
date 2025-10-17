@@ -30,7 +30,7 @@ This is a Czech invoicing application built with Next.js 15.5.4, React 19, Tailw
   })
 - **clients**: Customer data (scoped per user), db table: id(uuid), user_id(uuid, f_key:users.id), name(text), company_id(text), address(jsonb:zip, city, street, house_number, country), contact_email(text), contact_phone(text), note(text), created_at(timestamptz)
 - **invoices**: Invoice headers with status workflow, db: id(uuid), user_id(uuid, f_key:users.id), client_id(uuid, f_key:clients.id), invoice_number(text), status_id(int8, f_key:invoice_statuses.id), due_term_id(int2, f_key:due_terms.id), currency_code(text), total_price(numeric), created_at(timestamptz), id_deleted(boolean), issue_date(date), due_date(date), payment_date(date), note(text), payment_type_id(int2, f_key:payment_types.id), currency(currency_code), total_amount(numeric),note(text), status_id(int8, f_key:invoice_statuses.id)
-- **invoice_items**: Line items for each invoice, db: id(uuid), invoice_id(uuid, f_key:invoices.id), order(int4), description(text), quantity(numeric), unit_id(int2, f_key:units.id), price_per_unit(numeric), created_at(timestamptz)
+- **invoice_items**: Line items for each invoice, db: id(uuid), invoice_id(uuid, f_key:invoices.id), order(int4), description(text), quantity(numeric), unit_id(int2, f_key:units.id), unit_price(numeric), created_at(timestamptz)
 - **invoice_statuses**: Invoice statuses (draft, sent, paid, canceled, overdue, partial paid), db: id(int8), description(text)
 - **units**: Unit types (ks, kg, hod, etc.), db: id(int2), name(text), abbreviation(text)
 - **payment_types**: Payment types (bank transfer, cash, etc.), db: id(int2), name(text)
@@ -59,7 +59,7 @@ This is a Czech invoicing application built with Next.js 15.5.4, React 19, Tailw
 #### Invoice Numbering
 
 - Auto-generated when status changes from `draft` to `sent`
-- Format: YYYY-NNNNN (e.g., 2025-0001)
+- Format: YYYY-MM-NNN (e.g., 2025-01-001)
 - Unique per user
 
 #### Payment Status
@@ -165,7 +165,7 @@ This is a Czech invoicing application built with Next.js 15.5.4, React 19, Tailw
    - Create invoices with multiple items
    - Edit draft invoices
    - Status workflow: draft → sent → paid/unpaid/canceled
-   - Automatic invoice numbering (YYYY-NNNNN format)
+   - Automatic invoice numbering (YYYY-NNNN format)
    - Due date calculation
 
 4. **✅ Invoice Items**:

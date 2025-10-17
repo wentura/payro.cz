@@ -13,7 +13,7 @@ import Select from "@/app/components/ui/Select";
 import Textarea from "@/app/components/ui/Textarea";
 import { formatCurrency } from "@/app/lib/utils";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export default function EditInvoicePage({ params }) {
   const router = useRouter();
@@ -37,12 +37,7 @@ export default function EditInvoicePage({ params }) {
 
   const [items, setItems] = useState([]);
 
-  useEffect(() => {
-    fetchInvoiceData();
-    fetchDropdownData();
-  }, []);
-
-  const fetchInvoiceData = async () => {
+  const fetchInvoiceData = useCallback(async () => {
     try {
       const response = await fetch(`/api/invoices/${params.id}`);
       const result = await response.json();
@@ -87,7 +82,12 @@ export default function EditInvoicePage({ params }) {
       setError("Chyba při načítání faktury");
       setIsLoading(false);
     }
-  };
+  }, [params.id]);
+
+  useEffect(() => {
+    fetchInvoiceData();
+    fetchDropdownData();
+  }, [fetchInvoiceData]);
 
   const fetchDropdownData = async () => {
     try {
@@ -238,10 +238,11 @@ export default function EditInvoicePage({ params }) {
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-5xl mx-auto px-2 sm:px-6 lg:px-8">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-800">Upravit fakturu</h1>
-          <p className="mt-2 text-gray-700">Upravte koncept faktury</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
+            Upravit fakturu
+          </h1>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -253,7 +254,7 @@ export default function EditInvoicePage({ params }) {
 
           {/* Invoice Header */}
           <Card title="Základní údaje">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left px-1">
               <Select
                 label="Klient"
                 name="client_id"
@@ -262,7 +263,7 @@ export default function EditInvoicePage({ params }) {
                 options={clients.map((c) => ({ value: c.id, label: c.name }))}
                 required
                 placeholder="Vyberte klienta"
-                className="text-gray-700"
+                className="text-gray-700 text-base"
               />
 
               <Input
@@ -272,7 +273,7 @@ export default function EditInvoicePage({ params }) {
                 value={formData.issue_date}
                 onChange={handleChange}
                 required
-                className="text-gray-700"
+                className="text-gray-700 text-base"
               />
 
               <Select
@@ -285,7 +286,7 @@ export default function EditInvoicePage({ params }) {
                   label: dt.name,
                 }))}
                 placeholder="Vyberte splatnost"
-                className="text-gray-700"
+                className="text-gray-700 text-base"
               />
 
               <Select
@@ -298,7 +299,7 @@ export default function EditInvoicePage({ params }) {
                   label: pt.name,
                 }))}
                 placeholder="Vyberte typ platby"
-                className="text-gray-700"
+                className="text-gray-700 text-base"
               />
 
               <Select
@@ -310,11 +311,11 @@ export default function EditInvoicePage({ params }) {
                   { value: "CZK", label: "CZK - Česká koruna" },
                   { value: "EUR", label: "EUR - Euro" },
                 ]}
-                className="text-gray-700"
+                className="text-gray-700 text-base"
               />
             </div>
 
-            <div className="mt-4">
+            <div className="mt-4 px-1 text-left">
               <Textarea
                 label="Poznámka"
                 name="note"
@@ -339,7 +340,7 @@ export default function EditInvoicePage({ params }) {
               {items.map((item, index) => (
                 <div
                   key={item.id}
-                  className="border border-gray-200 rounded-lg p-4"
+                  className="border border-gray-200 rounded-lg p-4 text-left"
                 >
                   <div className="flex justify-between items-start mb-4">
                     <h4 className="text-sm font-medium text-gray-800">
@@ -356,7 +357,7 @@ export default function EditInvoicePage({ params }) {
                     )}
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-12 gap-2">
                     <div className="md:col-span-5">
                       <Input
                         label="Popis"

@@ -16,6 +16,7 @@ import {
   formatCurrency,
   formatNumber,
 } from "@/app/lib/utils";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 
@@ -30,6 +31,7 @@ function NewInvoiceForm() {
   const [dueTerms, setDueTerms] = useState([]);
   const [paymentTypes, setPaymentTypes] = useState([]);
   const [units, setUnits] = useState([]);
+  const [subscription, setSubscription] = useState(null);
 
   const [formData, setFormData] = useState({
     client_id: preselectedClientId || "",
@@ -52,7 +54,20 @@ function NewInvoiceForm() {
 
   useEffect(() => {
     fetchDropdownData();
+    fetchSubscriptionStatus();
   }, []);
+
+  const fetchSubscriptionStatus = async () => {
+    try {
+      const response = await fetch("/api/user/subscription");
+      const data = await response.json();
+      if (data.success) {
+        setSubscription(data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching subscription:", error);
+    }
+  };
 
   const fetchDropdownData = async () => {
     try {
@@ -185,10 +200,11 @@ function NewInvoiceForm() {
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-5xl mx-auto px-2 sm:px-6 lg:px-8">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-800">Nová faktura</h1>
-          <p className="mt-2 text-gray-700">Vytvořte novou fakturu</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
+            Nová faktura
+          </h1>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -198,9 +214,92 @@ function NewInvoiceForm() {
             </div>
           )}
 
+          {/* Subscription Warning */}
+          {subscription && !subscription.canCreateInvoice && (
+            <div className="rounded-md bg-red-50 p-4">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <svg
+                    className="h-5 w-5 text-red-400"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-red-800">
+                    Měsíční limit dosažen
+                  </h3>
+                  <div className="mt-2 text-sm text-red-700">
+                    <p>
+                      Dosáhli jste měsíčního limitu{" "}
+                      {subscription.currentPlan.invoice_limit_monthly} faktur.
+                      Upgradujte svůj plán pro vytvoření dalších faktur.
+                    </p>
+                  </div>
+                  <div className="mt-4">
+                    <div className="-mx-2 -my-1.5 flex">
+                      <Link href="/subscription/upgrade">
+                        <button
+                          type="button"
+                          className="bg-red-50 px-2 py-1.5 rounded-md text-sm font-medium text-red-800 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-red-50 focus:ring-red-600"
+                        >
+                          Upgradovat plán
+                        </button>
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Usage Warning */}
+          {subscription &&
+            subscription.canCreateInvoice &&
+            subscription.usagePercentage >= 75 && (
+              <div className="rounded-md bg-yellow-50 p-4">
+                <div className="flex">
+                  <div className="flex-shrink-0">
+                    <svg
+                      className="h-5 w-5 text-yellow-400"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                  <div className="ml-3">
+                    <h3 className="text-sm font-medium text-yellow-800">
+                      Blížíte se k limitu
+                    </h3>
+                    <div className="mt-2 text-sm text-yellow-700">
+                      <p>
+                        Použili jste {subscription.currentUsage} z{" "}
+                        {subscription.currentPlan.invoice_limit_monthly} faktur
+                        tento měsíc. Zbývá vám{" "}
+                        {subscription.currentPlan.invoice_limit_monthly -
+                          subscription.currentUsage}{" "}
+                        faktura.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
           {/* Invoice Header */}
           <Card title="Základní údaje">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left px-1">
               <Select
                 label="Klient"
                 name="client_id"
@@ -209,7 +308,7 @@ function NewInvoiceForm() {
                 options={clients.map((c) => ({ value: c.id, label: c.name }))}
                 required
                 placeholder="Vyberte klienta"
-                className="text-gray-700"
+                className="text-gray-700 text-base"
               />
 
               <Input
@@ -219,7 +318,7 @@ function NewInvoiceForm() {
                 value={formData.issue_date}
                 onChange={handleChange}
                 required
-                className="text-gray-700"
+                className="text-gray-700 text-base"
               />
 
               <Select
@@ -232,7 +331,7 @@ function NewInvoiceForm() {
                   label: dt.name,
                 }))}
                 placeholder="Vyberte splatnost"
-                className="text-gray-700"
+                className="text-gray-700 text-base"
               />
 
               <Select
@@ -245,7 +344,7 @@ function NewInvoiceForm() {
                   label: pt.name,
                 }))}
                 placeholder="Vyberte typ platby"
-                className="text-gray-700"
+                className="text-gray-700 text-base"
               />
 
               <Select
@@ -257,11 +356,11 @@ function NewInvoiceForm() {
                   { value: "CZK", label: "CZK - Česká koruna" },
                   { value: "EUR", label: "EUR - Euro" },
                 ]}
-                className="text-gray-700"
+                className="text-gray-700 text-base"
               />
             </div>
 
-            <div className="mt-4">
+            <div className="mt-4 px-1 text-left">
               <Textarea
                 label="Poznámka"
                 name="note"
@@ -286,7 +385,7 @@ function NewInvoiceForm() {
               {items.map((item, index) => (
                 <div
                   key={item.id}
-                  className="border border-gray-200 rounded-lg p-4"
+                  className="border border-gray-200 rounded-lg p-4 text-left"
                 >
                   <div className="flex justify-between items-start mb-4">
                     <h4 className="text-sm font-medium text-gray-800">
@@ -303,7 +402,7 @@ function NewInvoiceForm() {
                     )}
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-12 gap-2">
                     <div className="md:col-span-5">
                       <Input
                         label="Popis"

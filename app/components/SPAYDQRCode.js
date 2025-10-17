@@ -87,11 +87,11 @@ export default function SPAYDQRCode({
   }
 
   return (
-    <div className="text-center">
+    <div className="text-center ">
       <canvas ref={canvasRef} className="mx-auto" />
-      <p className="text-xs text-black mt-2 font-mono break-all">
+      {/* <p className="text-xs text-black mt-2 font-mono break-all max-w-xs mx-auto">
         {spaydString}
-      </p>
+      </p> */}
     </div>
   );
 }

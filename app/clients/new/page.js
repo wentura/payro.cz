@@ -23,6 +23,7 @@ export default function NewClientPage() {
   const [formData, setFormData] = useState({
     name: "",
     company_id: "",
+    vat_number: "",
     contact_email: "",
     contact_phone: "",
     street: "",
@@ -76,6 +77,7 @@ export default function NewClientPage() {
       ...formData,
       name: company.name || "",
       company_id: company.company_id || "",
+      vat_number: company.dic || company.vat_number || "",
       contact_email: company.contact_email || "",
       contact_phone: company.contact_phone || "",
       street: company.address?.street || "",
@@ -90,14 +92,13 @@ export default function NewClientPage() {
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">Nový klient</h1>
-          <p className="mt-2 text-gray-600">
-            Vyplňte informace o novém klientovi
-          </p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+            Nový klient
+          </h1>
         </div>
 
         <Card>
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6 px-1 text-left">
             {error && (
               <div className="rounded-md bg-red-50 p-4">
                 <p className="text-sm text-red-800">{error}</p>
@@ -107,16 +108,16 @@ export default function NewClientPage() {
             {/* Basic Information */}
             <div>
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-medium text-gray-900">
+                <h3 className="text-base sm:text-lg font-medium text-gray-900">
                   Základní informace
                 </h3>
                 <Button
                   type="button"
                   variant="secondary"
-                  size="sm"
+                  className="text-xs sm:text-base"
                   onClick={() => setIsARESModalOpen(true)}
                 >
-                  🔍 Vyhledat v ARES
+                  Vyhledat v ARES
                 </Button>
               </div>
               <div className="grid grid-cols-1 gap-4">
@@ -129,19 +130,29 @@ export default function NewClientPage() {
                   placeholder="Jan Novák / Firma s.r.o."
                 />
 
-                <Input
-                  label="IČO"
-                  name="company_id"
-                  value={formData.company_id}
-                  onChange={handleChange}
-                  placeholder="12345678"
-                />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Input
+                    label="IČO"
+                    name="company_id"
+                    value={formData.company_id}
+                    onChange={handleChange}
+                    placeholder="12345678"
+                  />
+
+                  <Input
+                    label="DIČ"
+                    name="vat_number"
+                    value={formData.vat_number}
+                    onChange={handleChange}
+                    placeholder="CZ12345678"
+                  />
+                </div>
               </div>
             </div>
 
             {/* Contact Information */}
             <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4">
+              <h3 className="text-base sm:text-lg font-medium text-gray-900 mt-8">
                 Kontaktní údaje
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -167,7 +178,9 @@ export default function NewClientPage() {
 
             {/* Address */}
             <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Adresa</h3>
+              <h3 className="text-base sm:text-lg font-medium text-gray-900 mt-8">
+                Adresa
+              </h3>
               <div className="grid grid-cols-1 gap-4">
                 <div className="grid grid-cols-4 gap-4">
                   <Input

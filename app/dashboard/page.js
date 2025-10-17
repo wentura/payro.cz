@@ -1,4 +1,5 @@
-import Layout from "@/app/components/Layout";
+import ServerLayout from "@/app/components/ServerLayout";
+import SubscriptionStatus from "@/app/components/SubscriptionStatus";
 import Badge from "@/app/components/ui/Badge";
 import Card from "@/app/components/ui/Card";
 import { getCurrentUser } from "@/app/lib/auth";
@@ -129,68 +130,80 @@ export default async function DashboardPage() {
 
   if (!dashboardData) {
     return (
-      <Layout user={user}>
+      <ServerLayout user={user}>
         <div className="text-center py-12">
           <p className="text-gray-500">Chyba při načítání dat dashboardu</p>
         </div>
-      </Layout>
+      </ServerLayout>
     );
   }
 
   const { stats, recentInvoices } = dashboardData;
 
   return (
-    <Layout user={user}>
+    <ServerLayout user={user}>
       <div className="space-y-8">
         {/* Page Header */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-          <p className="mt-2 text-gray-600">
-            Přehled vašich faktur a statistik
-          </p>
+          <h1 className="text-3xl font-bold text-gray-900">Přehled</h1>
         </div>
 
         {/* Statistics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card>
-            <div className="text-sm font-medium text-gray-500">
-              Celkem faktur
-            </div>
-            <div className="mt-2 text-3xl font-bold text-gray-900">
-              {stats.totalInvoices}
-            </div>
-          </Card>
-
-          <Card>
-            <div className="text-sm font-medium text-gray-500">
-              Zaplacené faktury
-            </div>
-            <div className="mt-2 text-3xl font-bold text-green-600">
-              {stats.paidInvoices}
-            </div>
-          </Card>
-
-          <Card>
-            <div className="text-sm font-medium text-gray-500">
-              Nezaplacené faktury
-            </div>
-            <div className="mt-2 text-3xl font-bold text-orange-600">
-              {stats.unpaidInvoices}
-            </div>
-          </Card>
-
-          <Card>
-            <div className="text-sm font-medium text-gray-500">
-              Po splatnosti
-            </div>
-            <div className="mt-2 text-3xl font-bold text-red-600">
-              {stats.overdueInvoices}
-            </div>
-          </Card>
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Link
+            href="/invoices"
+            className="hover:no-underline hover:shadow-lg transition-all duration-300"
+          >
+            <Card>
+              <div className="text-sm font-medium text-gray-500 text-center">
+                Celkem faktur
+              </div>
+              <div className="mt-2 text-3xl font-bold text-gray-900 text-center">
+                {stats.totalInvoices}
+              </div>
+            </Card>
+          </Link>
+          <Link
+            href="/invoices/paid"
+            className="hover:no-underline hover:shadow-lg transition-all duration-300"
+          >
+            <Card>
+              <div className="text-sm font-medium text-gray-500">Zaplacené</div>
+              <div className="mt-2 text-3xl font-bold text-green-600">
+                {stats.paidInvoices}
+              </div>
+            </Card>
+          </Link>
+          <Link
+            href="/invoices/unpaid"
+            className="hover:no-underline hover:shadow-lg transition-all duration-300"
+          >
+            <Card>
+              <div className="text-sm font-medium text-gray-500">
+                Nezaplacené
+              </div>
+              <div className="mt-2 text-3xl font-bold text-orange-600">
+                {stats.unpaidInvoices}
+              </div>
+            </Card>
+          </Link>
+          <Link
+            href="/invoices/overdue"
+            className="hover:no-underline hover:shadow-lg transition-all duration-300"
+          >
+            <Card>
+              <div className="text-sm font-medium text-gray-500">
+                Po splatnosti
+              </div>
+              <div className="mt-2 text-3xl font-bold text-red-600">
+                {stats.overdueInvoices}
+              </div>
+            </Card>
+          </Link>
         </div>
 
         {/* Revenue Statistics */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card>
             <div className="text-sm font-medium text-gray-500">
               Celkový příjem
@@ -202,21 +215,21 @@ export default async function DashboardPage() {
 
           <Card>
             <div className="text-sm font-medium text-gray-500">
-              Nesplacené částky
+              Nezaplacená částka
             </div>
             <div className="mt-2 text-2xl font-bold text-gray-900">
               {formatCurrency(stats.outstandingAmount)}
             </div>
           </Card>
 
-          <Card>
+          {/* <Card>
             <div className="text-sm font-medium text-gray-500">
               Počet klientů
             </div>
             <div className="mt-2 text-2xl font-bold text-gray-900">
               {stats.clientCount}
             </div>
-          </Card>
+          </Card> */}
         </div>
 
         {/* Recent Invoices */}
@@ -244,52 +257,53 @@ export default async function DashboardPage() {
           ) : (
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
-                <thead>
+                <thead className="hidden md:table-header-group">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-1 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider md:w-44">
                       Číslo faktury
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-1 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider md:w-56">
                       Klient
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-1 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider md:w-44">
                       Datum vystavení
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-1 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider md:w-44">
                       Splatnost
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-1 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider md:w-44">
                       Částka
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-1 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider md:w-44">
                       Status
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-white divide-y divide-gray-200 text-xs">
                   {recentInvoices.map((invoice) => (
                     <tr key={invoice.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-4 whitespace-nowrap">
+                      <td className="px-2 py-2 whitespace-nowrap text-left md:w-44">
                         <Link
                           href={`/invoices/${invoice.id}`}
-                          className="text-blue-600 hover:text-blue-700 font-medium"
+                          className="text-blue-600 hover:text-blue-700 text-left"
                         >
                           {invoice.invoice_number || "Koncept"}
                         </Link>
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-2 py-4 whitespace-nowrap text-gray-900 max-w-[8ch] md:max-w-56  overflow-hidden text-ellipsis text-left">
                         {invoice.clients?.name || "N/A"}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {formatDateCZ(invoice.issue_date)}
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-2 py-4 whitespace-nowrap text-xs text-gray-900 text-left md:w-44">
                         {formatDateCZ(invoice.due_date)}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      <td className="px-2 py-4 whitespace-nowrap text-xs text-gray-900 text-left md:w-44">
+                        {formatDateCZ(invoice.issue_date)}
+                      </td>
+                      <td className="px-2 py-4 whitespace-nowrap text-xs text-gray-900 text-left md:w-44">
                         {formatCurrency(invoice.total_amount, invoice.currency)}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap">
+
+                      <td className="px-2 py-4 whitespace-nowrap hidden md:table-cell md:w-44 text-left justify-start">
                         <Badge variant={statusVariants[invoice.status_id]}>
                           {statusLabels[invoice.status_id]}
                         </Badge>
@@ -303,7 +317,7 @@ export default async function DashboardPage() {
         </Card>
 
         {/* Quick Actions */}
-        <Card title="Rychlé akce">
+        <Card title="Rychlé akce" className="mb-8">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <Link
               href="/invoices/new"
@@ -331,6 +345,8 @@ export default async function DashboardPage() {
           </div>
         </Card>
       </div>
-    </Layout>
+      {/* Subscription Status */}
+      <SubscriptionStatus />
+    </ServerLayout>
   );
 }

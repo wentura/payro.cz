@@ -1,4 +1,4 @@
-# Netlify Configuration for Payro.cz Next.js App
+# Netlify Configuration for FKTR.cz Next.js App
 
 [build]
   command = "npm run build"

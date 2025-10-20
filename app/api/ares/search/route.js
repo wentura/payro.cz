@@ -40,14 +40,14 @@ export async function POST(request) {
     }
 
     let response;
-    
+
     if (isICO) {
       // GET request for IČO lookup
       response = await fetch(searchUrl, {
         method: "GET",
         headers: {
           Accept: "application/json",
-          "User-Agent": "Payro.cz/1.0",
+          "User-Agent": "FKTR.cz/1.0",
         },
       });
     } else {
@@ -57,7 +57,7 @@ export async function POST(request) {
         headers: {
           Accept: "application/json",
           "Content-Type": "application/json",
-          "User-Agent": "Payro.cz/1.0",
+          "User-Agent": "FKTR.cz/1.0",
         },
         body: JSON.stringify({
           obchodniJmeno: cleanQuery,
@@ -120,12 +120,16 @@ function normalizeCompanyData(company) {
   const basicInfo = company.obchodniJmeno || company.nazev || "";
   const ico = company.ico || company.identifikacniCislo || "";
   const dic = company.dic || "";
-  
+
   // Extract address information - ARES API v3 structure
   const adresa = company.sidlo || company.adresa || {};
   const address = {
     street: adresa.nazevUlice || adresa.ulice || "",
-    houseNumber: adresa.cisloDomovni || adresa.cisloOrientacni || adresa.cisloPopisne || "",
+    houseNumber:
+      adresa.cisloDomovni ||
+      adresa.cisloOrientacni ||
+      adresa.cisloPopisne ||
+      "",
     city: adresa.nazevObce || adresa.obec || "",
     zip: adresa.psc || "",
     country: "Česká republika",

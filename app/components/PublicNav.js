@@ -38,12 +38,24 @@ export default function PublicNav() {
           {/* Logo */}
           <div className="flex items-center">
             <Link href="/" className="text-2xl font-bold text-blue-600">
-              Payro.cz
+              FKTR.cz
             </Link>
           </div>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-4">
+            <Link
+              href="/vseobecne-obchodni-podminky"
+              className="text-gray-700 hover:text-gray-900 px-3 py-2 text-sm font-medium transition-colors"
+            >
+              VOP
+            </Link>
+            <Link
+              href="/ochrana-osobnich-udaju"
+              className="text-gray-700 hover:text-gray-900 px-3 py-2 text-sm font-medium transition-colors"
+            >
+              GDPR
+            </Link>
             <Link
               href="/pricing"
               className="text-gray-700 hover:text-gray-900 px-3 py-2 text-sm font-medium transition-colors"

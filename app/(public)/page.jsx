@@ -1,7 +1,7 @@
 /**
  * Landing Page
  *
- * Public homepage for the Payro.cz invoicing application
+ * Public homepage for the FKTR.cz invoicing application
  * No database connection required
  */
 
@@ -14,10 +14,10 @@ export default function HomePage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <div className="text-center">
           <h1 className="text-3xl md:text-6xl font-bold mb-4 text-blue-600 pt-8">
-            Jednoduchá a rychlá fakturace
+            Fakturuj v klidu.
           </h1>
           <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-8">
-            pro podnikatele a freelancery
+            Méně kliků, více klidu.
           </h2>
 
           <p className="text-base text-gray-600 mb-8 max-w-3xl mx-auto hidden">

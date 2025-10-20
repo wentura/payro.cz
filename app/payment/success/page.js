@@ -43,12 +43,11 @@ export default async function PaymentSuccessPage({ searchParams }) {
             </div>
 
             <h1 className="text-3xl font-bold text-gray-900 mb-4">
-              Platba byla úspěšná!
+              Hotovo. FKTR Pro aktivní.
             </h1>
 
             <p className="text-lg text-gray-600 mb-8">
-              Děkujeme za upgrade vašeho předplatného. Vaše nové funkce jsou
-              nyní aktivní.
+              Děkujeme za upgrade. Tvoje nové funkce jsou nyní aktivní.
             </p>
 
             {/* Payment Details */}
@@ -168,10 +167,10 @@ export default async function PaymentSuccessPage({ searchParams }) {
               <p className="text-sm text-gray-500">
                 Máte otázky? Kontaktujte nás na{" "}
                 <a
-                  href="mailto:podpora@payro.cz"
+                  href="mailto:podpora@fktr.cz"
                   className="text-blue-600 hover:text-blue-800"
                 >
-                  info@payro.cz
+                  info@fktr.cz
                 </a>
               </p>
             </div>

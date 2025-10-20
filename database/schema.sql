@@ -1,4 +1,4 @@
--- Payro.cz Database Schema
+-- FKTR.cz Database Schema
 -- Czech Invoicing Application
 -- PostgreSQL with Supabase
 

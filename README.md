@@ -1,4 +1,4 @@
-# Payro.cz - Czech Invoicing Application
+# FKTR.cz - Czech Invoicing Application
 
 A modern invoicing application built with Next.js 15, React 19, Tailwind CSS v4, and Supabase PostgreSQL. Designed specifically for Czech market with full Czech localization.
 
@@ -36,7 +36,7 @@ A modern invoicing application built with Next.js 15, React 19, Tailwind CSS v4,
 
 ```bash
 git clone <repository-url>
-cd payro.cz
+cd fktr.cz
 ```
 
 ### 2. Install Dependencies
@@ -86,7 +86,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 ## 📁 Project Structure
 
 ```
-payro.cz/
+fktr.cz/
 ├── app/
 │   ├── api/              # API routes
 │   │   ├── auth/         # Authentication endpoints
@@ -189,7 +189,7 @@ When updating schema:
 
 ## 📝 License
 
-This project is proprietary software for Payro.cz.
+This project is proprietary software for FKTR.cz.
 
 ## 🤝 Contributing
 

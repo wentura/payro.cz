@@ -57,7 +57,7 @@ export default function SubscriptionUpgradeForm({
 
   const handleUpgrade = async () => {
     if (!selectedPlan) {
-      setError("Prosím vyberte plán");
+      setError("Vyber si plán, prosím");
       return;
     }
 

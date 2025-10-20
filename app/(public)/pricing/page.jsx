@@ -1,7 +1,7 @@
 /**
  * Pricing Page
  *
- * Public pricing page for Payro.cz with 3 tiers
+ * Public pricing page for FKTR.cz with 3 tiers
  */
 
 "use client";
@@ -22,7 +22,7 @@ export default function PricingPage() {
         {/* Header */}
         <div className="text-center mb-16">
           <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
-            Jednoduchý <span className="text-blue-600">ceník</span>
+            <span className="text-blue-600">FKTR</span> ceník
           </h1>
         </div>
 
@@ -64,7 +64,9 @@ export default function PricingPage() {
           {/* Free Tier */}
           <div className="bg-white rounded-2xl shadow-lg p-8 border-2 border-gray-200 hover:border-blue-300 transition-all">
             <div className="text-center mb-6">
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">Zdarma</h3>
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                FKTR Free
+              </h3>
               <div className="text-5xl font-bold text-gray-900 mb-4 md:mb-10">
                 0 Kč
               </div>
@@ -119,7 +121,7 @@ export default function PricingPage() {
 
             <div className="text-center mb-6">
               <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                Za 2 kávy měsíčně
+                FKTR Pro
               </h3>
               <div className="text-5xl font-bold text-blue-600 mb-2">
                 {isYearly ? `${yearlyPrice} Kč` : `${monthlyPrice} Kč`}
@@ -223,7 +225,7 @@ export default function PricingPage() {
             </div> */}
 
           {/* <Link
-              href="mailto:info@payro.cz"
+              href="mailto:info@fktr.cz"
               className="block w-full text-center bg-gray-900 text-white hover:bg-gray-800 px-6 py-3 rounded-lg font-semibold transition-colors mt-4"
             >
               Kontaktovat nás

@@ -199,10 +199,10 @@ export default async function SubscriptionPendingPage({ searchParams }) {
                       <p className="text-gray-600 text-sm">
                         v případě problémů s platbou na{" "}
                         <a
-                          href="mailto:podpora@payro.cz"
+                          href="mailto:podpora@fktr.cz"
                           className="text-blue-600 hover:text-blue-800"
                         >
-                          info@payro.cz
+                          info@fktr.cz
                         </a>
                       </p>
                     </div>
@@ -225,10 +225,10 @@ export default async function SubscriptionPendingPage({ searchParams }) {
               <p className="text-sm text-gray-500">
                 Máte otázky? Kontaktujte nás na{" "}
                 <a
-                  href="mailto:info@payro.cz"
+                  href="mailto:info@fktr.cz"
                   className="text-blue-600 hover:text-blue-800"
                 >
-                  info@payro.cz
+                  info@fktr.cz
                 </a>
               </p>
             </div>

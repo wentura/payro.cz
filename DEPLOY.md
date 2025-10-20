@@ -1,6 +1,6 @@
-# Deployment Guide - Payro.cz
+# Deployment Guide - FKTR.cz
 
-Complete guide for deploying Payro.cz to Netlify
+Complete guide for deploying FKTR.cz to Netlify
 
 ## 🚀 Quick Deploy to Netlify
 
@@ -84,12 +84,12 @@ After successful deployment:
 
 ## 🌐 Custom Domain
 
-To use `payro.cz`:
+To use `fktr.cz`:
 
 1. In Netlify: **Domain settings** → **Add custom domain**
-2. Enter: `payro.cz`
+2. Enter: `fktr.cz`
 3. Follow DNS configuration instructions
-4. Update environment variable `NEXT_PUBLIC_APP_URL` to `https://payro.cz`
+4. Update environment variable `NEXT_PUBLIC_APP_URL` to `https://fktr.cz`
 
 ---
 

@@ -12,8 +12,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "Payro.cz - Fakturační systém",
-  description: "Moderní fakturační systém pro české podnikatele",
+  title: "FKTR – fakturuj v klidu",
+  description:
+    "Minimalistická appka pro vystavení faktur. Méně kliků, více klidu.",
 };
 
 export default function RootLayout({ children }) {

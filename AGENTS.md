@@ -361,11 +361,11 @@ app/
 
 ## domain name
 
-payro.cz
+fktr.cz
 
 ## MVP Features (Complete)
 
-Payro.cz – verze 1.0 (MVP) ✅ **PRODUCTION READY**
+FKTR.cz – verze 1.0 (MVP) ✅ **PRODUCTION READY**
 
 ### DB Schema
 

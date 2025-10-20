@@ -51,7 +51,7 @@ export default function Layout({
                   href="/dashboard"
                   className="text-2xl font-bold text-blue-600"
                 >
-                  Payro.cz
+                  FKTR.cz
                 </Link>
               </div>
               <div className="hidden sm:ml-8 sm:flex sm:space-x-4">

@@ -1,4 +1,4 @@
-# TODO - Payro.cz Development Tasks
+# TODO - FKTR.cz Development Tasks
 
 ## 🎯 Payment QR Code Improvements
 

@@ -1,6 +1,6 @@
-# Payro.cz - Quick Setup Guide
+# FKTR.cz - Quick Setup Guide
 
-This guide will help you get the Payro.cz invoicing application up and running quickly.
+This guide will help you get the FKTR.cz invoicing application up and running quickly.
 
 ## ⚡ Quick Start (5 minutes)
 
@@ -114,7 +114,7 @@ Production environment variables:
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_production_key
-NEXT_PUBLIC_APP_URL=https://payro.cz
+NEXT_PUBLIC_APP_URL=https://fktr.cz
 ```
 
 ### Security Considerations

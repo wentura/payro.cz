@@ -50,7 +50,9 @@ export default function SubscriptionStatus() {
     return (
       <Card>
         <div className="text-center py-4">
-          <p className="text-gray-500">Chyba při načítání informací o plánu</p>
+          <p className="text-gray-500">
+            Něco se pokazilo. Ale klid, zkus to znovu.
+          </p>
         </div>
       </Card>
     );

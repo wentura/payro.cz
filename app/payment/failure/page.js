@@ -171,10 +171,10 @@ export default async function PaymentFailurePage({ searchParams }) {
               <p className="text-sm text-gray-500">
                 Kontaktujte nás na{" "}
                 <a
-                  href="mailto:podpora@payro.cz"
+                  href="mailto:podpora@fktr.cz"
                   className="text-blue-600 hover:text-blue-800"
                 >
-                  podpora@payro.cz
+                  podpora@fktr.cz
                 </a>{" "}
                 nebo volejte{" "}
                 <a

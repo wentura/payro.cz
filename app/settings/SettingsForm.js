@@ -101,12 +101,12 @@ export default function SettingsForm() {
       const result = await response.json();
 
       if (!response.ok || !result.success) {
-        setError(result.error || "Chyba při ukládání nastavení");
+        setError(result.error || "Něco se pokazilo. Ale klid, zkus to znovu.");
         setIsSaving(false);
         return;
       }
 
-      setSuccess("Nastavení bylo úspěšně uloženo");
+      setSuccess("Hotovo. Nastavení uložené.");
       setIsSaving(false);
 
       // Clear success message after 3 seconds
@@ -116,7 +116,7 @@ export default function SettingsForm() {
       router.refresh();
     } catch (err) {
       console.error("Error saving settings:", err);
-      setError("Neočekávaná chyba při ukládání nastavení");
+      setError("Něco se pokazilo. Ale klid, zkus to znovu.");
       setIsSaving(false);
     }
   };

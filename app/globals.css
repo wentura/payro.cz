@@ -34,13 +34,15 @@ form textarea {
 /* Print Styles */
 @media print {
   @page {
-    margin: 2cm;
+    margin: 1.5cm;
     size: A4;
   }
 
   body {
     background: white;
     color: black;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 
   /* Hide non-printable elements */
@@ -53,12 +55,22 @@ form textarea {
     padding: 0 !important;
   }
 
+  .print\:max-w-none {
+    max-width: none !important;
+  }
+
   /* Avoid page breaks inside elements */
   table,
   tr,
   td,
   th {
     page-break-inside: avoid;
+  }
+
+  /* Invoice specific print styles */
+  .invoice-print {
+    max-width: none !important;
+    padding: 0 !important;
   }
 
   /* Make sure colors print correctly */

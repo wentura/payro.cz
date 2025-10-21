@@ -53,9 +53,7 @@ export default function PaymentQRCode({ spaydString, size = 200 }) {
   return (
     <div className="flex flex-col items-center">
       <canvas ref={canvasRef} className="border-2 border-black" />
-      <p className="text-xs text-black mt-1 text-center">
-        Naskenujte pro platbu
-      </p>
+      <p className="text-xs text-black mt-1 text-center">QR kód pro platbu</p>
     </div>
   );
 }

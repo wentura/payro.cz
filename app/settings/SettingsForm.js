@@ -152,7 +152,7 @@ export default function SettingsForm() {
 
         {/* Basic Information */}
         <Card title="Základní informace" className="text-left px-1">
-          <div className="grid grid-cols-1 gap-2 sm:gap-4 text-left">
+          <div className="grid grid-cols-2 gap-2 sm:gap-4 text-left">
             <Input
               label="Jméno / Název firmy"
               name="name"

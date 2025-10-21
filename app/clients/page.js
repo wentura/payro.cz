@@ -95,7 +95,7 @@ export default async function ClientsPage() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
                       Město
                     </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Akce
                     </th>
                   </tr>
@@ -129,7 +129,7 @@ export default async function ClientsPage() {
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden md:table-cell text-left">
                           {address?.city || "-"}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium hidden md:table-cell text-left">
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium text-left">
                           <Link
                             href={`/clients/${client.id}`}
                             className="text-blue-600 hover:text-blue-900 mr-4"

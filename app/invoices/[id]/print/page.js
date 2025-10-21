@@ -125,15 +125,15 @@ export default async function InvoicePrintPage({ params }) {
       <div className="w-full max-w-4xl mx-auto p-8 bg-white min-h-screen print:p-0 print:max-w-none invoice-print flex flex-col justify-between">
         {/* Swiss Grid Header - Invoice Number + Title */}
         <div>
-          <div className="mb-6 pb-3 border-b-2 border-gray-400">
-            <h1 className="text-3xl font-bold text-gray-700 uppercase tracking-tight flex justify-between items-center">
+          <div className="mb-4 pb-2 border-b-2 border-gray-400">
+            <h1 className="text-2xl font-bold text-gray-700 uppercase tracking-tight flex justify-between items-center print:text-xl">
               <div>FAKTURA {invoice.invoice_number || "KONCEPT"}</div>
-              <div>{issuer?.name}</div>{" "}
+              <div className="text-lg">{issuer?.name}</div>
             </h1>
           </div>
 
           {/* Grid Layout - Issuer & Client Side by Side */}
-          <div className="grid grid-cols-2 gap-8 mb-6">
+          <div className="grid grid-cols-2 gap-6 mb-4">
             {/* Issuer (Dodavatel) */}
             <div>
               <h2 className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-2 pb-1 border-b border-gray-400">
@@ -197,7 +197,7 @@ export default async function InvoicePrintPage({ params }) {
           </div>
 
           {/* Invoice Metadata - Grid */}
-          <div className="grid grid-cols-3 gap-4 mb-4 pb-3 border-b border-gray-400">
+          <div className="grid grid-cols-3 gap-4 mb-3 pb-2 border-b border-gray-400">
             <div>
               <p className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-0.5">
                 Datum vystavení
@@ -237,23 +237,23 @@ export default async function InvoicePrintPage({ params }) {
           </div>
 
           {/* Items Table - Clean Swiss Grid */}
-          <div className="mb-4">
+          <div className="mb-3">
             <table className="w-full border-collapse">
               <thead>
                 <tr className="border-b-2 border-gray-400">
-                  <th className="px-2 py-2 text-left text-xs font-bold text-gray-700 uppercase tracking-wider w-2/5">
+                  <th className="px-1 py-1 text-left text-xs font-bold text-gray-700 uppercase tracking-wider w-2/5">
                     Popis položky
                   </th>
-                  <th className="px-2 py-2 text-right text-xs font-bold text-gray-700 uppercase tracking-wider w-1/6">
+                  <th className="px-1 py-1 text-right text-xs font-bold text-gray-700 uppercase tracking-wider w-1/6">
                     Množství
                   </th>
-                  <th className="px-2 py-2 text-center text-xs font-bold text-gray-700 uppercase tracking-wider w-1/12">
+                  <th className="px-1 py-1 text-center text-xs font-bold text-gray-700 uppercase tracking-wider w-1/12">
                     Jedn.
                   </th>
-                  <th className="px-2 py-2 text-right text-xs font-bold text-gray-700 uppercase tracking-wider w-1/6">
+                  <th className="px-1 py-1 text-right text-xs font-bold text-gray-700 uppercase tracking-wider w-1/6">
                     Cena/jedn.
                   </th>
-                  <th className="px-2 py-2 text-right text-xs font-bold text-gray-700 uppercase tracking-wider w-1/6">
+                  <th className="px-1 py-1 text-right text-xs font-bold text-gray-700 uppercase tracking-wider w-1/6">
                     Celkem
                   </th>
                 </tr>
@@ -261,21 +261,21 @@ export default async function InvoicePrintPage({ params }) {
               <tbody>
                 {invoice.items.map((item, index) => (
                   <tr key={item.id} className="border-b border-gray-400">
-                    <td className="px-2 py-2 text-xs text-gray-900">
+                    <td className="px-1 py-1 text-xs text-gray-900">
                       {item.description}
                     </td>
-                    <td className="px-2 py-2 text-xs text-right text-gray-700">
+                    <td className="px-1 py-1 text-xs text-right text-gray-700">
                       {formatNumber(item.quantity, 3)}
                     </td>
-                    <td className="px-2 py-2 text-xs text-center text-gray-700">
+                    <td className="px-1 py-1 text-xs text-center text-gray-700">
                       {item.unit_id && unitLookup[item.unit_id]
                         ? unitLookup[item.unit_id].abbreviation
                         : "-"}
                     </td>
-                    <td className="px-2 py-2 text-xs text-right text-gray-700">
+                    <td className="px-1 py-1 text-xs text-right text-gray-700">
                       {formatCurrency(item.unit_price, invoice.currency)}
                     </td>
-                    <td className="px-2 py-2 text-xs text-right font-bold text-gray-700">
+                    <td className="px-1 py-1 text-xs text-right font-bold text-gray-700">
                       {formatCurrency(
                         item.quantity * item.unit_price,
                         invoice.currency
@@ -288,11 +288,11 @@ export default async function InvoicePrintPage({ params }) {
                 <tr className="border-t-2 border-gray-400">
                   <td
                     colSpan="4"
-                    className="px-2 py-3 text-right text-sm font-bold text-gray-700 uppercase"
+                    className="px-1 py-2 text-right text-sm font-bold text-gray-700 uppercase"
                   >
                     Celkem k úhradě:
                   </td>
-                  <td className="px-2 py-3 text-right text-lg font-bold text-gray-700">
+                  <td className="px-1 py-2 text-right text-lg font-bold text-gray-700">
                     {formatCurrency(invoice.total_amount, invoice.currency)}
                   </td>
                 </tr>
@@ -302,7 +302,7 @@ export default async function InvoicePrintPage({ params }) {
 
           {/* Note */}
           {invoice.note && (
-            <div className="my-12">
+            <div className="mb-3">
               <h3 className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
                 Poznámka
               </h3>
@@ -314,8 +314,8 @@ export default async function InvoicePrintPage({ params }) {
 
           {/* Bank Account and QR Code */}
           {issuer?.bank_account && (
-            <div className="">
-              <div className="grid grid-cols-2 gap-6">
+            <div className="mb-3">
+              <div className="grid grid-cols-2 gap-4">
                 {/* Payment Details */}
                 <div>
                   <h3 className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
@@ -337,26 +337,20 @@ export default async function InvoicePrintPage({ params }) {
 
                 {/* QR Code */}
                 <div className="flex justify-end">
-                  <PaymentQRCode spaydString={spaydString} size={120} />
+                  <PaymentQRCode spaydString={spaydString} size={100} />
                 </div>
               </div>
             </div>
           )}
         </div>
         {/* Footer - Generated by */}
-        <div>
-          <div className="mt-4 pt-2 border-t border-gray-400">
-            <p className="text-xs text-gray-700 text-center">
-              {issuer?.name} vygeneroval fakturu v aplikaci www.fktr.cz
-            </p>
-          </div>
-
-          {/* Print Instructions */}
-          <div className="mt-6 mb-8 p-3 border-2 border-gray-400 print:hidden">
-            <p className="text-sm text-gray-700 text-center font-medium">
-              🖨️ Stiskněte Ctrl+P (Cmd+P na Mac) pro tisk nebo uložení jako PDF
-            </p>
-          </div>
+        <div className="mt-4 pt-2 border-t border-gray-400">
+          <p className="text-xs text-gray-700 text-center">
+            {issuer?.name} vygeneroval fakturu v aplikaci{" "}
+            <a href="https://www.fktr.cz" className="font-bold underline">
+              www.fktr.cz
+            </a>
+          </p>
         </div>
       </div>
     </div>

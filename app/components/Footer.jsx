@@ -7,12 +7,19 @@ export default function Footer({ user = null }) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-gray-700 text-center mb-12">
           <div>
-            <Link
-              href="/"
-              className="text-blue-600 text-2xl font-bold hidden md:block"
-            >
+            <Link href="/" className="text-blue-600 text-2xl font-bold">
               FKTR.cz
             </Link>
+            <p className="text-sm text-gray-500 my-4">
+              Službu provozuje
+              <br />
+              <a
+                href="https://www.zbyneksvoboda.cz"
+                className="text-blue-600 underline font-bold"
+              >
+                Zbyněk Svoboda
+              </a>
+            </p>
           </div>
           <div className="flex flex-col gap-2">
             <Link href="/vseobecne-obchodni-podminky">VOP</Link>
@@ -34,7 +41,15 @@ export default function Footer({ user = null }) {
               {user.company_id && <span> • IČO: {user.company_id}</span>}
             </div>
           )}
-          <div>© 2025 FKTR.cz • Fakturační systém</div>
+          <div>
+            © 2025 FKTR.cz •{" "}
+            <a
+              href="https://www.zbyneksvoboda.cz"
+              className="text-blue-600 underline font-bold"
+            >
+              Zbyněk Svoboda
+            </a>
+          </div>
         </div>
       </div>
     </footer>

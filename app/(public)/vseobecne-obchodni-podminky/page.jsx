@@ -28,14 +28,19 @@ export default function TermsOfServicePage() {
                 Službu <strong>FKTR.cz</strong> provozuje:
               </p>
               <p className="text-gray-700 mb-4">
-                <strong>Zbyněk Svoboda, IČO: [doplníš],</strong>
+                <strong>Zbyněk Svoboda, IČO: 74811002,</strong>
                 <br />
-                se sídlem [město, ulice], Česká republika.
-                <br />
-                Nejsem plátce DPH.
+                primárně pro svou osobní potřebu fakturace.
               </p>
               <p className="text-gray-700">
-                Kontakt: <strong>info@fktr.cz</strong>
+                Kontakt:{" "}
+                <a
+                  href="mailto:info@zbyneksvoboda.cz"
+                  className="text-blue-600 underline font-bold"
+                >
+                  info@zbyneksvoboda.cz
+                </a>
+                .
               </p>
             </section>
 
@@ -58,16 +63,16 @@ export default function TermsOfServicePage() {
                 3. Registrace a používání
               </h2>
               <p className="text-gray-700 mb-4">
-                Registrací si vytváříš svůj účet a souhlasíš s těmito
+                Registrací si vytváříte svůj účet a souhlasíte s těmito
                 podmínkami.
               </p>
               <p className="text-gray-700 mb-4">
-                Jsi odpovědný za údaje, které do systému zadáš (např. fakturační
-                údaje, IČO, ceny, texty faktur).
+                Jste odpovědní za údaje, které do systému zadáte (např.
+                fakturační údaje, IČO, ceny, texty faktur).
               </p>
               <p className="text-gray-700">
-                Jsi také odpovědný za to, že své přihlašovací údaje chráníš před
-                zneužitím.
+                Jste také odpovědní za to, že své přihlašovací údaje chráníte
+                před zneužitím.
               </p>
             </section>
 
@@ -91,7 +96,7 @@ export default function TermsOfServicePage() {
               </p>
               <p className="text-gray-700">
                 Předplatné se automaticky neobnovuje. Můžeš ho kdykoliv zrušit,
-                po skončení zaplaceného období přejdeš zpět na free verzi.
+                po skončení zaplaceného období přejdete zpět na free verzi.
               </p>
             </section>
 
@@ -100,7 +105,8 @@ export default function TermsOfServicePage() {
                 5. Zrušení účtu
               </h2>
               <p className="text-gray-700 mb-4">
-                Účet můžeš kdykoliv smazat nebo přestat používat.
+                Účet můžete kdykoliv smazat nebo přestat používat. (Na mazání
+                účtu pracuji.)
               </p>
               <p className="text-gray-700">
                 Služba si může vyhradit právo účet zrušit v případě porušení
@@ -113,7 +119,8 @@ export default function TermsOfServicePage() {
                 6. Odpovědnost
               </h2>
               <p className="text-gray-700 mb-4">
-                FKTR.cz funguje „tak jak je".
+                FKTR.cz funguje „tak jak je". Primárně pro mou osobní potřebu
+                fakturace.
               </p>
               <p className="text-gray-700 mb-4">
                 I když se snažím, aby vše běželo spolehlivě, neručím za
@@ -121,7 +128,7 @@ export default function TermsOfServicePage() {
               </p>
               <p className="text-gray-700">
                 Doporučuji pravidelně exportovat své faktury a klienty (XLS/JSON
-                export).
+                export). Na exportu dat pracuji.
               </p>
             </section>
 
@@ -142,8 +149,14 @@ export default function TermsOfServicePage() {
                 8. Kontakt
               </h2>
               <p className="text-gray-700">
-                Dotazy nebo připomínky piš na <strong>info@fktr.cz</strong>. Rád
-                odpovím lidsky, bez formulářů.
+                Dotazy nebo připomínky pište na{" "}
+                <a
+                  href="mailto:info@zbyneksvoboda.cz"
+                  className="text-blue-600 underline font-bold"
+                >
+                  info@zbyneksvoboda.cz
+                </a>
+                .
               </p>
             </section>
           </div>

@@ -149,8 +149,8 @@ export default async function DashboardPage() {
         </div>
 
         {/* Statistics Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Link
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-2 md:gap-4">
+          {/* <Link
             href="/invoices"
             className="hover:no-underline hover:shadow-lg transition-all duration-300"
           >
@@ -162,8 +162,8 @@ export default async function DashboardPage() {
                 {stats.totalInvoices}
               </div>
             </Card>
-          </Link>
-          <Link
+          </Link> */}
+          {/* <Link
             href="/invoices/paid"
             className="hover:no-underline hover:shadow-lg transition-all duration-300"
           >
@@ -173,7 +173,7 @@ export default async function DashboardPage() {
                 {stats.paidInvoices}
               </div>
             </Card>
-          </Link>
+          </Link> */}
           <Link
             href="/invoices/unpaid"
             className="hover:no-underline hover:shadow-lg transition-all duration-300"
@@ -203,24 +203,24 @@ export default async function DashboardPage() {
         </div>
 
         {/* Revenue Statistics */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card>
+        <div className="grid grid-cols-2 md:grid-cols-2 gap-6 mx-auto text-center">
+          <div>
             <div className="text-sm font-medium text-gray-500">
               Celkový příjem
             </div>
             <div className="mt-2 text-2xl font-bold text-gray-900">
               {formatCurrency(stats.totalRevenue)}
             </div>
-          </Card>
+          </div>
 
-          <Card>
+          <div>
             <div className="text-sm font-medium text-gray-500">
               Nezaplacená částka
             </div>
             <div className="mt-2 text-2xl font-bold text-gray-900">
               {formatCurrency(stats.outstandingAmount)}
             </div>
-          </Card>
+          </div>
 
           {/* <Card>
             <div className="text-sm font-medium text-gray-500">

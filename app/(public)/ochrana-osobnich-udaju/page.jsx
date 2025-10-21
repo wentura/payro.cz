@@ -12,21 +12,29 @@ export default function PrivacyPolicyPage() {
           <h1 className="text-3xl font-bold text-gray-900 mb-8">
             Zásady zpracování osobních údajů (GDPR)
           </h1>
-
+          <h2 className="text-2xl font-semibold text-gray-900 mb-12">
+            Nikdy nepředám jakékoliv vaše údaje třetím stranám pro marketing, či
+            jinou činnost. Nikdy. Používáním služby souhlasíte s nutným využitím
+            údajů pro správný provoz služby.
+          </h2>
           <div className="prose prose-lg max-w-none">
             <section className="mb-8">
               <h2 className="text-2xl font-semibold text-gray-900 mb-4">
                 1. Kdo údaje zpracovává
               </h2>
               <p className="text-gray-700 mb-4">
-                Provozovatel služby <strong>FKTR.cz</strong>:
+                Provozovatel služby <strong>FKTR.cz</strong> je:
               </p>
               <p className="text-gray-700 mb-4">
-                <strong>Zbyněk Svoboda, IČO: [doplníš],</strong>
+                <strong>Zbyněk Svoboda, IČO: 74811002,</strong>
                 <br />
-                [e-mail: info@fktr.cz]
-                <br />
-                Nejsem plátce DPH.
+                e-mail:{" "}
+                <a
+                  href="mailto:info@zbyneksvoboda.cz"
+                  className="text-blue-600 underline font-bold"
+                >
+                  info@zbyneksvoboda.cz
+                </a>
               </p>
             </section>
 
@@ -40,13 +48,10 @@ export default function PrivacyPolicyPage() {
               <ul className="text-gray-700 mb-4 space-y-2">
                 <li>e-mail a heslo (za účelem přihlášení),</li>
                 <li>
-                  fakturační údaje (IČO, DIČ, adresa, banka, údaje na
-                  fakturách),
+                  fakturační údaje (IČO, adresa, banka, údaje na fakturách),
                 </li>
-                <li>údaje o tvých klientech (IČO, DIČ, jméno, e-mail atd.),</li>
                 <li>
-                  základní technické informace o používání aplikace (např. IP
-                  adresa, typ prohlížeče).
+                  údaje o vašich klientech (IČO, DIČ, jméno, e-mail atd.),
                 </li>
               </ul>
             </section>
@@ -56,13 +61,13 @@ export default function PrivacyPolicyPage() {
                 3. K čemu údaje používám
               </h2>
               <ul className="text-gray-700 mb-4 space-y-2">
-                <li>vedení účtu a přihlášení,</li>
-                <li>vystavení faktur a export dat,</li>
+                <li>vedení vašeho účtu a přihlášení,</li>
+                <li>vystavení vašich faktur a export dat,</li>
                 <li>
                   zasílání informací o službě (např. upozornění na platbu,
-                  novinky),
+                  novinky o funkcích, atd.),
                 </li>
-                <li>zlepšování fungování aplikace.</li>
+                <li>zlepšování fungování služby.</li>
               </ul>
               <p className="text-gray-700">
                 Údaje nikdy neprodávám ani nepředávám třetím stranám pro
@@ -100,22 +105,22 @@ export default function PrivacyPolicyPage() {
                   faktury a účetní záznamy: <strong>min. 5 let</strong> (účetní
                   povinnost),
                 </li>
-                <li>běžná uživatelská data: dokud máš účet,</li>
+                <li>běžná uživatelská data: dokud máte účet,</li>
                 <li>po smazání účtu: data budou odstraněna do 30 dnů.</li>
               </ul>
             </section>
 
             <section className="mb-8">
               <h2 className="text-2xl font-semibold text-gray-900 mb-4">
-                6. Tvoje práva
+                6. Vaše práva
               </h2>
-              <p className="text-gray-700 mb-4">Máš právo:</p>
+              <p className="text-gray-700 mb-4">Máte právo:</p>
               <ul className="text-gray-700 mb-4 space-y-2">
                 <li>vidět, jaké údaje o tobě vedu,</li>
                 <li>nechat je opravit nebo smazat,</li>
                 <li>přenést je (export XLS/JSON),</li>
                 <li>
-                  podat stížnost na ÚOOÚ (pokud si myslíš, že s daty zacházím
+                  podat stížnost na ÚOOÚ (pokud si myslíte, že s daty zacházím
                   špatně).
                 </li>
               </ul>
@@ -139,7 +144,12 @@ export default function PrivacyPolicyPage() {
                 8. Kontakt na správce dat
               </h2>
               <p className="text-gray-700 mb-4">
-                <strong>info@fktr.cz</strong>
+                <a
+                  href="mailto:info@zbyneksvoboda.cz"
+                  className="text-blue-600 underline font-bold"
+                >
+                  info@zbyneksvoboda.cz
+                </a>
               </p>
               <p className="text-gray-700">
                 Na jakékoliv dotazy o ochraně dat odpovídám osobně.
@@ -153,12 +163,12 @@ export default function PrivacyPolicyPage() {
               <p className="text-gray-700 mb-4">
                 FKTR.cz je malý a férový nástroj.
               </p>
-              <p className="text-gray-700 mb-4">Tvá data jsou tvoje.</p>
+              <p className="text-gray-700 mb-4">Vaše data jsou vaše.</p>
               <p className="text-gray-700 mb-4">
                 Nepoužívám žádné reklamní systémy, cookies ani tracking.
               </p>
               <p className="text-gray-700">
-                Chci, aby sis mohl faktury řešit jednoduše, v klidu a bez
+                Chci, abyste si mohli faktury řešit jednoduše, v klidu a bez
                 byrokracie.
               </p>
             </div>

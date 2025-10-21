@@ -40,7 +40,7 @@ export default function Layout({
   };
 
   return (
-    <div className={`${className} bg-gray-50`}>
+    <div className={`${className} bg-gray-50 w-full`}>
       {/* Top Navigation */}
       <nav className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -75,17 +75,6 @@ export default function Layout({
             <div className="flex items-center">
               <div className="hidden sm:block">
                 <div className="flex items-center space-x-4">
-                  {user && (
-                    <div className="text-sm text-gray-700">
-                      <span className="font-medium">{user.name}</span>
-                      {user.company_id && (
-                        <span className="text-gray-500">
-                          {" "}
-                          • IČO: {user.company_id}
-                        </span>
-                      )}
-                    </div>
-                  )}
                   <button
                     onClick={handleLogout}
                     className="text-sm text-gray-700 hover:text-gray-900 cursor-pointer"
@@ -151,7 +140,7 @@ export default function Layout({
       </nav>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-8 w-full">
         {children}
       </main>
       <Footer user={user ? user : null} />

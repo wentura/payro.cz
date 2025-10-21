@@ -86,21 +86,33 @@ export default async function OverdueInvoicesPage() {
     <Layout user={user}>
       <div className="space-y-6">
         {/* Page Header */}
-        <div className="flex justify-between items-center">
-          <div>
+        <div className="flex justify-between text-center md:text-left">
+          <div className="mx-auto md:mx-0">
             <h1 className="text-3xl font-bold text-gray-900">Po splatnosti</h1>
             <p className="mt-2 text-gray-600">
               Přehled všech faktur po splatnosti ({invoices.length})
             </p>
           </div>
-          <div className="flex space-x-3">
+          <div className="space-x-3 hidden md:flex">
             <Link href="/invoices">
               <Button variant="secondary">Všechny faktury</Button>
+            </Link>
+            <Link href="/invoices/unpaid">
+              <Button variant="secondary">Nezaplacené</Button>
+            </Link>
+            <Link href="/invoices/paid">
+              <Button variant="secondary">Zaplacené</Button>
             </Link>
             <Link href="/invoices/new">
               <Button variant="primary">+ Nová faktura</Button>
             </Link>
           </div>
+        </div>
+        <div className="flex space-x-3 md:hidden text-blue-600 hover:text-blue-900 justify-center">
+          <Link href="/invoices">Všechny faktury</Link>
+          <Link href="/invoices/unpaid">Nezaplacené</Link>
+          <Link href="/invoices/paid">Zaplacené</Link>
+          <Link href="/invoices/new">Nová faktura</Link>
         </div>
 
         {/* Overdue Invoices List */}
@@ -134,7 +146,7 @@ export default async function OverdueInvoicesPage() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Klient
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
                       Datum vystavení
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -146,10 +158,10 @@ export default async function OverdueInvoicesPage() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Částka
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
                       Status
                     </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
                       Akce
                     </th>
                   </tr>
@@ -165,7 +177,7 @@ export default async function OverdueInvoicesPage() {
 
                     return (
                       <tr key={invoice.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className="px-6 py-4 whitespace-nowrap text-left">
                           <Link
                             href={`/invoices/${invoice.id}`}
                             className="text-blue-600 hover:text-blue-900 font-medium"
@@ -173,16 +185,16 @@ export default async function OverdueInvoicesPage() {
                             {invoice.invoice_number || "Koncept"}
                           </Link>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 max-w-[8ch] md:max-w-56 overflow-hidden text-ellipsis text-left">
                           {invoice.clients?.name || "N/A"}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden md:table-cell text-left">
                           {formatDateCZ(invoice.issue_date)}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-left">
                           {formatDateCZ(invoice.due_date)}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-left">
                           <span
                             className={`px-2 py-1 rounded-full text-xs ${
                               daysOverdue <= 7
@@ -195,19 +207,19 @@ export default async function OverdueInvoicesPage() {
                             {daysOverdue} dní
                           </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-left text-gray-900">
                           {formatCurrency(
                             invoice.total_amount,
                             invoice.currency
                           )}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className="px-6 py-4 whitespace-nowrap hidden md:table-cell text-left">
                           <Badge variant="overdue">Po splatnosti</Badge>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium hidden md:table-cell text-left">
                           <Link
                             href={`/invoices/${invoice.id}`}
-                            className="text-blue-600 hover:text-blue-900"
+                            className="text-blue-600 hover:text-blue-900 hidden md:table-cell"
                           >
                             Detail
                           </Link>

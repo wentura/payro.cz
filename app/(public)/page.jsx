@@ -17,24 +17,25 @@ export default function HomePage() {
             Fakturuj v klidu.
           </h1>
           <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-8">
-            Méně kliků, více klidu.
+            Méně kliků, více času.
           </h2>
 
           <p className="text-base text-gray-600 mb-8 max-w-3xl mx-auto hidden">
             Minimalistický fakturační systém postavený přímo pro české
             podnikatele a freelancery. Vytvářejte faktury, spravujte klienty a
-            sledujte splatnosti faktur na jednom místě.
+            sledujte splatnosti faktur na jednom místě. A využij více času na
+            to, co vás baví.
           </p>
           <div className="flex justify-center space-x-4">
-            {/* <Link
+            <Link
               href="/register"
-              className="bg-blue-600 text-white hover:bg-blue-700 px-8 py-4 rounded-lg text-lg font-semibold transition-colors shadow-lg hover:shadow-xl"
+              className="bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-lg text-lg font-semibold transition-colors shadow-lg hover:shadow-xl"
             >
-              Začít zdarma →
-            </Link> */}
+              Začít zdarma
+            </Link>
             <Link
               href="/login"
-              className="bg-white text-gray-700 hover:bg-gray-50 px-8 py-4 rounded-lg text-lg font-semibold transition-colors shadow-md border border-gray-200"
+              className="bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-lg text-lg font-semibold transition-colors shadow-md border border-gray-200"
             >
               Přihlásit se
             </Link>
@@ -94,7 +95,8 @@ export default function HomePage() {
                   Automatické číslování
                 </h4>
                 <p className="text-gray-600">
-                  Formát YYYY-MM-xxx, automaticky při odeslání faktury
+                  Formát YYYY-MM-xxx, automaticky při &quot;odeslání&quot;
+                  faktury
                 </p>
               </div>
             </div>

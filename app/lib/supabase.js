@@ -7,13 +7,37 @@
 
 import { createClient } from "@supabase/supabase-js";
 
-// Validate environment variables
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+/**
+ * Read Supabase environment variables with sensible fallbacks.
+ * Supports both public (NEXT_PUBLIC_) and server-only naming.
+ */
+function getSupabaseConfig() {
+  const url =
+    process.env.NEXT_PUBLIC_SUPABASE_URL ||
+    process.env.SUPABASE_URL ||
+    "";
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn("⚠️  Supabase environment variables are not configured");
+  const anonKey =
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+    process.env.SUPABASE_ANON_KEY ||
+    "";
+
+  if (!url || !anonKey) {
+    const missing = [];
+    if (!url) missing.push("NEXT_PUBLIC_SUPABASE_URL (or SUPABASE_URL)");
+    if (!anonKey) missing.push("NEXT_PUBLIC_SUPABASE_ANON_KEY (or SUPABASE_ANON_KEY)");
+
+    throw new Error(
+      `Supabase environment variables are not configured. Missing: ${missing.join(
+        ", "
+      )}`
+    );
+  }
+
+  return { url, anonKey };
 }
+
+const { url: supabaseUrl, anonKey: supabaseAnonKey } = getSupabaseConfig();
 
 /**
  * Creates a Supabase client instance

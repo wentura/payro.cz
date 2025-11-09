@@ -294,10 +294,10 @@ export default async function DashboardPage() {
                         {invoice.clients?.name || "N/A"}
                       </td>
                       <td className="px-2 py-4 whitespace-nowrap text-xs text-gray-900 text-left md:w-44">
-                        {formatDateCZ(invoice.due_date)}
+                      {formatDateCZ(invoice.issue_date)}
                       </td>
                       <td className="px-2 py-4 whitespace-nowrap text-xs text-gray-900 text-left md:w-44">
-                        {formatDateCZ(invoice.issue_date)}
+                        {formatDateCZ(invoice.due_date)}
                       </td>
                       <td className="px-2 py-4 whitespace-nowrap text-xs text-gray-900 text-left md:w-44">
                         {formatCurrency(invoice.total_amount, invoice.currency)}

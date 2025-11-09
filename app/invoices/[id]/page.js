@@ -112,6 +112,43 @@ export default async function InvoiceDetailPage({ params }) {
     return acc;
   }, {});
 
+  const showUnitPriceColumn = invoice.items.some((item) => {
+    if (
+      item.unit_price === null ||
+      item.unit_price === undefined ||
+      item.unit_price === ""
+    ) {
+      return false;
+    }
+
+    const numericUnitPrice = Number(item.unit_price);
+    return !Number.isNaN(numericUnitPrice) && numericUnitPrice !== 0;
+  });
+
+  const showQuantityColumn = invoice.items.some((item) => {
+    const quantity =
+      item.quantity !== null && item.quantity !== undefined
+        ? Number(item.quantity)
+        : null;
+
+    return quantity !== null && !Number.isNaN(quantity) && quantity !== 1;
+  });
+
+  const showUnitColumn = invoice.items.some((item) => {
+    if (!item.unit_id) {
+      return false;
+    }
+
+    const unit = unitLookup[item.unit_id];
+    return Boolean(unit?.abbreviation);
+  });
+
+  const totalLabelColSpan =
+    2 +
+    (showQuantityColumn ? 1 : 0) +
+    (showUnitColumn ? 1 : 0) +
+    (showUnitPriceColumn ? 1 : 0);
+
   return (
     <Layout user={user}>
       <div className="space-y-6">
@@ -247,12 +284,21 @@ export default async function InvoiceDetailPage({ params }) {
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                     Popis
                   </th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">
-                    Množství
-                  </th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">
-                    Cena/jedn.
-                  </th>
+                  {showQuantityColumn && (
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                      Množství
+                    </th>
+                  )}
+                  {showUnitColumn && (
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                      Jedn.
+                    </th>
+                  )}
+                  {showUnitPriceColumn && (
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                      Cena/jedn.
+                    </th>
+                  )}
                   <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">
                     Celkem
                   </th>
@@ -265,22 +311,58 @@ export default async function InvoiceDetailPage({ params }) {
                       {index + 1}
                     </td>
                     <td className="px-4 py-4 text-sm text-gray-900 text-left">
-                      {item.description}
+                      <div>{item.description}</div>
+                      {!showQuantityColumn &&
+                        !showUnitColumn &&
+                        item.unit_id &&
+                        unitLookup[item.unit_id]?.abbreviation && (
+                          <div className="text-xs text-gray-500">
+                            Jednotka: {unitLookup[item.unit_id].abbreviation}
+                          </div>
+                        )}
                     </td>
-                    <td className="px-4 py-4 text-sm text-right text-gray-900">
-                      {formatNumber(item.quantity, item.unit_id < 3 ? 0 : 3)}{" "}
-                      {item.unit_id && unitLookup[item.unit_id]
-                        ? unitLookup[item.unit_id].abbreviation
-                        : "-"}
-                    </td>
-                    <td className="px-4 py-4 text-sm text-right text-gray-900">
-                      {formatCurrency(item.unit_price, invoice.currency)}
-                    </td>
+                    {showQuantityColumn && (
+                      <td className="px-4 py-4 text-sm text-right text-gray-900">
+                        {item.quantity !== null && item.quantity !== undefined
+                          ? formatNumber(
+                              item.quantity,
+                              item.unit_id < 3 ? 0 : 3
+                            )
+                          : "-"}
+                        {item.unit_id &&
+                          unitLookup[item.unit_id]?.abbreviation &&
+                          ` ${unitLookup[item.unit_id].abbreviation}`}
+                      </td>
+                    )}
+                    {showUnitColumn && (
+                      <td className="px-4 py-4 text-sm text-right text-gray-900">
+                        {item.unit_id && unitLookup[item.unit_id]
+                          ? unitLookup[item.unit_id].abbreviation
+                          : "-"}
+                      </td>
+                    )}
+                    {showUnitPriceColumn && (
+                      <td className="px-4 py-4 text-sm text-right text-gray-900">
+                        {item.unit_price !== null &&
+                        item.unit_price !== undefined &&
+                        item.unit_price !== "" &&
+                        Number(item.unit_price) !== 0
+                          ? formatCurrency(item.unit_price, invoice.currency)
+                          : "-"}
+                      </td>
+                    )}
                     <td className="px-4 py-4 text-sm text-right font-medium text-gray-900">
-                      {formatCurrency(
-                        item.quantity * item.unit_price,
-                        invoice.currency
-                      )}
+                      {item.quantity !== null &&
+                      item.quantity !== undefined &&
+                      item.unit_price !== null &&
+                      item.unit_price !== undefined &&
+                      item.unit_price !== "" &&
+                      Number(item.unit_price) !== 0
+                        ? formatCurrency(
+                            item.quantity * item.unit_price,
+                            invoice.currency
+                          )
+                        : "-"}
                     </td>
                   </tr>
                 ))}
@@ -288,7 +370,7 @@ export default async function InvoiceDetailPage({ params }) {
               <tfoot className="border-t-2 border-gray-300">
                 <tr>
                   <td
-                    colSpan="4"
+                    colSpan={totalLabelColSpan}
                     className="px-4 py-4 text-right text-base font-bold text-gray-900"
                   >
                     Celkem k úhradě:

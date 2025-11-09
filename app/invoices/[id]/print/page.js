@@ -95,6 +95,43 @@ export default async function InvoicePrintPage({ params }) {
     return acc;
   }, {});
 
+  const showUnitPriceColumn = invoice.items.some((item) => {
+    if (
+      item.unit_price === null ||
+      item.unit_price === undefined ||
+      item.unit_price === ""
+    ) {
+      return false;
+    }
+
+    const numericUnitPrice = Number(item.unit_price);
+    return !Number.isNaN(numericUnitPrice) && numericUnitPrice !== 0;
+  });
+
+  const showQuantityColumn = invoice.items.some((item) => {
+    const quantity =
+      item.quantity !== null && item.quantity !== undefined
+        ? Number(item.quantity)
+        : null;
+
+    return quantity !== null && !Number.isNaN(quantity) && quantity !== 1;
+  });
+
+  const showUnitColumn = invoice.items.some((item) => {
+    if (!item.unit_id) {
+      return false;
+    }
+
+    const unit = unitLookup[item.unit_id];
+    return Boolean(unit?.abbreviation);
+  });
+
+  const totalLabelColSpan =
+    1 +
+    (showQuantityColumn ? 1 : 0) +
+    (showUnitColumn ? 1 : 0) +
+    (showUnitPriceColumn ? 1 : 0);
+
   const issuerBilling =
     typeof issuer?.billing_details === "string"
       ? JSON.parse(issuer.billing_details)
@@ -244,15 +281,21 @@ export default async function InvoicePrintPage({ params }) {
                   <th className="px-1 py-1 text-left text-xs font-bold text-gray-700 uppercase tracking-wider w-2/5">
                     Popis položky
                   </th>
-                  <th className="px-1 py-1 text-right text-xs font-bold text-gray-700 uppercase tracking-wider w-1/6">
-                    Množství
-                  </th>
-                  <th className="px-1 py-1 text-center text-xs font-bold text-gray-700 uppercase tracking-wider w-1/12">
-                    Jedn.
-                  </th>
-                  <th className="px-1 py-1 text-right text-xs font-bold text-gray-700 uppercase tracking-wider w-1/6">
-                    Cena/jedn.
-                  </th>
+                  {showQuantityColumn && (
+                    <th className="px-1 py-1 text-right text-xs font-bold text-gray-700 uppercase tracking-wider w-1/6">
+                      Množství
+                    </th>
+                  )}
+                  {showUnitColumn && (
+                    <th className="px-1 py-1 text-center text-xs font-bold text-gray-700 uppercase tracking-wider w-1/12">
+                      Jedn.
+                    </th>
+                  )}
+                  {showUnitPriceColumn && (
+                    <th className="px-1 py-1 text-right text-xs font-bold text-gray-700 uppercase tracking-wider w-1/6">
+                      Cena/jedn.
+                    </th>
+                  )}
                   <th className="px-1 py-1 text-right text-xs font-bold text-gray-700 uppercase tracking-wider w-1/6">
                     Celkem
                   </th>
@@ -264,22 +307,45 @@ export default async function InvoicePrintPage({ params }) {
                     <td className="px-1 py-1 text-xs text-gray-900">
                       {item.description}
                     </td>
-                    <td className="px-1 py-1 text-xs text-right text-gray-700">
-                      {formatNumber(item.quantity, 3)}
-                    </td>
-                    <td className="px-1 py-1 text-xs text-center text-gray-700">
-                      {item.unit_id && unitLookup[item.unit_id]
-                        ? unitLookup[item.unit_id].abbreviation
-                        : "-"}
-                    </td>
-                    <td className="px-1 py-1 text-xs text-right text-gray-700">
-                      {formatCurrency(item.unit_price, invoice.currency)}
-                    </td>
+                    {showQuantityColumn && (
+                      <td className="px-1 py-1 text-xs text-right text-gray-700">
+                        {item.quantity !== null && item.quantity !== undefined
+                          ? formatNumber(item.quantity, 3)
+                          : "-"}
+                        {item.unit_id &&
+                          unitLookup[item.unit_id]?.abbreviation &&
+                          ` ${unitLookup[item.unit_id].abbreviation}`}
+                      </td>
+                    )}
+                    {showUnitColumn && (
+                      <td className="px-1 py-1 text-xs text-center text-gray-700">
+                        {item.unit_id && unitLookup[item.unit_id]
+                          ? unitLookup[item.unit_id].abbreviation
+                          : "-"}
+                      </td>
+                    )}
+                    {showUnitPriceColumn && (
+                      <td className="px-1 py-1 text-xs text-right text-gray-700">
+                        {item.unit_price !== null &&
+                        item.unit_price !== undefined &&
+                        item.unit_price !== "" &&
+                        Number(item.unit_price) !== 0
+                          ? formatCurrency(item.unit_price, invoice.currency)
+                          : "-"}
+                      </td>
+                    )}
                     <td className="px-1 py-1 text-xs text-right font-bold text-gray-700">
-                      {formatCurrency(
-                        item.quantity * item.unit_price,
-                        invoice.currency
-                      )}
+                      {item.quantity !== null &&
+                      item.quantity !== undefined &&
+                      item.unit_price !== null &&
+                      item.unit_price !== undefined &&
+                      item.unit_price !== "" &&
+                      Number(item.unit_price) !== 0
+                        ? formatCurrency(
+                            item.quantity * item.unit_price,
+                            invoice.currency
+                          )
+                        : "-"}
                     </td>
                   </tr>
                 ))}
@@ -287,7 +353,7 @@ export default async function InvoicePrintPage({ params }) {
               <tfoot>
                 <tr className="border-t-2 border-gray-400">
                   <td
-                    colSpan="4"
+                    colSpan={totalLabelColSpan}
                     className="px-1 py-2 text-right text-sm font-bold text-gray-700 uppercase"
                   >
                     Celkem k úhradě:

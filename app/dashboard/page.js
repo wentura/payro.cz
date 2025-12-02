@@ -20,7 +20,7 @@ import { redirect } from "next/navigation";
 
 async function getDashboardData(userId) {
   try {
-    // Get invoice statistics
+    // Get invoice statistics (exclude cancelled invoices)
     const { data: invoices, error: invoicesError } = await supabase
       .from("invoices")
       .select(
@@ -42,6 +42,7 @@ async function getDashboardData(userId) {
       )
       .eq("user_id", userId)
       .eq("is_deleted", false)
+      .neq("status_id", 4) // Exclude cancelled invoices (status_id = 4)
       .order("created_at", { ascending: false });
 
     if (invoicesError) {
@@ -142,7 +143,7 @@ export default async function DashboardPage() {
 
   return (
     <ServerLayout user={user}>
-      <div className="space-y-8">
+      <div className="max-w-7xl mx-auto space-y-6">
         {/* Page Header */}
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Přehled</h1>

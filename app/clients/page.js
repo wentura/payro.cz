@@ -42,8 +42,8 @@ export default async function ClientsPage() {
   const clients = await getClients(user.id);
 
   return (
-    <Layout user={user} className="flex-grow flex flex-col">
-      <div className="space-y-6 w-full mx-auto">
+    <Layout user={user}>
+      <div className="max-w-7xl mx-auto space-y-6">
         {/* Page Header */}
         <div className="flex justify-between items-center">
           <div className="mx-auto md:mx-0">

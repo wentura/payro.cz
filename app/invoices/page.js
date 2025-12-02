@@ -72,7 +72,8 @@ export default async function InvoicesPage({ searchParams }) {
     redirect("/login");
   }
 
-  const includeCancelled = searchParams?.showCancelled === "true";
+  const params = await searchParams;
+  const includeCancelled = params?.showCancelled === "true";
   const invoices = await getInvoices(user.id, includeCancelled);
 
   return (

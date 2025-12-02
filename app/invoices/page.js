@@ -7,6 +7,7 @@ import { supabase } from "@/app/lib/supabase";
 import { formatCurrency, formatDateCZ } from "@/app/lib/utils";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import ShowCancelledToggle from "./ShowCancelledToggle";
 
 /**
  * Invoices List Page
@@ -14,9 +15,9 @@ import { redirect } from "next/navigation";
  * Displays all invoices with filtering and search
  */
 
-async function getInvoices(userId) {
+async function getInvoices(userId, includeCancelled = false) {
   try {
-    const { data, error } = await supabase
+    let query = supabase
       .from("invoices")
       .select(
         `
@@ -25,8 +26,14 @@ async function getInvoices(userId) {
       `
       )
       .eq("user_id", userId)
-      .eq("is_deleted", false)
-      .order("created_at", { ascending: false });
+      .eq("is_deleted", false);
+
+    // Exclude cancelled invoices (status_id = 4) unless explicitly included
+    if (!includeCancelled) {
+      query = query.neq("status_id", 4);
+    }
+
+    const { data, error } = await query.order("created_at", { ascending: false });
 
     if (error) {
       console.error("Error fetching invoices:", error);
@@ -58,18 +65,19 @@ const statusVariants = {
   6: "partial_paid",
 };
 
-export default async function InvoicesPage() {
+export default async function InvoicesPage({ searchParams }) {
   const user = await getCurrentUser();
 
   if (!user) {
     redirect("/login");
   }
 
-  const invoices = await getInvoices(user.id);
+  const includeCancelled = searchParams?.showCancelled === "true";
+  const invoices = await getInvoices(user.id, includeCancelled);
 
   return (
     <Layout user={user} className="flex-grow flex flex-col">
-      <div className="space-y-6">
+      <div className="max-w-7xl mx-auto space-y-6">
         {/* Page Header */}
         <div className="flex justify-between items-center">
           <div>
@@ -80,6 +88,9 @@ export default async function InvoicesPage() {
             <Button variant="primary">+ Nová faktura</Button>
           </Link>
         </div>
+
+        {/* Filter Toggle */}
+        <ShowCancelledToggle includeCancelled={includeCancelled} />
 
         {/* Invoices List */}
         <Card>

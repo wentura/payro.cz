@@ -18,7 +18,9 @@ export default async function SettingsPage() {
 
   return (
     <Layout user={user}>
-      <SettingsForm />
+      <div className="max-w-7xl mx-auto">
+        <SettingsForm />
+      </div>
     </Layout>
   );
 }

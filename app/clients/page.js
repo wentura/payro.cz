@@ -43,7 +43,7 @@ export default async function ClientsPage() {
 
   return (
     <Layout user={user}>
-      <div className="space-y-6">
+      <div className="max-w-7xl mx-auto space-y-6">
         {/* Page Header */}
         <div className="flex justify-between items-center">
           <div>

@@ -31,6 +31,12 @@ form textarea {
   color: #374151;
 }
 
+/* Dotted grid background pattern */
+.bg-dotted-grid {
+  background-image: radial-gradient(circle, rgba(99, 102, 241, 0.2) 1.5px, transparent 1.5px);
+  background-size: 21px 21px;
+}
+
 /* Print Styles */
 @media print {
   @page {

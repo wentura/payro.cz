@@ -90,7 +90,8 @@ export default async function InvoiceDetailPage({ params }) {
     redirect("/login");
   }
 
-  const invoice = await getInvoice(params.id, user.id);
+  const { id } = await params;
+  const invoice = await getInvoice(id, user.id);
   const units = await getUnits();
 
   if (!invoice) {

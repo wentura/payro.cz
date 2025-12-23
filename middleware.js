@@ -2,6 +2,7 @@
  * Next.js Middleware
  *
  * Handles route protection and authentication
+ * Note: In Next.js 16, middleware is still supported but deprecated in favor of proxy
  */
 
 import { NextResponse } from "next/server";
@@ -67,3 +68,4 @@ export const config = {
     "/((?!api|_next/static|_next/image|favicon.ico|.*\\.svg|.*\\.png|.*\\.jpg|.*\\.jpeg|.*\\.gif|.*\\.webp).*)",
   ],
 };
+

@@ -4,6 +4,7 @@ import Badge from "@/app/components/ui/Badge";
 import Card from "@/app/components/ui/Card";
 import { getCurrentUser } from "@/app/lib/auth";
 import { supabase } from "@/app/lib/supabase";
+import { getSubscriptionData } from "@/app/lib/services/getSubscriptionData";
 import {
   formatCurrency,
   formatDateCZ,
@@ -135,8 +136,11 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
-  // Get dashboard data
-  const dashboardData = await getDashboardData(user.id);
+  // Get dashboard data and subscription data in parallel
+  const [dashboardData, subscriptionData] = await Promise.all([
+    getDashboardData(user.id),
+    getSubscriptionData(user.id),
+  ]);
 
   if (!dashboardData) {
     return (
@@ -356,7 +360,7 @@ export default async function DashboardPage() {
         </Card>
       </div>
       {/* Subscription Status */}
-      <SubscriptionStatus />
+      <SubscriptionStatus subscription={subscriptionData} />
     </ServerLayout>
   );
 }

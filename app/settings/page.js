@@ -1,5 +1,6 @@
 import Layout from "@/app/components/Layout";
 import { getCurrentUser } from "@/app/lib/auth";
+import { getUserProfile } from "@/app/lib/services/getUserProfile";
 import { redirect } from "next/navigation";
 import SettingsForm from "./SettingsForm";
 
@@ -16,10 +17,24 @@ export default async function SettingsPage() {
     redirect("/login");
   }
 
+  const userData = await getUserProfile(user.id);
+
+  if (!userData) {
+    return (
+      <Layout user={user}>
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center py-12">
+            <p className="text-red-500">Chyba při načítání uživatelských dat</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
   return (
     <Layout user={user}>
       <div className="max-w-7xl mx-auto">
-        <SettingsForm />
+        <SettingsForm userData={userData} />
       </div>
     </Layout>
   );

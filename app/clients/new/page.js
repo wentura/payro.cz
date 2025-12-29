@@ -6,13 +6,19 @@
  * Form for creating a new client
  */
 
-import ARESModal from "@/app/components/ARESModal";
 import Button from "@/app/components/ui/Button";
 import Card from "@/app/components/ui/Card";
 import Input from "@/app/components/ui/Input";
 import Textarea from "@/app/components/ui/Textarea";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+
+// Lazy load ARESModal - it's only needed when user clicks "Vyhledat v ARES"
+const ARESModal = dynamic(() => import("@/app/components/ARESModal"), {
+  ssr: false,
+  loading: () => null, // Don't show loading state for modal
+});
 
 export default function NewClientPage() {
   const router = useRouter();

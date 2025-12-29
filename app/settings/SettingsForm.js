@@ -4,77 +4,40 @@
  * Settings Form Component
  *
  * Client component for user settings form
+ * Receives userData as props (loaded on server)
  */
 
 import Button from "@/app/components/ui/Button";
 import Card from "@/app/components/ui/Card";
 import Input from "@/app/components/ui/Input";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
-export default function SettingsForm() {
+export default function SettingsForm({ userData }) {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
+  // Parse billing details from user data
+  const billing =
+    typeof userData.billing_details === "string"
+      ? JSON.parse(userData.billing_details)
+      : userData.billing_details || {};
+
   const [formData, setFormData] = useState({
-    name: "",
-    company_id: "",
-    contact_email: "",
-    contact_phone: "",
-    contact_website: "",
-    bank_account: "",
-    street: "",
-    house_number: "",
-    city: "",
-    zip: "",
-    country: "Česká republika",
+    name: userData.name || "",
+    company_id: userData.company_id || "",
+    contact_email: userData.contact_email || "",
+    contact_phone: userData.contact_phone || "",
+    contact_website: userData.contact_website || "",
+    bank_account: userData.bank_account || "",
+    street: billing.street || "",
+    house_number: billing.house_number || "",
+    city: billing.city || "",
+    zip: billing.zip || "",
+    country: billing.country || "Česká republika",
   });
-
-  useEffect(() => {
-    fetchUserData();
-  }, []);
-
-  const fetchUserData = async () => {
-    try {
-      const response = await fetch("/api/user/profile");
-      const result = await response.json();
-
-      if (!response.ok || !result.success) {
-        setError("Chyba při načítání uživatelských dat");
-        setIsLoading(false);
-        return;
-      }
-
-      const user = result.data;
-      const billing =
-        typeof user.billing_details === "string"
-          ? JSON.parse(user.billing_details)
-          : user.billing_details || {};
-
-      setFormData({
-        name: user.name || "",
-        company_id: user.company_id || "",
-        contact_email: user.contact_email || "",
-        contact_phone: user.contact_phone || "",
-        contact_website: user.contact_website || "",
-        bank_account: user.bank_account || "",
-        street: billing.street || "",
-        house_number: billing.house_number || "",
-        city: billing.city || "",
-        zip: billing.zip || "",
-        country: billing.country || "Česká republika",
-      });
-
-      setIsLoading(false);
-    } catch (err) {
-      console.error("Error fetching user data:", err);
-      setError("Neočekávaná chyba při načítání dat");
-      setIsLoading(false);
-    }
-  };
 
   const handleChange = (e) => {
     setFormData({
@@ -120,14 +83,6 @@ export default function SettingsForm() {
       setIsSaving(false);
     }
   };
-
-  if (isLoading) {
-    return (
-      <div className="text-center py-12">
-        <p className="text-gray-600">Načítání...</p>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">

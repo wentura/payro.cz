@@ -1,9 +1,10 @@
 "use client";
 
 /**
- * New Invoice Form Component
+ * Edit Invoice Form Component
  *
- * Client component for creating a new invoice with items
+ * Client component for editing a draft invoice with items
+ * Receives data as props (loaded on server)
  */
 
 import Button from "@/app/components/ui/Button";
@@ -11,47 +12,39 @@ import Card from "@/app/components/ui/Card";
 import Input from "@/app/components/ui/Input";
 import Select from "@/app/components/ui/Select";
 import Textarea from "@/app/components/ui/Textarea";
-import {
-  calculateInvoiceTotal,
-  formatCurrency,
-  formatNumber,
-} from "@/app/lib/utils";
-import Link from "next/link";
+import { formatCurrency } from "@/app/lib/utils";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-export default function NewInvoiceForm({
-  user,
-  preselectedClientId,
-  clients = [],
-  dueTerms = [],
-  paymentTypes = [],
-  units = [],
-  subscription = null,
+export default function EditInvoiceForm({
+  invoice,
+  clients,
+  dueTerms,
+  paymentTypes,
+  units,
 }) {
   const router = useRouter();
-
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
 
   const [formData, setFormData] = useState({
-    client_id: preselectedClientId || "",
-    issue_date: new Date().toISOString().split("T")[0],
-    due_term_id: "",
-    payment_type_id: "",
-    currency: "CZK",
-    note: "",
+    client_id: invoice.client_id,
+    issue_date: invoice.issue_date,
+    due_term_id: invoice.due_term_id || "",
+    payment_type_id: invoice.payment_type_id || "",
+    currency: invoice.currency || "CZK",
+    note: invoice.note || "",
   });
 
-  const [items, setItems] = useState([
-    {
-      id: "1",
-      description: "",
-      quantity: 1,
-      unit_id: "",
-      unit_price: 0,
-    },
-  ]);
+  const [items, setItems] = useState(
+    invoice.items.map((item) => ({
+      id: item.id,
+      description: item.description,
+      quantity: item.quantity,
+      unit_id: item.unit_id || "",
+      unit_price: item.unit_price,
+    }))
+  );
 
   const handleChange = (e) => {
     setFormData({
@@ -70,7 +63,7 @@ export default function NewInvoiceForm({
     setItems([
       ...items,
       {
-        id: Date.now().toString(),
+        id: "new_" + Date.now().toString(),
         description: "",
         quantity: 1,
         unit_id: "",
@@ -109,17 +102,18 @@ export default function NewInvoiceForm({
       return;
     }
 
-    setIsLoading(true);
+    setIsSaving(true);
 
     try {
-      const response = await fetch("/api/invoices", {
-        method: "POST",
+      const response = await fetch(`/api/invoices/${invoice.id}`, {
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
           ...formData,
           items: validItems.map((item, index) => ({
+            id: item.id && !item.id.startsWith("new_") ? item.id : null,
             description: item.description,
             quantity: parseFloat(item.quantity),
             unit_id: item.unit_id || null,
@@ -132,17 +126,17 @@ export default function NewInvoiceForm({
       const result = await response.json();
 
       if (!response.ok || !result.success) {
-        setError(result.error || "Chyba při vytváření faktury");
-        setIsLoading(false);
+        setError(result.error || "Chyba při ukládání faktury");
+        setIsSaving(false);
         return;
       }
 
-      router.push("/invoices");
+      router.push(`/invoices/${invoice.id}`);
       router.refresh();
     } catch (err) {
-      console.error("Error creating invoice:", err);
-      setError("Neočekávaná chyba při vytváření faktury");
-      setIsLoading(false);
+      console.error("Error updating invoice:", err);
+      setError("Neočekávaná chyba při ukládání faktury");
+      setIsSaving(false);
     }
   };
 
@@ -155,89 +149,6 @@ export default function NewInvoiceForm({
           <p className="text-sm text-red-800">{error}</p>
         </div>
       )}
-
-      {/* Subscription Warning */}
-      {subscription && !subscription.canCreateInvoice && (
-        <div className="rounded-md bg-red-50 p-4">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <svg
-                className="h-5 w-5 text-red-400"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </div>
-            <div className="ml-3">
-              <h3 className="text-sm font-medium text-red-800">
-                Měsíční limit dosažen
-              </h3>
-              <div className="mt-2 text-sm text-red-700">
-                <p>
-                  Dosáhli jste měsíčního limitu{" "}
-                  {subscription.currentPlan.invoice_limit_monthly} faktur.
-                  Upgradujte svůj plán pro vytvoření dalších faktur.
-                </p>
-              </div>
-              <div className="mt-4">
-                <div className="-mx-2 -my-1.5 flex">
-                  <Link href="/subscription/upgrade">
-                    <button
-                      type="button"
-                      className="bg-red-50 px-2 py-1.5 rounded-md text-sm font-medium text-red-800 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-red-50 focus:ring-red-600"
-                    >
-                      Upgradovat plán
-                    </button>
-                  </Link>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Usage Warning */}
-      {subscription &&
-        subscription.canCreateInvoice &&
-        subscription.usagePercentage >= 75 && (
-          <div className="rounded-md bg-yellow-50 p-4">
-            <div className="flex">
-              <div className="flex-shrink-0">
-                <svg
-                  className="h-5 w-5 text-yellow-400"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </div>
-              <div className="ml-3">
-                <h3 className="text-sm font-medium text-yellow-800">
-                  Blížíte se k limitu
-                </h3>
-                <div className="mt-2 text-sm text-yellow-700">
-                  <p>
-                    Použili jste {subscription.currentUsage} z{" "}
-                    {subscription.currentPlan.invoice_limit_monthly} faktur
-                    tento měsíc. Zbývá vám{" "}
-                    {subscription.currentPlan.invoice_limit_monthly -
-                      subscription.currentUsage}{" "}
-                    faktura.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
 
       {/* Invoice Header */}
       <Card title="Základní údaje">
@@ -426,14 +337,19 @@ export default function NewInvoiceForm({
 
       {/* Actions */}
       <div className="flex justify-end space-x-4">
-        <Button type="button" variant="secondary" onClick={() => router.back()}>
+        <Button
+          type="button"
+          variant="secondary"
+          onClick={() => router.push(`/invoices/${invoice.id}`)}
+        >
           Zrušit
         </Button>
 
-        <Button type="submit" variant="primary" disabled={isLoading}>
-          {isLoading ? "Vytváření..." : "Vytvořit fakturu"}
+        <Button type="submit" variant="primary" disabled={isSaving}>
+          {isSaving ? "Ukládání..." : "Uložit změny"}
         </Button>
       </div>
     </form>
   );
 }
+

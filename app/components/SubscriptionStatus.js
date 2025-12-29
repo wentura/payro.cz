@@ -1,51 +1,16 @@
-"use client";
-
 /**
  * Subscription Status Component
  *
  * Shows current subscription plan, usage, and limits
+ * Server Component - receives data as props
  */
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
 import Badge from "./ui/Badge";
 import Button from "./ui/Button";
 import Card from "./ui/Card";
 
-export default function SubscriptionStatus() {
-  const [subscription, setSubscription] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchSubscriptionStatus();
-  }, []);
-
-  const fetchSubscriptionStatus = async () => {
-    try {
-      const response = await fetch("/api/user/subscription");
-      const data = await response.json();
-
-      if (data.success) {
-        setSubscription(data.data);
-      }
-    } catch (error) {
-      console.error("Error fetching subscription:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (loading) {
-    return (
-      <Card>
-        <div className="animate-pulse">
-          <div className="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
-          <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-        </div>
-      </Card>
-    );
-  }
-
+export default function SubscriptionStatus({ subscription }) {
   if (!subscription) {
     return (
       <Card>

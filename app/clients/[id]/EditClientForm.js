@@ -4,6 +4,7 @@
  * Edit Client Form Component
  *
  * Client component for editing an existing client
+ * Receives client data as props (loaded on server)
  */
 
 import Button from "@/app/components/ui/Button";
@@ -11,73 +12,33 @@ import Card from "@/app/components/ui/Card";
 import Input from "@/app/components/ui/Input";
 import Textarea from "@/app/components/ui/Textarea";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 
-export default function EditClientForm({ clientId }) {
+export default function EditClientForm({ client }) {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState("");
-  const [client, setClient] = useState(null);
+
+  // Parse address from client data
+  const address =
+    typeof client.address === "string"
+      ? JSON.parse(client.address)
+      : client.address || {};
 
   const [formData, setFormData] = useState({
-    name: "",
-    company_id: "",
-    vat_number: "",
-    contact_email: "",
-    contact_phone: "",
-    street: "",
-    house_number: "",
-    city: "",
-    zip: "",
-    country: "Česká republika",
-    note: "",
+    name: client.name || "",
+    company_id: client.company_id || "",
+    vat_number: client.vat_number || "",
+    contact_email: client.contact_email || "",
+    contact_phone: client.contact_phone || "",
+    street: address.street || "",
+    house_number: address.house_number || "",
+    city: address.city || "",
+    zip: address.zip || "",
+    country: address.country || "Česká republika",
+    note: client.note || "",
   });
-
-  const fetchClient = useCallback(async () => {
-    try {
-      const response = await fetch(`/api/clients/${clientId}`);
-      const result = await response.json();
-
-      if (!response.ok || !result.success) {
-        setError("Klient nenalezen");
-        setIsLoading(false);
-        return;
-      }
-
-      const clientData = result.data;
-      const address =
-        typeof clientData.address === "string"
-          ? JSON.parse(clientData.address)
-          : clientData.address || {};
-
-      setClient(clientData);
-      setFormData({
-        name: clientData.name || "",
-        company_id: clientData.company_id || "",
-        vat_number: clientData.vat_number || "",
-        contact_email: clientData.contact_email || "",
-        contact_phone: clientData.contact_phone || "",
-        street: address.street || "",
-        house_number: address.house_number || "",
-        city: address.city || "",
-        zip: address.zip || "",
-        country: address.country || "Česká republika",
-        note: clientData.note || "",
-      });
-
-      setIsLoading(false);
-    } catch (err) {
-      console.error("Error fetching client:", err);
-      setError("Chyba při načítání klienta");
-      setIsLoading(false);
-    }
-  }, [clientId]);
-
-  useEffect(() => {
-    fetchClient();
-  }, [fetchClient]);
 
   const handleChange = (e) => {
     setFormData({
@@ -92,7 +53,7 @@ export default function EditClientForm({ clientId }) {
     setIsSaving(true);
 
     try {
-      const response = await fetch(`/api/clients/${clientId}`, {
+      const response = await fetch(`/api/clients/${client.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -129,7 +90,7 @@ export default function EditClientForm({ clientId }) {
     setIsDeleting(true);
 
     try {
-      const response = await fetch(`/api/clients/${clientId}`, {
+      const response = await fetch(`/api/clients/${client.id}`, {
         method: "DELETE",
       });
 
@@ -149,25 +110,6 @@ export default function EditClientForm({ clientId }) {
       setIsDeleting(false);
     }
   };
-
-  if (isLoading) {
-    return (
-      <div className="text-center py-12">
-        <p>Načítání...</p>
-      </div>
-    );
-  }
-
-  if (error && !client) {
-    return (
-      <div className="text-center py-12">
-        <p className="text-red-600">{error}</p>
-        <Button onClick={() => router.back()} className="mt-4">
-          Zpět
-        </Button>
-      </div>
-    );
-  }
 
   return (
     <Card>

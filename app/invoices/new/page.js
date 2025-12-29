@@ -7,6 +7,13 @@
 import Layout from "@/app/components/Layout";
 import Button from "@/app/components/ui/Button";
 import { getCurrentUser } from "@/app/lib/auth";
+import { getSubscriptionData } from "@/app/lib/services/getSubscriptionData";
+import {
+  getClients,
+  getDueTerms,
+  getPaymentTypes,
+  getUnits,
+} from "@/app/lib/services/getReferenceData";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import NewInvoiceForm from "./NewInvoiceForm";
@@ -19,6 +26,16 @@ export default async function NewInvoicePage({ searchParams }) {
   }
 
   const preselectedClientId = searchParams?.client_id || null;
+
+  // Load all data in parallel
+  const [clients, dueTerms, paymentTypes, units, subscription] =
+    await Promise.all([
+      getClients(user.id),
+      getDueTerms(),
+      getPaymentTypes(),
+      getUnits(),
+      getSubscriptionData(user.id),
+    ]);
 
   return (
     <Layout user={user} className="flex-grow flex flex-col">
@@ -34,7 +51,15 @@ export default async function NewInvoicePage({ searchParams }) {
           </Link>
         </div>
 
-        <NewInvoiceForm user={user} preselectedClientId={preselectedClientId} />
+        <NewInvoiceForm
+          user={user}
+          preselectedClientId={preselectedClientId}
+          clients={clients}
+          dueTerms={dueTerms}
+          paymentTypes={paymentTypes}
+          units={units}
+          subscription={subscription}
+        />
       </div>
     </Layout>
   );

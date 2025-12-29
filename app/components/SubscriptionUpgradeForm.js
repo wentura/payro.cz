@@ -7,10 +7,15 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import Badge from "./ui/Badge";
 import Button from "./ui/Button";
 import Card from "./ui/Card";
-import Modal from "./ui/Modal";
+
+// Lazy load Modal - it's only needed when upgrade form is shown
+const Modal = dynamic(() => import("./ui/Modal"), {
+  ssr: false,
+});
 
 export default function SubscriptionUpgradeForm({
   currentSubscription,

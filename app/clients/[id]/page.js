@@ -7,6 +7,7 @@
 import Layout from "@/app/components/Layout";
 import Button from "@/app/components/ui/Button";
 import { getCurrentUser } from "@/app/lib/auth";
+import { getClient } from "@/app/lib/services/getClient";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import EditClientForm from "./EditClientForm";
@@ -19,6 +20,22 @@ export default async function EditClientPage({ params }) {
   }
 
   const { id } = await params;
+  const client = await getClient(id, user.id);
+
+  if (!client) {
+    return (
+      <Layout user={user} className="flex-grow flex flex-col">
+        <div className="space-y-6 w-full mx-auto">
+          <div className="text-center py-12">
+            <p className="text-red-500">Klient nenalezen</p>
+            <Link href="/clients" className="mt-4 inline-block">
+              <Button variant="secondary">Zpět na klienty</Button>
+            </Link>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout user={user} className="flex-grow flex flex-col">
@@ -36,7 +53,7 @@ export default async function EditClientPage({ params }) {
           </Link>
         </div>
 
-        <EditClientForm clientId={id} />
+        <EditClientForm client={client} />
       </div>
     </Layout>
   );

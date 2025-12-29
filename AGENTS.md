@@ -79,6 +79,21 @@ This is a Czech invoicing application built with Next.js 15.5.4, React 19, Tailw
 
 ## Development Rules
 
+### 📚 Dokumentace Best Practices
+
+Pro univerzální pravidla a best practices z tohoto projektu viz:
+- **`.cursorrules`** - Univerzální pravidla pro Cursor AI (Server Components First, Performance, Minimalism)
+- **`DEVELOPMENT_GUIDELINES.md`** - Praktické guidelines s příklady kódu
+- **`QUICK_REFERENCE.md`** - Rychlý referenční průvodce pro běžné scénáře
+- **`PERFORMANCE_ANALYSIS.md`** - Detailní analýza výkonu a optimalizace
+
+### 🎯 Klíčové principy
+
+1. **Server Components First** - Defaultně Server Components, Client pouze když nutné
+2. **Performance First** - Caching, paralelní fetching, dynamic imports, database indexy
+3. **Minimalistické pojetí** - KISS, YAGNI, jednoduchost před komplexitou
+4. **Plná funkčnost** - Kompletní error handling, loading states, validace, accessibility
+
 ### Code Organization
 
 - Use Next.js App Router patterns (server components by default)
@@ -119,10 +134,19 @@ This is a Czech invoicing application built with Next.js 15.5.4, React 19, Tailw
 
 ### Performance & UX
 
+**Klíčové principy (viz `.cursorrules` a `DEVELOPMENT_GUIDELINES.md`):**
+
+- **Server Components First**: Defaultně Server Components, Client pouze když nutné
+- **Paralelní Fetching**: Vždy použij `Promise.all()` místo sekvenčního načítání
+- **Caching**: Cache statická data pomocí `unstable_cache` (revalidate: 3600s)
+- **Dynamic Imports**: Lazy load modaly a těžké komponenty
+- **Database Indexy**: Composite indexy pro časté query patterns
 - Optimize images with Next.js Image component
 - Implement proper loading states and error boundaries
 - Consider mobile responsiveness
 - Use server components when possible for better performance, use server actions for all database operations, npm package: @supabase/supabase-js
+
+**Více detailů**: Viz `PERFORMANCE_ANALYSIS.md` (kompletní analýza) a `DEVELOPMENT_GUIDELINES.md` (praktické příklady)
 
 ### Security & Best Practices (Implemented)
 

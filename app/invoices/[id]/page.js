@@ -7,6 +7,7 @@ import { supabase } from "@/app/lib/supabase";
 import { formatCurrency, formatDateCZ, formatNumber } from "@/app/lib/utils";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import DuplicateInvoiceButtonWrapper from "./DuplicateInvoiceButtonWrapper";
 
 /**
  * Invoice Detail Page
@@ -397,6 +398,7 @@ export default async function InvoiceDetailPage({ params }) {
         {/* Actions */}
         <Card title="Akce" className="px-1 md:px-4 md:pt-4 pt-2">
           <div className="flex flex-wrap gap-4 text-left">
+            <DuplicateInvoiceButtonWrapper invoiceId={invoice.id} />
             {invoice.status_id === 1 && (
               <>
                 <Link href={`/invoices/${invoice.id}/edit`}>
@@ -416,12 +418,23 @@ export default async function InvoiceDetailPage({ params }) {
               invoice.status_id === 5 ||
               invoice.status_id === 6) &&
               !invoice.is_paid && (
-                <form action="/api/invoices/mark-paid" method="POST">
-                  <input type="hidden" name="invoice_id" value={invoice.id} />
-                  <Button type="submit" variant="success">
-                    ✓ Označit jako zaplacenou
-                  </Button>
-                </form>
+                <>
+                  <form action="/api/invoices/mark-paid" method="POST">
+                    <input type="hidden" name="invoice_id" value={invoice.id} />
+                    <Button type="submit" variant="success">
+                      ✓ Označit jako zaplacenou
+                    </Button>
+                  </form>
+                  {invoice.status_id === 2 && (
+                    <form action="/api/invoices/update-status" method="POST">
+                      <input type="hidden" name="invoice_id" value={invoice.id} />
+                      <input type="hidden" name="status_id" value="1" />
+                      <Button type="submit" variant="secondary">
+                        ↩ Vrátit do konceptu
+                      </Button>
+                    </form>
+                  )}
+                </>
               )}
 
             {invoice.is_paid && (

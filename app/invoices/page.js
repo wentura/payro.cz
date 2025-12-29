@@ -97,6 +97,9 @@ export default async function InvoicesPage({ searchParams }) {
             <Link href="/invoices/overdue">
               <Button variant="secondary">Po splatnosti</Button>
             </Link>
+            <Link href="/invoices/canceled">
+              <Button variant="secondary">Zrušené</Button>
+            </Link>
             <Link href="/invoices/new">
               <Button variant="primary">+ Nová faktura</Button>
             </Link>
@@ -106,6 +109,7 @@ export default async function InvoicesPage({ searchParams }) {
           <Link href="/invoices/unpaid">Nezaplacené</Link>
           <Link href="/invoices/paid">Zaplacené</Link>
           <Link href="/invoices/overdue">Po splatnosti</Link>
+          <Link href="/invoices/canceled">Zrušené</Link>
           <Link href="/invoices/new">Nová faktura</Link>
         </div>
 

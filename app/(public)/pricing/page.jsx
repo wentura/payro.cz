@@ -13,7 +13,7 @@ export default function PricingPage() {
   const [isYearly, setIsYearly] = useState(false);
 
   // Pricing calculations
-  const monthlyPrice = 90;
+  const monthlyPrice = 55;
   const yearlyPrice = monthlyPrice * 10; // 10 months = 2 months free
 
   return (
@@ -114,7 +114,7 @@ export default function PricingPage() {
             {isYearly && (
               <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
                 <span className="bg-green-500 text-white px-4 py-1 rounded-full text-sm font-semibold">
-                  Ušetříte 180 Kč
+                  Ušetříte 110 Kč
                 </span>
               </div>
             )}
@@ -129,7 +129,7 @@ export default function PricingPage() {
               <div className="text-sm text-gray-500 mb-4">
                 {isYearly ? (
                   <div>
-                    za rok (ušetříte 180 Kč)
+                    za rok (ušetříte 110 Kč)
                     <div className="text-xs text-green-600 font-medium mt-1">
                       = {Math.round(yearlyPrice / 12)} Kč/měsíc
                     </div>
@@ -138,7 +138,7 @@ export default function PricingPage() {
                   "za měsíc"
                 )}
               </div>
-              <p className="text-gray-600">Když už 4 faktury měsíčně nestačí</p>
+              <p className="text-gray-600">Za jedno espresso měsíčně</p>
             </div>
 
             <div className="space-y-4 mb-8">

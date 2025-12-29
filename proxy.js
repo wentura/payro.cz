@@ -1,8 +1,8 @@
 /**
- * Next.js Middleware
+ * Next.js 16 Proxy
  *
  * Handles route protection and authentication
- * Note: In Next.js 16, middleware is still supported but deprecated in favor of proxy
+ * Migrated from middleware.js to proxy convention
  */
 
 import { NextResponse } from "next/server";
@@ -19,7 +19,7 @@ const PROTECTED_ROUTES = [
   "/admin",
 ];
 
-export function middleware(request) {
+export function proxy(request) {
   const { pathname } = request.nextUrl;
 
   // Check if user has session cookie

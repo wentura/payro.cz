@@ -152,9 +152,9 @@ WHERE id = 1;
 
 UPDATE subscription_plans SET 
     name = 'Pro',
-    description = 'Profesionální plán - za 2 kávy měsíčně',
-    price_monthly = 90,
-    price_yearly = 900,
+    description = 'Profesionální plán - za jedno espresso měsíčně',
+    price_monthly = 55,
+    price_yearly = 550,
     invoice_limit_monthly = 0,
     features = '{"max_clients": 0, "priority_support": true}',
     is_active = true

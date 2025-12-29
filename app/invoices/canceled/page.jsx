@@ -7,14 +7,15 @@ import { supabase } from "@/app/lib/supabase";
 import { formatCurrency, formatDateCZ } from "@/app/lib/utils";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import ActivateInvoiceButtonWrapper from "./ActivateInvoiceButtonWrapper";
 
 /**
- * Unpaid Invoices List Page
+ * Canceled Invoices List Page
  *
- * Displays only unpaid invoices (status: sent, draft)
+ * Displays only canceled invoices (status_id = 4)
  */
 
-async function getUnpaidInvoices(userId) {
+async function getCanceledInvoices(userId) {
   try {
     const { data, error } = await supabase
       .from("invoices")
@@ -26,17 +27,17 @@ async function getUnpaidInvoices(userId) {
       )
       .eq("user_id", userId)
       .eq("is_deleted", false)
-      .in("status_id", [1, 2]) // Status 1 = "Koncept", 2 = "Odeslaná"
+      .eq("status_id", 4) // Status 4 = "Stornovaná"
       .order("created_at", { ascending: false });
 
     if (error) {
-      console.error("Error fetching unpaid invoices:", error);
+      console.error("Error fetching canceled invoices:", error);
       return [];
     }
 
     return data || [];
   } catch (error) {
-    console.error("Error in getUnpaidInvoices:", error);
+    console.error("Error in getCanceledInvoices:", error);
     return [];
   }
 }
@@ -59,14 +60,14 @@ const statusVariants = {
   6: "partial_paid",
 };
 
-export default async function UnpaidInvoicesPage() {
+export default async function CanceledInvoicesPage() {
   const user = await getCurrentUser();
 
   if (!user) {
     redirect("/login");
   }
 
-  const invoices = await getUnpaidInvoices(user.id);
+  const invoices = await getCanceledInvoices(user.id);
 
   return (
     <Layout user={user}>
@@ -75,24 +76,24 @@ export default async function UnpaidInvoicesPage() {
         <div className="flex justify-between text-center md:text-left max-w-7xl mx-auto">
           <div className="mx-auto md:mx-0 max-w-7xl">
             <h1 className="text-3xl font-bold text-gray-900 mx-auto">
-              Nezaplacené faktury
+              Zrušené faktury
             </h1>
             <p className="mt-2 text-gray-600">
-              Přehled všech nezaplacených faktur ({invoices.length})
+              Přehled všech zrušených faktur ({invoices.length})
             </p>
           </div>
           <div className="space-x-3 hidden md:flex">
             <Link href="/invoices">
               <Button variant="secondary">Všechny faktury</Button>
             </Link>
+            <Link href="/invoices/unpaid">
+              <Button variant="secondary">Nezaplacené</Button>
+            </Link>
             <Link href="/invoices/paid">
               <Button variant="secondary">Zaplacené</Button>
             </Link>
             <Link href="/invoices/overdue">
               <Button variant="secondary">Po splatnosti</Button>
-            </Link>
-            <Link href="/invoices/canceled">
-              <Button variant="secondary">Zrušené</Button>
             </Link>
             <Link href="/invoices/new">
               <Button variant="primary">+ Nová faktura</Button>
@@ -101,25 +102,25 @@ export default async function UnpaidInvoicesPage() {
         </div>
         <div className="flex space-x-3 md:hidden text-blue-600 hover:text-blue-900 justify-center">
           <Link href="/invoices">Všechny faktury</Link>
+          <Link href="/invoices/unpaid">Nezaplacené</Link>
           <Link href="/invoices/paid">Zaplacené</Link>
           <Link href="/invoices/overdue">Po splatnosti</Link>
-          <Link href="/invoices/canceled">Zrušené</Link>
           <Link href="/invoices/new">Nová faktura</Link>
         </div>
-        {/* Unpaid Invoices List */}
+        {/* Canceled Invoices List */}
         <Card>
           {invoices.length === 0 ? (
             <div className="text-center py-12">
               <div className="text-6xl mb-4">✅</div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">
-                Všechny faktury jsou zaplacené!
+                Žádné zrušené faktury
               </h3>
               <p className="text-gray-500 mb-6">
-                Všechny vaše faktury byly úspěšně uhrazeny
+                Nemáte žádné zrušené faktury
               </p>
               <div className="flex justify-center space-x-4">
-                <Link href="/invoices/paid">
-                  <Button variant="secondary">Zobrazit zaplacené</Button>
+                <Link href="/invoices">
+                  <Button variant="secondary">Všechny faktury</Button>
                 </Link>
                 <Link href="/invoices/new">
                   <Button variant="primary">+ Vytvořit fakturu</Button>
@@ -149,7 +150,7 @@ export default async function UnpaidInvoicesPage() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
                       Status
                     </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
                       Akce
                     </th>
                   </tr>
@@ -165,7 +166,7 @@ export default async function UnpaidInvoicesPage() {
                           {invoice.invoice_number || "Koncept"}
                         </Link>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 max-w-[8ch] md:max-w-56  overflow-hidden text-ellipsis text-left">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 max-w-[8ch] md:max-w-56 overflow-hidden text-ellipsis text-left">
                         {invoice.clients?.name || "N/A"}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden md:table-cell text-left">
@@ -182,21 +183,16 @@ export default async function UnpaidInvoicesPage() {
                           {statusLabels[invoice.status_id]}
                         </Badge>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium hidden md:table-cell text-left">
-                        {invoice.status_id === 1 && (
+                      <td className="px-6 py-4 whitespace-nowrap text-left text-sm font-medium hidden md:table-cell">
+                        <div className="flex flex-col sm:flex-row gap-2">
                           <Link
-                            href={`/invoices/${invoice.id}/edit`}
-                            className="text-orange-600 hover:text-orange-900 mr-4"
+                            href={`/invoices/${invoice.id}`}
+                            className="text-blue-600 hover:text-blue-900"
                           >
-                            Upravit
+                            Detail
                           </Link>
-                        )}
-                        <Link
-                          href={`/invoices/${invoice.id}`}
-                          className="text-blue-600 hover:text-blue-900 hidden md:table-cell"
-                        >
-                          Detail
-                        </Link>
+                          <ActivateInvoiceButtonWrapper invoiceId={invoice.id} />
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -211,17 +207,17 @@ export default async function UnpaidInvoicesPage() {
           <div className="grid grid-cols-2 md:grid-cols-2 gap-6">
             <Card>
               <div className="text-center">
-                <div className="text-3xl font-bold text-orange-600">
+                <div className="text-3xl font-bold text-gray-600">
                   {invoices.length}
                 </div>
                 <div className="text-sm text-gray-500 mt-1">
-                  Nezaplacené faktury
+                  Zrušené faktury
                 </div>
               </div>
             </Card>
             <Card>
               <div className="text-center">
-                <div className="text-3xl font-bold text-red-600">
+                <div className="text-3xl font-bold text-gray-600">
                   {formatCurrency(
                     invoices.reduce(
                       (sum, invoice) => sum + (invoice.total_amount || 0),
@@ -231,31 +227,14 @@ export default async function UnpaidInvoicesPage() {
                   )}
                 </div>
                 <div className="text-sm text-gray-500 mt-1">
-                  Celková částka k úhradě
+                  Celková částka zrušených faktur
                 </div>
               </div>
             </Card>
-            {/* <Card>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-yellow-600">
-                  {invoices.length > 0
-                    ? formatCurrency(
-                        invoices.reduce(
-                          (sum, invoice) => sum + (invoice.total_amount || 0),
-                          0
-                        ) / invoices.length,
-                        "CZK"
-                      )
-                    : "0 CZK"}
-                </div>
-                <div className="text-sm text-gray-500 mt-1">
-                  Průměrná faktura
-                </div>
-              </div>
-            </Card> */}
           </div>
         )}
       </div>
     </Layout>
   );
 }
+

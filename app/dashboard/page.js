@@ -53,13 +53,18 @@ async function getDashboardData(userId) {
     // Calculate statistics
     const totalInvoices = invoices.length;
     const paidInvoices = invoices.filter((inv) => inv.is_paid).length;
+    // Unpaid invoices: only sent invoices (status_id = 2, 5, 6), exclude drafts (status_id = 1)
     const unpaidInvoices = invoices.filter(
-      (inv) => !inv.is_paid && !inv.is_canceled
+      (inv) =>
+        !inv.is_paid &&
+        !inv.is_canceled &&
+        inv.status_id !== 1 // Exclude drafts
     ).length;
     const overdueInvoices = invoices.filter(
       (inv) =>
         !inv.is_paid &&
         !inv.is_canceled &&
+        inv.status_id !== 1 && // Exclude drafts
         isInvoiceOverdue(inv.due_date, inv.is_paid)
     ).length;
 
@@ -67,8 +72,12 @@ async function getDashboardData(userId) {
       .filter((inv) => inv.is_paid)
       .reduce((sum, inv) => sum + parseFloat(inv.total_amount || 0), 0);
 
+    // Outstanding amount: only sent invoices (status_id = 2, 5, 6), exclude drafts (status_id = 1)
     const outstandingAmount = invoices
-      .filter((inv) => !inv.is_paid && !inv.is_canceled)
+      .filter(
+        (inv) =>
+          !inv.is_paid && !inv.is_canceled && inv.status_id !== 1 // Exclude drafts
+      )
       .reduce((sum, inv) => sum + parseFloat(inv.total_amount || 0), 0);
 
     // Get recent invoices (last 5)

@@ -13,9 +13,10 @@ import Select from "@/app/components/ui/Select";
 import Textarea from "@/app/components/ui/Textarea";
 import { formatCurrency } from "@/app/lib/utils";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { use, useCallback, useEffect, useState } from "react";
 
 export default function EditInvoicePage({ params }) {
+  const { id } = use(params);
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -39,7 +40,7 @@ export default function EditInvoicePage({ params }) {
 
   const fetchInvoiceData = useCallback(async () => {
     try {
-      const response = await fetch(`/api/invoices/${params.id}`);
+      const response = await fetch(`/api/invoices/${id}`);
       const result = await response.json();
 
       if (!response.ok || !result.success) {
@@ -82,7 +83,7 @@ export default function EditInvoicePage({ params }) {
       setError("Chyba při načítání faktury");
       setIsLoading(false);
     }
-  }, [params.id]);
+  }, [id]);
 
   useEffect(() => {
     fetchInvoiceData();
@@ -176,7 +177,7 @@ export default function EditInvoicePage({ params }) {
     setIsSaving(true);
 
     try {
-      const response = await fetch(`/api/invoices/${params.id}`, {
+      const response = await fetch(`/api/invoices/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -202,7 +203,7 @@ export default function EditInvoicePage({ params }) {
         return;
       }
 
-      router.push(`/invoices/${params.id}`);
+      router.push(`/invoices/${id}`);
       router.refresh();
     } catch (err) {
       console.error("Error updating invoice:", err);
@@ -442,7 +443,7 @@ export default function EditInvoicePage({ params }) {
             <Button
               type="button"
               variant="secondary"
-              onClick={() => router.push(`/invoices/${params.id}`)}
+              onClick={() => router.push(`/invoices/${id}`)}
             >
               Zrušit
             </Button>

@@ -20,6 +20,7 @@ export async function getAllUsersWithStats() {
           contact_email,
           company_id,
           created_at,
+          deactivated_at,
           invoices(
             id,
             total_amount,

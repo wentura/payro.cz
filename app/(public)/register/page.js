@@ -21,6 +21,7 @@ function RegisterForm() {
     password_confirm: "",
   });
   const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e) => {
@@ -66,9 +67,25 @@ function RegisterForm() {
         return;
       }
 
-      // Redirect to dashboard
-      router.push("/dashboard");
-      router.refresh();
+      // Registration successful - show success message instead of redirecting
+      // User needs to verify email first
+      setError(""); // Clear any errors
+      setIsLoading(false);
+      
+      // Show success state
+      setFormData({
+        name: "",
+        contact_email: "",
+        company_id: "",
+        password: "",
+        password_confirm: "",
+      });
+      
+      // Store success message to show
+      setSuccessMessage(
+        result.message || 
+        "Registrace proběhla úspěšně. Zkontrolujte svůj email pro aktivaci účtu."
+      );
     } catch (err) {
       console.error("Registration error:", err);
       setError("Neočekávaná chyba při registraci");
@@ -88,12 +105,66 @@ function RegisterForm() {
           </p>
         </div>
 
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {error && (
-            <div className="rounded-md bg-red-50 p-4">
-              <p className="text-sm text-red-800">{error}</p>
+        {successMessage ? (
+          <div className="mt-8 space-y-6">
+            <div className="rounded-md bg-green-50 p-4 border border-green-200">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <svg
+                    className="h-5 w-5 text-green-400"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </div>
+                <div className="ml-3 flex-1">
+                  <h3 className="text-sm font-medium text-green-800">
+                    Registrace úspěšná!
+                  </h3>
+                  <div className="mt-2 text-sm text-green-700">
+                    <p>{successMessage}</p>
+                  </div>
+                  <div className="mt-4">
+                    <div className="text-sm text-green-700">
+                      <p className="font-medium mb-2">Co dál?</p>
+                      <ul className="list-disc list-inside space-y-1">
+                        <li>Zkontrolujte svou emailovou schránku</li>
+                        <li>Klikněte na odkaz v emailu pro aktivaci účtu</li>
+                        <li>Po aktivaci se můžete přihlásit</li>
+                      </ul>
+                    </div>
+                  </div>
+                  <div className="mt-4 flex space-x-3">
+                    <Link
+                      href="/resend-verification"
+                      className="text-sm font-medium text-green-800 hover:text-green-900 underline"
+                    >
+                      Znovu poslat aktivační email
+                    </Link>
+                    <span className="text-sm text-green-600">•</span>
+                    <Link
+                      href="/login"
+                      className="text-sm font-medium text-green-800 hover:text-green-900 underline"
+                    >
+                      Přihlásit se
+                    </Link>
+                  </div>
+                </div>
+              </div>
             </div>
-          )}
+          </div>
+        ) : (
+          <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+            {error && (
+              <div className="rounded-md bg-red-50 p-4">
+                <p className="text-sm text-red-800">{error}</p>
+              </div>
+            )}
 
           <div className="space-y-4">
             <div>
@@ -202,18 +273,19 @@ function RegisterForm() {
             </button>
           </div>
 
-          <div className="text-center">
-            <p className="text-sm text-gray-600">
-              Již máte účet?{" "}
-              <Link
-                href="/login"
-                className="font-medium text-blue-600 hover:text-blue-500"
-              >
-                Přihlaste se
-              </Link>
-            </p>
-          </div>
-        </form>
+            <div className="text-center">
+              <p className="text-sm text-gray-600">
+                Již máte účet?{" "}
+                <Link
+                  href="/login"
+                  className="font-medium text-blue-600 hover:text-blue-500"
+                >
+                  Přihlaste se
+                </Link>
+              </p>
+            </div>
+          </form>
+        )}
       </div>
     </div>
   );

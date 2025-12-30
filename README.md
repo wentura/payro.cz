@@ -55,6 +55,7 @@ Create a `.env.local` file in the root directory:
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url_here
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key_here
 NEXT_PUBLIC_APP_URL=http://localhost:3000
+RESEND_API_KEY=your_resend_api_key_here
 ```
 
 ### 4. Set Up Database

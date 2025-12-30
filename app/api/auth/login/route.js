@@ -31,6 +31,17 @@ export async function POST(request) {
     });
 
     if (!result.success) {
+      // Check if account is not activated
+      if (result.error === "ACCOUNT_NOT_ACTIVATED") {
+        return NextResponse.json(
+          {
+            success: false,
+            error: result.error,
+            message: result.message || "Účet není aktivován",
+          },
+          { status: 403 }
+        );
+      }
       return NextResponse.json(
         { success: false, error: result.error },
         { status: 401 }

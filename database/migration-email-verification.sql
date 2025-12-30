@@ -36,3 +36,4 @@ COMMENT ON TABLE email_verification_tokens IS 'Email verification tokens for use
 -- Clean up expired tokens (optional - can be run periodically)
 -- DELETE FROM email_verification_tokens WHERE expires_at < NOW();
 
+

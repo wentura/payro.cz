@@ -1,10 +1,11 @@
 /**
  * Password Reset Request API Route
  *
- * Generates a magic link for password reset
+ * Generates a magic link for password reset and sends it via email
  */
 
 import { supabase } from "@/app/lib/supabase";
+import { sendPasswordResetEmail } from "@/app/lib/email";
 import crypto from "crypto";
 import { NextResponse } from "next/server";
 
@@ -64,18 +65,32 @@ export async function POST(request) {
       );
     }
 
-    // Generate magic link
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3001";
-    const resetLink = `${baseUrl}/reset-password/${token}`;
+    // Send password reset email
+    const emailResult = await sendPasswordResetEmail(
+      {
+        id: user.id,
+        name: user.name,
+        contact_email: user.contact_email,
+      },
+      token
+    );
 
-    // In production, send email here with resetLink
-    // For now, just return the link
-    console.log("🔗 Password reset link for", contact_email, ":", resetLink);
+    if (!emailResult.success) {
+      console.error("Failed to send password reset email:", emailResult.error);
+      // Don't fail the request - user can try again
+      // But log the error for debugging
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Chyba při odesílání emailu. Zkuste to prosím později.",
+        },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({
       success: true,
-      message: "Reset hesla byl odeslán",
-      resetLink, // In production, don't return this - send via email
+      message: "Pokud účet existuje, byl odeslán email s odkazem pro obnovení hesla.",
     });
   } catch (error) {
     console.error("Error in reset-password-request:", error);

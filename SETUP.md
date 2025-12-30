@@ -22,15 +22,22 @@ npm install --legacy-peer-deps
 2. Copy the entire contents of `database/schema.sql`
 3. Paste it into the SQL Editor
 4. Click **Run**
+5. Then run `database/migration-email-verification.sql` to add email verification support
 
 This will create all tables, triggers, and populate reference data.
 
-### Step 4: Get Your Supabase Credentials
+### Step 4: Get Your Credentials
 
+**Supabase:**
 1. In Supabase, go to **Project Settings** → **API**
 2. Copy:
    - **Project URL** (looks like: `https://xxx.supabase.co`)
    - **anon public** key (long string starting with `eyJ...`)
+
+**Resend (for email verification):**
+1. Go to [resend.com](https://resend.com) and create a free account
+2. Go to **API Keys** and create a new API key
+3. Copy the API key (starts with `re_...`)
 
 ### Step 5: Create Environment File
 
@@ -40,9 +47,10 @@ Create `.env.local` in the root directory:
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key_here
 NEXT_PUBLIC_APP_URL=http://localhost:3000
+RESEND_API_KEY=your_resend_api_key_here
 ```
 
-### Step 6: Start Development Server
+### Step 7: Start Development Server
 
 ```bash
 npm run dev
@@ -115,6 +123,7 @@ Production environment variables:
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_production_key
 NEXT_PUBLIC_APP_URL=https://fktr.cz
+RESEND_API_KEY=re_your_production_resend_key
 ```
 
 ### Security Considerations

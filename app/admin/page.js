@@ -10,6 +10,7 @@ import {
 import { formatDateCZ } from "@/app/lib/utils";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import DeactivateUserButtonWrapper from "@/app/components/DeactivateUserButtonWrapper";
 
 /**
  * Admin Page
@@ -349,13 +350,19 @@ export default async function AdminPage() {
                         {formatDateCZ(userData.created_at)}
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="flex space-x-2">
-                          <button className="text-blue-600 hover:text-blue-900 text-xs">
-                            Změnit plán
-                          </button>
-                          <button className="text-orange-600 hover:text-orange-900 text-xs">
-                            Detaily
-                          </button>
+                        <div className="flex flex-col space-y-2">
+                          <div className="flex space-x-2">
+                            <button className="text-blue-600 hover:text-blue-900 text-xs">
+                              Změnit plán
+                            </button>
+                            <button className="text-orange-600 hover:text-orange-900 text-xs">
+                              Detaily
+                            </button>
+                          </div>
+                          <DeactivateUserButtonWrapper
+                            userId={userData.id}
+                            isDeactivated={userData.deactivated_at !== null}
+                          />
                         </div>
                       </td>
                     </tr>

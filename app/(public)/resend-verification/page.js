@@ -1,25 +1,22 @@
 "use client";
 
 /**
- * Login Page
+ * Resend Verification Email Page
  *
- * User authentication page with email and password
+ * Allows users to request a new verification email
  */
 
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
-function LoginForm() {
+export default function ResendVerificationPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const redirectTo = searchParams.get("redirect") || "/dashboard";
-
   const [formData, setFormData] = useState({
     contact_email: "",
-    password: "",
   });
   const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e) => {
@@ -28,15 +25,17 @@ function LoginForm() {
       [e.target.name]: e.target.value,
     });
     setError("");
+    setSuccessMessage("");
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setSuccessMessage("");
     setIsLoading(true);
 
     try {
-      const response = await fetch("/api/auth/login", {
+      const response = await fetch("/api/auth/resend-verification", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -47,36 +46,29 @@ function LoginForm() {
       const result = await response.json();
 
       if (!response.ok || !result.success) {
-        // Check if account is not activated
-        if (result.error === "ACCOUNT_NOT_ACTIVATED") {
-          setError(result.message || "Účet není aktivován");
-          setIsLoading(false);
-          return;
-        }
-        setError(result.error || "Chyba při přihlašování");
+        setError(result.error || "Chyba při odesílání emailu");
         setIsLoading(false);
         return;
       }
 
-      // Redirect to dashboard or specified page
-      router.push(redirectTo);
-      router.refresh();
+      setSuccessMessage(result.message || "Aktivační email byl odeslán");
+      setIsLoading(false);
     } catch (err) {
-      console.error("Login error:", err);
-      setError("Neočekávaná chyba při přihlašování");
+      console.error("Resend verification error:", err);
+      setError("Neočekávaná chyba při odesílání emailu");
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="flex-grow flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-2 text-center text-3xl font-bold text-gray-900">
-            Přihlášení
+            Znovu poslat aktivační email
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
-            Přihlaste se do svého účtu
+            Zadejte svůj email a pošleme vám nový aktivační odkaz
           </p>
         </div>
 
@@ -97,23 +89,42 @@ function LoginForm() {
                     />
                   </svg>
                 </div>
-                <div className="ml-3 flex-1">
-                  <h3 className="text-sm font-medium text-red-800">
-                    {error.includes("aktivován") ? "Účet není aktivován" : "Chyba při přihlašování"}
-                  </h3>
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-red-800">Chyba</h3>
                   <div className="mt-2 text-sm text-red-700">
                     <p>{error}</p>
                   </div>
-                  {error.includes("aktivován") && (
-                    <div className="mt-4">
-                      <Link
-                        href="/resend-verification"
-                        className="text-sm font-medium text-red-800 hover:text-red-900 underline"
-                      >
-                        Znovu poslat aktivační email
-                      </Link>
-                    </div>
-                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {successMessage && (
+            <div className="rounded-md bg-green-50 p-4 border border-green-200">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <svg
+                    className="h-5 w-5 text-green-400"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-green-800">
+                    Email odeslán
+                  </h3>
+                  <div className="mt-2 text-sm text-green-700">
+                    <p>{successMessage}</p>
+                    <p className="mt-2">
+                      Zkontrolujte svou emailovou schránku (včetně složky Spam).
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -138,36 +149,6 @@ function LoginForm() {
                 placeholder="vas@email.cz"
               />
             </div>
-
-            <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Heslo
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                required
-                value={formData.password}
-                onChange={handleChange}
-                className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="••••••••"
-              />
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div className="text-sm">
-              <Link
-                href="/reset-password"
-                className="font-medium text-blue-600 hover:text-blue-500"
-              >
-                Zapomenuté heslo?
-              </Link>
-            </div>
           </div>
 
           <div>
@@ -176,11 +157,20 @@ function LoginForm() {
               disabled={isLoading}
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading ? "Přihlašování..." : "Přihlásit se"}
+              {isLoading ? "Odesílání..." : "Odeslat aktivační email"}
             </button>
           </div>
 
-          <div className="text-center">
+          <div className="text-center space-y-2">
+            <p className="text-sm text-gray-600">
+              Již máte aktivovaný účet?{" "}
+              <Link
+                href="/login"
+                className="font-medium text-blue-600 hover:text-blue-500"
+              >
+                Přihlaste se
+              </Link>
+            </p>
             <p className="text-sm text-gray-600">
               Nemáte účet?{" "}
               <Link
@@ -197,16 +187,3 @@ function LoginForm() {
   );
 }
 
-export default function LoginPage() {
-  return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen flex items-center justify-center">
-          <p>Načítání...</p>
-        </div>
-      }
-    >
-      <LoginForm />
-    </Suspense>
-  );
-}

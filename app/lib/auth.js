@@ -5,6 +5,7 @@
  */
 
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 import { cookies } from "next/headers";
 import { supabase } from "./supabase";
 
@@ -110,13 +111,19 @@ export async function getCurrentUser() {
     const { data, error } = await supabase
       .from("users")
       .select(
-        "id, name, company_id, contact_email, contact_phone, contact_website, bank_account, billing_details, default_settings, created_at"
+        "id, name, company_id, contact_email, contact_phone, contact_website, bank_account, billing_details, default_settings, created_at, deactivated_at"
       )
       .eq("id", session.userId)
       .single();
 
     if (error || !data) {
       console.error("Error fetching user:", error);
+      return null;
+    }
+
+    // Check if user is deactivated - auto-logout
+    if (data.deactivated_at) {
+      console.log("User is deactivated, returning null for auto-logout");
       return null;
     }
 
@@ -156,6 +163,99 @@ export async function requireAuth() {
  * @param {Object} userData - User registration data
  * @returns {Promise<Object>} Result object with success/error
  */
+/**
+ * Create email verification token
+ * @param {string} userId - User ID
+ * @returns {Promise<Object>} Token object with token and expires_at
+ */
+export async function createEmailVerificationToken(userId) {
+  try {
+    // Generate secure random token
+    const token = crypto.randomBytes(32).toString("hex");
+    const expiresAt = new Date();
+    expiresAt.setHours(expiresAt.getHours() + 1); // 1 hour expiry
+
+    // Delete any existing tokens for this user
+    await supabase
+      .from("email_verification_tokens")
+      .delete()
+      .eq("user_id", userId);
+
+    // Create new token
+    const { error: tokenError } = await supabase
+      .from("email_verification_tokens")
+      .insert({
+        user_id: userId,
+        token,
+        expires_at: expiresAt.toISOString(),
+      });
+
+    if (tokenError) {
+      console.error("Error creating verification token:", tokenError);
+      return {
+        success: false,
+        error: "Chyba při vytváření verifikačního tokenu",
+      };
+    }
+
+    return {
+      success: true,
+      token,
+      expiresAt: expiresAt.toISOString(),
+    };
+  } catch (error) {
+    console.error("Error in createEmailVerificationToken:", error);
+    return {
+      success: false,
+      error: "Neočekávaná chyba při vytváření tokenu",
+    };
+  }
+}
+
+/**
+ * Verify email verification token
+ * @param {string} token - Verification token
+ * @returns {Promise<Object>} Result with user_id if valid
+ */
+export async function verifyEmailToken(token) {
+  try {
+    const { data: tokenData, error } = await supabase
+      .from("email_verification_tokens")
+      .select("user_id, expires_at")
+      .eq("token", token)
+      .single();
+
+    if (error || !tokenData) {
+      return {
+        success: false,
+        error: "Neplatný nebo neexistující token",
+      };
+    }
+
+    // Check if token is expired
+    const expiresAt = new Date(tokenData.expires_at);
+    const now = new Date();
+
+    if (now > expiresAt) {
+      return {
+        success: false,
+        error: "Token vypršel. Požádejte o nový aktivační email.",
+      };
+    }
+
+    return {
+      success: true,
+      userId: tokenData.user_id,
+    };
+  } catch (error) {
+    console.error("Error in verifyEmailToken:", error);
+    return {
+      success: false,
+      error: "Neočekávaná chyba při ověřování tokenu",
+    };
+  }
+}
+
 export async function registerUser(userData) {
   try {
     // Check if user already exists
@@ -175,7 +275,7 @@ export async function registerUser(userData) {
     // Hash password
     const passwordHash = await hashPassword(userData.password);
 
-    // Create user
+    // Create user (activated_at will be NULL by default)
     const { data: newUser, error } = await supabase
       .from("users")
       .insert({
@@ -183,6 +283,7 @@ export async function registerUser(userData) {
         contact_email: userData.contact_email,
         password_hash: passwordHash,
         company_id: userData.company_id || null,
+        activated_at: null, // Explicitly set to NULL
         billing_details: {
           street: "",
           house_number: "",
@@ -202,12 +303,26 @@ export async function registerUser(userData) {
       };
     }
 
-    // Create session
-    await createSession(newUser.id, newUser.contact_email);
+    // Create verification token
+    const tokenResult = await createEmailVerificationToken(newUser.id);
 
+    if (!tokenResult.success) {
+      // User was created but token creation failed
+      // We should still return success but log the error
+      console.error("Error creating verification token:", tokenResult.error);
+      return {
+        success: true,
+        user: newUser,
+        token: null, // Indicate token creation failed
+        warning: "Účet byl vytvořen, ale aktivační email se nepodařilo odeslat. Kontaktujte podporu.",
+      };
+    }
+
+    // Return user and token (email will be sent by API route)
     return {
       success: true,
       user: newUser,
+      token: tokenResult.token,
     };
   } catch (error) {
     console.error("Error in registerUser:", error);
@@ -228,10 +343,10 @@ export async function loginUser(email, password) {
   try {
     console.log("🔍 Looking up user:", email);
 
-    // Find user by email
+    // Find user by email (include activated_at and deactivated_at)
     const { data: user, error } = await supabase
       .from("users")
-      .select("id, password_hash, name, contact_email")
+      .select("id, password_hash, name, contact_email, activated_at, deactivated_at")
       .eq("contact_email", email)
       .single();
 
@@ -266,6 +381,26 @@ export async function loginUser(email, password) {
     }
 
     console.log("✓ Password valid");
+
+    // Check if account is activated
+    if (!user.activated_at) {
+      console.log("❌ Account not activated");
+      return {
+        success: false,
+        error: "ACCOUNT_NOT_ACTIVATED", // Special error code
+        message: "Účet není aktivován. Zkontrolujte svůj email nebo znovu pošlete aktivační email.",
+      };
+    }
+
+    // Check if account is deactivated
+    if (user.deactivated_at) {
+      console.log("❌ Account is deactivated");
+      return {
+        success: false,
+        error: "ACCOUNT_DEACTIVATED", // Special error code
+        message: "Váš účet byl deaktivován. Kontaktujte administrátora.",
+      };
+    }
 
     // Update last login
     await supabase

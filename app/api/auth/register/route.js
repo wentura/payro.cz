@@ -15,8 +15,61 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { name, contact_email, password, password_confirm, company_id } =
-      body;
+    const {
+      name,
+      contact_email,
+      password,
+      password_confirm,
+      company_id,
+      my_name, // Honeypot field
+      math_answer, // Math question answer
+      math_num1, // Math question number 1
+      math_num2, // Math question number 2
+    } = body;
+
+    // Anti-bot validation: Check honeypot field FIRST (before any DB operations)
+    if (my_name && my_name.trim() !== "") {
+      // Bot detected - fake positive response
+      console.log("Bot detected: honeypot field filled", { contact_email });
+      return NextResponse.json({
+        success: true,
+        message: "Registrace proběhla úspěšně. Zkontrolujte svůj email pro aktivaci účtu.",
+        user: {
+          id: null,
+          name: name || "",
+          contact_email: contact_email || "",
+        },
+        emailSent: false,
+      });
+    }
+
+    // Anti-bot validation: Check math answer
+    const userAnswer = parseInt(math_answer, 10);
+    const correctAnswer = parseInt(math_num1, 10) + parseInt(math_num2, 10);
+    if (
+      !math_num1 ||
+      !math_num2 ||
+      isNaN(userAnswer) ||
+      isNaN(correctAnswer) ||
+      userAnswer !== correctAnswer
+    ) {
+      // Bot detected - fake positive response
+      console.log("Bot detected: incorrect math answer", {
+        contact_email,
+        userAnswer,
+        correctAnswer,
+      });
+      return NextResponse.json({
+        success: true,
+        message: "Registrace proběhla úspěšně. Zkontrolujte svůj email pro aktivaci účtu.",
+        user: {
+          id: null,
+          name: name || "",
+          contact_email: contact_email || "",
+        },
+        emailSent: false,
+      });
+    }
 
     // Validate input
     if (!name || !contact_email || !password) {

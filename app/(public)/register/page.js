@@ -8,10 +8,36 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Suspense, useState } from "react";
+import { Suspense, useState, useEffect } from "react";
 
 function RegisterForm() {
   const router = useRouter();
+
+  // Convert number to Czech word
+  const numberToCzech = (num) => {
+    const czechNumbers = {
+      1: "jedna",
+      2: "dva",
+      3: "tři",
+      4: "čtyři",
+      5: "pět",
+      6: "šest",
+      7: "sedm",
+      8: "osm",
+      9: "devět",
+      10: "deset",
+    };
+    return czechNumbers[num] || num.toString();
+  };
+
+  // Generate random math question on component mount
+  const generateMathQuestion = () => {
+    const num1 = Math.floor(Math.random() * 8) + 3; // 3-10
+    const num2 = Math.floor(Math.random() * 8) + 3; // 3-10
+    return { num1, num2, answer: num1 + num2 };
+  };
+
+  const [mathQuestion] = useState(() => generateMathQuestion());
 
   const [formData, setFormData] = useState({
     name: "",
@@ -19,6 +45,8 @@ function RegisterForm() {
     company_id: "",
     password: "",
     password_confirm: "",
+    my_name: "", // Honeypot field
+    math_answer: "", // Math question answer
   });
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
@@ -35,6 +63,43 @@ function RegisterForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+
+    // Anti-bot validation: Check honeypot field
+    if (formData.my_name && formData.my_name.trim() !== "") {
+      // Bot detected - fake positive
+      setError("");
+      setIsLoading(false);
+      
+      // Show fake success message
+      setSuccessMessage(
+        "Registrace proběhla úspěšně. Zkontrolujte svůj email pro aktivaci účtu."
+      );
+      
+      // Redirect to login after 2 seconds
+      setTimeout(() => {
+        router.push("/login");
+      }, 2000);
+      return;
+    }
+
+    // Anti-bot validation: Check math answer
+    const userAnswer = parseInt(formData.math_answer, 10);
+    if (isNaN(userAnswer) || userAnswer !== mathQuestion.answer) {
+      // Bot detected - fake positive
+      setError("");
+      setIsLoading(false);
+      
+      // Show fake success message
+      setSuccessMessage(
+        "Registrace proběhla úspěšně. Zkontrolujte svůj email pro aktivaci účtu."
+      );
+      
+      // Redirect to login after 2 seconds
+      setTimeout(() => {
+        router.push("/login");
+      }, 2000);
+      return;
+    }
 
     // Validate passwords match
     if (formData.password !== formData.password_confirm) {
@@ -56,7 +121,17 @@ function RegisterForm() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          name: formData.name,
+          contact_email: formData.contact_email,
+          company_id: formData.company_id,
+          password: formData.password,
+          password_confirm: formData.password_confirm,
+          my_name: formData.my_name, // Send honeypot to server
+          math_answer: formData.math_answer, // Send math answer to server
+          math_num1: mathQuestion.num1, // Send math question numbers for server validation
+          math_num2: mathQuestion.num2,
+        }),
       });
 
       const result = await response.json();
@@ -79,6 +154,8 @@ function RegisterForm() {
         company_id: "",
         password: "",
         password_confirm: "",
+        my_name: "",
+        math_answer: "",
       });
       
       // Store success message to show
@@ -259,6 +336,39 @@ function RegisterForm() {
                 onChange={handleChange}
                 className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                 placeholder="••••••••"
+              />
+            </div>
+
+            {/* Honeypot field - hidden from users, visible to bots */}
+            <input
+              type="text"
+              name="my_name"
+              tabIndex="-1"
+              autoComplete="off"
+              value={formData.my_name}
+              onChange={handleChange}
+              style={{ display: "none" }}
+              aria-hidden="true"
+            />
+
+            {/* Math question - anti-bot protection */}
+            <div>
+              <label
+                htmlFor="math_answer"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Kolik je {numberToCzech(mathQuestion.num1)} + {numberToCzech(mathQuestion.num2)}? *
+              </label>
+              <input
+                id="math_answer"
+                name="math_answer"
+                type="text"
+                required
+                value={formData.math_answer}
+                onChange={handleChange}
+                className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                placeholder="Odpověď"
+                inputMode="numeric"
               />
             </div>
           </div>

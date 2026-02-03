@@ -5,6 +5,7 @@
  */
 
 import { getCurrentUser } from "@/app/lib/auth";
+import { logAuditEvent } from "@/app/lib/audit";
 import { createInvoiceWithItems } from "@/app/lib/services/InvoiceService";
 import { canUserCreateInvoice } from "@/app/lib/services/SubscriptionService";
 import { NextResponse } from "next/server";
@@ -64,6 +65,13 @@ export async function POST(request) {
     );
 
     if (result.success) {
+      await logAuditEvent({
+        userId: user.id,
+        action: "invoice.created",
+        entityType: "invoice",
+        entityId: result.data?.invoice?.id || null,
+        request,
+      });
       return NextResponse.json(result);
     } else {
       return NextResponse.json(

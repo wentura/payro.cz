@@ -2,6 +2,7 @@ import Link from "next/link";
 import React from "react";
 
 export default function Footer({ user = null }) {
+  const currentYear = new Date().getFullYear();
   return (
     <footer className="bg-white border-t border-gray-200 mt-auto">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -42,7 +43,7 @@ export default function Footer({ user = null }) {
             </div>
           )}
           <div>
-            © 2025 FKTR.cz •{" "}
+            © {currentYear} FKTR.cz •{" "}
             <a
               href="https://www.zbyneksvoboda.cz"
               className="text-blue-600 underline font-bold"

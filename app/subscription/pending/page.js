@@ -32,7 +32,9 @@ export default async function SubscriptionPendingPage({ searchParams }) {
     redirect("/login");
   }
 
-  const { plan_name, billing_cycle, amount, variable_symbol } = searchParams;
+  const resolvedSearchParams = await searchParams;
+  const { plan_name, billing_cycle, amount, variable_symbol } =
+    resolvedSearchParams || {};
 
   return (
     <Layout user={user}>
@@ -122,7 +124,7 @@ export default async function SubscriptionPendingPage({ searchParams }) {
                   <div className="flex flex-col items-center space-y-4">
                     <div className="bg-white p-4 rounded-lg shadow-sm">
                       <SPAYDQRCode
-                        accountNumber="670100-2210171552/6210"
+                        accountNumber="670100-2210171536/6210"
                         amount={parseFloat(amount)}
                         currency="CZK"
                         message={`Předplatné ${plan_name || "Pro"} plán`}
@@ -160,7 +162,7 @@ export default async function SubscriptionPendingPage({ searchParams }) {
                       <p className="text-gray-600 text-sm">
                         na bankovní účet{" "}
                         <strong className="px-2 py-1 rounded text-gray-800 font-mono">
-                          670100-2210171552/6210
+                          670100-2210171536/6210
                         </strong>
                       </p>
                       <p className="text-gray-600 text-sm">

@@ -57,7 +57,7 @@ export async function sendVerificationEmail(user, token) {
             <p>Nebo zkopírujte a vložte tento odkaz do prohlížeče:</p>
             <p style="word-break: break-all; color: #666; font-size: 14px;">${verificationLink}</p>
             <p style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 14px;">
-              <strong>Důležité:</strong> Tento odkaz je platný pouze 1 hodinu. Pokud odkaz vypršel, můžete požádat o nový aktivační email.
+              <strong>Důležité:</strong> Tento odkaz je platný pouze 4 hodiny. Pokud odkaz vypršel, můžete požádat o nový aktivační email.
             </p>
             <p style="color: #666; font-size: 14px; margin-top: 20px;">
               Pokud jste se neregistrovali, můžete tento email ignorovat.
@@ -78,7 +78,7 @@ Děkujeme za registraci v FKTR.cz. Pro dokončení registrace a aktivaci vašeho
 
 ${verificationLink}
 
-Důležité: Tento odkaz je platný pouze 1 hodinu. Pokud odkaz vypršel, můžete požádat o nový aktivační email.
+Důležité: Tento odkaz je platný pouze 4 hodiny. Pokud odkaz vypršel, můžete požádat o nový aktivační email.
 
 Pokud jste se neregistrovali, můžete tento email ignorovat.
 
@@ -148,7 +148,7 @@ export async function sendPasswordResetEmail(user, token) {
             <p>Nebo zkopírujte a vložte tento odkaz do prohlížeče:</p>
             <p style="word-break: break-all; color: #666; font-size: 14px;">${resetLink}</p>
             <p style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 14px;">
-              <strong>Důležité:</strong> Tento odkaz je platný pouze 1 hodinu. Pokud jste o obnovení hesla nepožádali, můžete tento email ignorovat.
+              <strong>Důležité:</strong> Tento odkaz je platný pouze 4 hodiny. Pokud jste o obnovení hesla nepožádali, můžete tento email ignorovat.
             </p>
           </div>
           <div style="text-align: center; color: #999; font-size: 12px; margin-top: 30px;">
@@ -166,7 +166,7 @@ Obdrželi jsme žádost o obnovení hesla pro váš účet v FKTR.cz. Pro nastav
 
 ${resetLink}
 
-Důležité: Tento odkaz je platný pouze 1 hodinu. Pokud jste o obnovení hesla nepožádali, můžete tento email ignorovat.
+Důležité: Tento odkaz je platný pouze 4 hodiny. Pokud jste o obnovení hesla nepožádali, můžete tento email ignorovat.
 
 © 2025 FKTR.cz - Fakturační systém
       `,

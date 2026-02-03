@@ -1,16 +1,16 @@
 # Všeobecné obchodní podmínky
 
-**Payro.cz – jednoduchý fakturační systém pro freelancery**
+**FKTR.cz – jednoduchý fakturační systém pro freelancery**
 
 ## 1. Kdo službu provozuje
-Službu **Payro.cz** provozuje:  
+Službu **FKTR.cz** provozuje:  
 **Zbyněk Svoboda, IČO: [doplníš],**  
 se sídlem [město, ulice], Česká republika.  
 Nejsem plátce DPH.  
-Kontakt: **info@payro.cz**
+Kontakt: **info@zbyneksvoboda.cz**
 
 ## 2. Co služba dělá
-Payro.cz umožňuje vytvářet, ukládat a exportovat faktury, kontakty a přehledy.  
+FKTR.cz umožňuje vytvářet, ukládat a exportovat faktury, kontakty a přehledy.  
 Služba není účetní software ani daňový poradce – slouží jen jako jednoduchý nástroj pro správu faktur.
 
 ## 3. Registrace a používání
@@ -20,7 +20,7 @@ Jsi také odpovědný za to, že své přihlašovací údaje chráníš před zn
 
 ## 4. Tarify a platby
 - **Free účet** – zdarma, omezený na 4 faktury měsíčně.  
-- **Pro účet** – placený (90 Kč/měsíc nebo 900 Kč/rok).  
+- **Pro účet** – placený (55 Kč/měsíc nebo 550 Kč/rok, 2 měsíce zdarma).  
 Platby probíhají převodem na účet a jsou potvrzovány ručně do 3 dnů.  
 Pokud platba nedorazí, účet zůstává ve free režimu.  
 
@@ -31,7 +31,7 @@ Předplatné se automaticky neobnovuje. Můžeš ho kdykoliv zrušit, po skonče
 Služba si může vyhradit právo účet zrušit v případě porušení pravidel nebo zneužití systému.
 
 ## 6. Odpovědnost
-Payro.cz funguje „tak jak je“.  
+FKTR.cz funguje „tak jak je“.  
 I když se snažím, aby vše běželo spolehlivě, neručím za případnou ztrátu dat nebo výpadky služby.  
 Doporučuji pravidelně exportovat své faktury a klienty (XLS/JSON export).
 
@@ -40,5 +40,5 @@ Podmínky se mohou časem upravit (např. při rozšíření funkcí).
 O změnách informuji vždy e-mailem nebo přímo v aplikaci.
 
 ## 8. Kontakt
-Dotazy nebo připomínky piš na **info@payro.cz**.  
+Dotazy nebo připomínky piš na **info@zbyneksvoboda.cz**.  
 Rád odpovím lidsky, bez formulářů.

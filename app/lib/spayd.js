@@ -37,8 +37,12 @@ export function czechAccountToIBAN(accountNumber) {
   }
 
   // IBAN = CZ + check digits + bank code + prefix + account
-  // For simplicity, using '65' as check digits (should be calculated, but works for most cases)
-  const iban = `CZ65${bankCode}${prefix}${account}`;
+  // Calculate checksum (mod-97)
+  const bban = `${bankCode}${prefix}${account}`;
+  const numericIban = `${bban}123500`; // CZ = 1235, 00 for checksum calculation
+  const remainder = BigInt(numericIban) % 97n;
+  const checksum = String(98 - Number(remainder)).padStart(2, "0");
+  const iban = `CZ${checksum}${bban}`;
 
   return iban;
 }

@@ -113,9 +113,9 @@ export default function PricingPage() {
           <div className="bg-white rounded-2xl shadow-lg p-8 border-2 border-gray-200 hover:border-blue-300 transition-all relative">
             {isYearly && (
               <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                <span className="bg-green-500 text-white px-4 py-1 rounded-full text-sm font-semibold">
-                  Ušetříte 110 Kč
-                </span>
+                  <span className="bg-green-500 text-white px-4 py-1 rounded-full text-sm font-semibold">
+                    2 měsíce zdarma
+                  </span>
               </div>
             )}
 
@@ -129,7 +129,7 @@ export default function PricingPage() {
               <div className="text-sm text-gray-500 mb-4">
                 {isYearly ? (
                   <div>
-                    za rok (ušetříte 110 Kč)
+                    za rok (2 měsíce zdarma)
                     <div className="text-xs text-green-600 font-medium mt-1">
                       = {Math.round(yearlyPrice / 12)} Kč/měsíc
                     </div>

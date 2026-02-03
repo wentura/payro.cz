@@ -5,6 +5,7 @@
  * Uses environment variables for configuration.
  */
 
+import "server-only";
 import { createClient } from "@supabase/supabase-js";
 
 /**
@@ -22,10 +23,19 @@ function getSupabaseConfig() {
     process.env.SUPABASE_ANON_KEY ||
     "";
 
-  if (!url || !anonKey) {
+  const serviceRoleKey =
+    process.env.SUPABASE_SERVICE_ROLE_KEY ||
+    process.env.SUPABASE_SERVICE_KEY ||
+    "";
+
+  if (!url || (!anonKey && !serviceRoleKey)) {
     const missing = [];
     if (!url) missing.push("NEXT_PUBLIC_SUPABASE_URL (or SUPABASE_URL)");
-    if (!anonKey) missing.push("NEXT_PUBLIC_SUPABASE_ANON_KEY (or SUPABASE_ANON_KEY)");
+    if (!anonKey && !serviceRoleKey) {
+      missing.push(
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY (or SUPABASE_ANON_KEY) or SUPABASE_SERVICE_ROLE_KEY"
+      );
+    }
 
     throw new Error(
       `Supabase environment variables are not configured. Missing: ${missing.join(
@@ -34,17 +44,19 @@ function getSupabaseConfig() {
     );
   }
 
-  return { url, anonKey };
+  return { url, anonKey, serviceRoleKey };
 }
 
-const { url: supabaseUrl, anonKey: supabaseAnonKey } = getSupabaseConfig();
+const { url: supabaseUrl, anonKey: supabaseAnonKey, serviceRoleKey } =
+  getSupabaseConfig();
 
 /**
  * Creates a Supabase client instance
  * @returns {Object} Supabase client
  */
 export function createSupabaseClient() {
-  return createClient(supabaseUrl, supabaseAnonKey, {
+  const apiKey = serviceRoleKey || supabaseAnonKey;
+  return createClient(supabaseUrl, apiKey, {
     auth: {
       persistSession: false, // We're using custom auth with bcrypt
       autoRefreshToken: false,

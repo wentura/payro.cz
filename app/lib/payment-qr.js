@@ -92,8 +92,6 @@ export function formatDateForSPAYD(date) {
  * @param {string} params.variableSymbol - Variable symbol (invoice number)
  * @param {string} params.dueDate - Due date (optional)
  * @param {string} params.beneficiaryName - Beneficiary name (optional)
- * @param {string} params.constantSymbol - Constant symbol (optional)
- * @param {string} params.specificSymbol - Specific symbol (optional)
  * @param {string} params.message - Payment message (optional)
  * @returns {string} - SPAYD format string
  */
@@ -104,8 +102,6 @@ export function generateSPAYD({
   variableSymbol,
   dueDate,
   beneficiaryName,
-  constantSymbol,
-  specificSymbol,
   message,
 }) {
   // Start with SPAYD version
@@ -139,16 +135,6 @@ export function generateSPAYD({
     if (vs) {
       parts.push(`X-VS:${vs}`);
     }
-  }
-
-  // Constant symbol
-  if (constantSymbol) {
-    parts.push(`X-KS:${constantSymbol}`);
-  }
-
-  // Specific symbol
-  if (specificSymbol) {
-    parts.push(`X-SS:${specificSymbol}`);
   }
 
   // Due date

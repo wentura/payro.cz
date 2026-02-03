@@ -6,7 +6,9 @@
  */
 
 import { registerUser } from "@/app/lib/auth";
+import { logAuditEvent } from "@/app/lib/audit";
 import { sendVerificationEmail } from "@/app/lib/email";
+import { getRequestIp, rateLimit } from "@/app/lib/rate-limit";
 import { NextResponse } from "next/server";
 
 // Email validation regex
@@ -26,6 +28,20 @@ export async function POST(request) {
       math_num1, // Math question number 1
       math_num2, // Math question number 2
     } = body;
+
+    const ip = getRequestIp(request);
+    const rate = await rateLimit({
+      key: `auth:register:${ip}`,
+      limit: 5,
+      windowSeconds: 3600,
+    });
+
+    if (!rate.allowed) {
+      return NextResponse.json(
+        { success: false, error: "Příliš mnoho pokusů. Zkuste to později." },
+        { status: 429 }
+      );
+    }
 
     // Anti-bot validation: Check honeypot field FIRST (before any DB operations)
     if (my_name && my_name.trim() !== "") {
@@ -117,6 +133,14 @@ export async function POST(request) {
         { status: 400 }
       );
     }
+
+    await logAuditEvent({
+      userId: result.user.id,
+      action: "auth.register",
+      entityType: "user",
+      entityId: result.user.id,
+      request,
+    });
 
     // Send verification email if token was created
     if (result.token) {

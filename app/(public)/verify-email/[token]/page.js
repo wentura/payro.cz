@@ -4,16 +4,24 @@
  * Server component that verifies email token and activates account
  */
 
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 
 async function verifyEmail(token) {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-    const response = await fetch(`${baseUrl}/api/auth/verify-email/${token}`, {
+    const headerStore = await headers();
+    const host = headerStore.get("host");
+    const proto = headerStore.get("x-forwarded-proto") || "http";
+    const baseUrl =
+      process.env.NEXT_PUBLIC_APP_URL || (host ? `${proto}://${host}` : "");
+    const response = await fetch(
+      new URL(`/api/auth/verify-email/${token}`, baseUrl),
+      {
       method: "GET",
       cache: "no-store",
-    });
+      }
+    );
 
     const result = await response.json();
     return result;
@@ -140,7 +148,7 @@ export default async function VerifyEmailPage({ params }) {
                     Možné příčiny:
                   </p>
                   <ul className="list-disc list-inside text-sm text-red-600 mt-2 space-y-1">
-                    <li>Odkaz již vypršel (platnost 1 hodina)</li>
+                    <li>Odkaz již vypršel (platnost 4 hodiny)</li>
                     <li>Odkaz byl již použit</li>
                     <li>Neplatný nebo poškozený odkaz</li>
                   </ul>

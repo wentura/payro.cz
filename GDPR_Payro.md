@@ -1,9 +1,9 @@
 # Zásady zpracování osobních údajů (GDPR)
 
 ## 1. Kdo údaje zpracovává
-Provozovatel služby **Payro.cz**:  
-**Zbyněk Svoboda, IČO: [doplníš],**  
-[e-mail: info@payro.cz]  
+Provozovatel služby **FKTR.cz**:  
+**Zbyněk Svoboda, IČO: 74811002,**  
+[e-mail: info@fktr.cz]  
 Nejsem plátce DPH.
 
 ## 2. Jaké údaje sbírám
@@ -45,13 +45,13 @@ Používám jen technické cookies, které jsou nutné pro přihlášení a spr�
 Žádné reklamní ani sledovací cookies nejsou použity.
 
 ## 8. Kontakt na správce dat
-**info@payro.cz**  
+**info@fktr.cz**  
 Na jakékoliv dotazy o ochraně dat odpovídám osobně.
 
 ---
 
 **Shrnutí:**  
-Payro.cz je malý a férový nástroj.  
+FKTR.cz je malý a férový nástroj.  
 Tvá data jsou tvoje.  
 Nepoužívám žádné reklamní systémy, cookies ani tracking.  
 Chci, aby sis mohl faktury řešit jednoduše, v klidu a bez byrokracie.

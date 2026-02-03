@@ -19,9 +19,7 @@ export default function SubscriptionUpgradeForm({
   availablePlans,
 }) {
   const router = useRouter();
-  const [selectedPlan, setSelectedPlan] = useState(
-    availablePlans.length > 0 ? availablePlans[0] : null
-  );
+  const selectedPlan = availablePlans.length > 0 ? availablePlans[0] : null;
   const [billingCycle, setBillingCycle] = useState("monthly");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -85,7 +83,7 @@ export default function SubscriptionUpgradeForm({
   };
 
   const getPlanBadgeVariant = (planName) => {
-    switch (planName.toLowerCase()) {
+    switch (planName?.toLowerCase?.()) {
       case "free":
         return "secondary";
       case "pro":
@@ -157,116 +155,91 @@ export default function SubscriptionUpgradeForm({
         </div>
       )}
 
-      {/* Billing Cycle Toggle */}
+      {/* Pro Plan + Billing Cycle */}
       <div className="mb-8">
         <div className="p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Fakturační cyklus
+            Upgrade na plán Pro
           </h3>
-          <div className="flex bg-gray-100 rounded-lg p-1 max-w-md mx-auto">
-            <button
-              onClick={() => setBillingCycle("monthly")}
-              className={`flex-1 py-3 px-6 rounded-md text-sm font-medium transition-all ${
-                billingCycle === "monthly"
-                  ? "bg-white text-gray-900 shadow-sm"
-                  : "text-gray-600 hover:text-gray-900"
-              }`}
-            >
-              Měsíčně
-            </button>
-            <button
-              onClick={() => setBillingCycle("yearly")}
-              className={`flex-1 py-3 px-6 rounded-md text-sm font-medium transition-all relative ${
-                billingCycle === "yearly"
-                  ? "bg-white text-gray-900 shadow-sm"
-                  : "text-gray-600 hover:text-gray-900"
-              }`}
-            >
-              Ročně
-              {billingCycle !== "yearly" && (
-                <span className="absolute -top-2 -right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full font-bold">
-                  -2 měsíce
-                </span>
-              )}
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Available Plans */}
-      <div className="mb-8">
-        <div className="p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-6">
-            Dostupné plány
-          </h3>
-          <div className="grid gap-4">
-            {availablePlans.map((plan) => {
-              const isSelected = selectedPlan?.id === plan.id;
-              const price = calculatePrice(plan);
-              const savings = calculateSavings(plan);
-
-              return (
-                <div
-                  key={plan.id}
-                  onClick={() => setSelectedPlan(plan)}
-                  className={`p-6 border-2 rounded-lg cursor-pointer transition-all ${
-                    isSelected
-                      ? "border-blue-500 bg-blue-50"
-                      : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
-                      <input
-                        type="radio"
-                        checked={isSelected}
-                        onChange={() => setSelectedPlan(plan)}
-                        className="text-blue-600 w-5 h-5"
-                      />
-                      <div>
-                        <div className="flex items-center space-x-3 mb-2">
-                          <Badge
-                            variant={getPlanBadgeVariant(plan.name)}
-                            className="text-base px-3 py-1"
-                          >
-                            {plan.name}
-                          </Badge>
-                          {savings > 0 && (
-                            <span className="text-sm bg-green-100 text-green-800 px-3 py-1 rounded-full font-medium">
-                              Ušetříte {savings.toLocaleString("cs-CZ")} Kč
-                            </span>
-                          )}
-                        </div>
-                        <div className="text-gray-600">
-                          {plan.invoice_limit_monthly === 0
-                            ? "Neomezené faktury"
-                            : `${plan.invoice_limit_monthly} faktur měsíčně`}
-                        </div>
-                        {plan.description && (
-                          <div className="text-sm text-gray-500 mt-1">
-                            {plan.description}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-2xl font-bold text-gray-900">
-                        {price.toLocaleString("cs-CZ")} Kč
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        {billingCycle === "yearly" ? "za rok" : "za měsíc"}
-                      </div>
-                      {billingCycle === "yearly" && (
-                        <div className="text-xs text-green-600 font-medium mt-1">
-                          = {Math.round(price / 12)} Kč/měsíc
-                        </div>
-                      )}
-                    </div>
+          {selectedPlan ? (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-base font-semibold text-gray-900">
+                    {selectedPlan.name}
                   </div>
+                  <div className="text-gray-600">
+                    {selectedPlan.invoice_limit_monthly === 0
+                      ? "Neomezené faktury"
+                      : `${selectedPlan.invoice_limit_monthly} faktur měsíčně`}
+                  </div>
+                  {selectedPlan.description && (
+                    <div className="text-sm text-gray-500 mt-1">
+                      {selectedPlan.description}
+                    </div>
+                  )}
                 </div>
-              );
-            })}
-          </div>
+                <div className="text-right">
+                  <div className="text-2xl font-bold text-gray-900">
+                    {calculatePrice(selectedPlan).toLocaleString("cs-CZ")} Kč
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    {billingCycle === "yearly" ? "za rok" : "za měsíc"}
+                  </div>
+                  {billingCycle === "yearly" && (
+                    <div className="text-xs text-green-600 font-medium mt-1">
+                      {Math.round(
+                        calculatePrice(selectedPlan) / 12
+                      ).toLocaleString("cs-CZ")}{" "}
+                      Kč/měs
+                    </div>
+                  )}
+                  {calculateSavings(selectedPlan) > 0 && (
+                    <div className="text-xs text-green-600 font-medium mt-1">
+                      2 měsíce zdarma
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="text-sm font-medium text-gray-700 mb-2">
+                  Fakturační cyklus
+                </h4>
+                <div className="flex bg-gray-100 rounded-lg p-1 max-w-md">
+                  <button
+                    onClick={() => setBillingCycle("monthly")}
+                    className={`flex-1 py-3 px-6 rounded-md text-sm font-medium transition-all ${
+                      billingCycle === "monthly"
+                        ? "bg-white text-gray-900 shadow-sm"
+                        : "text-gray-600 hover:text-gray-900"
+                    }`}
+                  >
+                    Měsíčně
+                  </button>
+                  <button
+                    onClick={() => setBillingCycle("yearly")}
+                    className={`flex-1 py-3 px-6 rounded-md text-sm font-medium transition-all relative ${
+                      billingCycle === "yearly"
+                        ? "bg-white text-gray-900 shadow-sm"
+                        : "text-gray-600 hover:text-gray-900"
+                    }`}
+                  >
+                    Ročně
+                    {billingCycle !== "yearly" && (
+                      <span className="absolute -top-2 -right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full font-bold">
+                        2 měsíce zdarma
+                      </span>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-600">
+              Pro plán není aktuálně dostupný.
+            </div>
+          )}
         </div>
       </div>
 
@@ -325,7 +298,7 @@ export default function SubscriptionUpgradeForm({
                 <div>
                   <div className="font-medium">Úspora:</div>
                   <div className="text-lg font-bold text-green-700">
-                    {calculateSavings(selectedPlan).toLocaleString("cs-CZ")} Kč
+                    2 měsíce zdarma
                   </div>
                 </div>
               )}

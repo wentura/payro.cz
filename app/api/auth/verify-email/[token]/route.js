@@ -7,6 +7,7 @@
 
 import { createSession } from "@/app/lib/auth";
 import { verifyEmailToken } from "@/app/lib/auth";
+import { logAuditEvent } from "@/app/lib/audit";
 import { supabase } from "@/app/lib/supabase";
 import { NextResponse } from "next/server";
 
@@ -48,6 +49,14 @@ export async function GET(request, { params }) {
     // If already activated, just create session and redirect
     if (user.activated_at) {
       await createSession(user.id, user.contact_email);
+      await logAuditEvent({
+        userId: user.id,
+        action: "auth.email_verified",
+        entityType: "user",
+        entityId: user.id,
+        metadata: { alreadyActivated: true },
+        request,
+      });
       return NextResponse.json({
         success: true,
         message: "Účet je již aktivován",
@@ -77,6 +86,14 @@ export async function GET(request, { params }) {
 
     // Create session
     await createSession(user.id, user.contact_email);
+
+    await logAuditEvent({
+      userId: user.id,
+      action: "auth.email_verified",
+      entityType: "user",
+      entityId: user.id,
+      request,
+    });
 
     return NextResponse.json({
       success: true,

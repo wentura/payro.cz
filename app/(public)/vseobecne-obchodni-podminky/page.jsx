@@ -86,8 +86,8 @@ export default function TermsOfServicePage() {
                   měsíčně.
                 </li>
                 <li>
-                  <strong>FKTR Pro</strong> – placený (90 Kč/měsíc nebo 900
-                  Kč/rok).
+                  <strong>FKTR Pro</strong> – placený (55 Kč/měsíc nebo 550
+                  Kč/rok, 2 měsíce zdarma).
                 </li>
               </ul>
               <p className="text-gray-700 mb-4">

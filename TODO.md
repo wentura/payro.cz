@@ -1,5 +1,10 @@
 # TODO - FKTR.cz Development Tasks
 
+## ✅ Fáze A – Bezpečnost + GDPR (2026-02-03)
+
+- Základní implementace hotová v kódu (RLS, audit log, GDPR export/mazání, rate limit, signed session)
+- Detailní checklist a ruční kroky v `TODO-LIST.md`
+
 ## 🎯 Payment QR Code Improvements
 
 ### Current Implementation ✅

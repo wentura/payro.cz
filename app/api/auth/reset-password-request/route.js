@@ -5,7 +5,9 @@
  */
 
 import { supabase } from "@/app/lib/supabase";
+import { logAuditEvent } from "@/app/lib/audit";
 import { sendPasswordResetEmail } from "@/app/lib/email";
+import { getRequestIp, rateLimit } from "@/app/lib/rate-limit";
 import crypto from "crypto";
 import { NextResponse } from "next/server";
 
@@ -13,6 +15,20 @@ export async function POST(request) {
   try {
     const body = await request.json();
     const { contact_email } = body;
+
+    const ip = getRequestIp(request);
+    const rate = await rateLimit({
+      key: `auth:reset-password-request:${ip}`,
+      limit: 5,
+      windowSeconds: 3600,
+    });
+
+    if (!rate.allowed) {
+      return NextResponse.json(
+        { success: false, error: "Příliš mnoho pokusů. Zkuste to později." },
+        { status: 429 }
+      );
+    }
 
     if (!contact_email) {
       return NextResponse.json(
@@ -37,10 +53,18 @@ export async function POST(request) {
       });
     }
 
+    await logAuditEvent({
+      userId: user.id,
+      action: "auth.password_reset_requested",
+      entityType: "user",
+      entityId: user.id,
+      request,
+    });
+
     // Generate secure random token
     const token = crypto.randomBytes(32).toString("hex");
     const expiresAt = new Date();
-    expiresAt.setHours(expiresAt.getHours() + 1); // 1 hour expiry
+    expiresAt.setHours(expiresAt.getHours() + 4); // 4 hours expiry
 
     // Delete any existing tokens for this user
     await supabase

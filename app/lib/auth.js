@@ -12,6 +12,53 @@ import { supabase } from "./supabase";
 const SESSION_COOKIE_NAME = "payro_session";
 const SESSION_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "svoboda.zbynek@gmail.com";
+const SESSION_SECRET = process.env.SESSION_SECRET || "";
+
+function getSessionSecret() {
+  if (!SESSION_SECRET && process.env.NODE_ENV === "production") {
+    throw new Error("SESSION_SECRET is required in production.");
+  }
+
+  return SESSION_SECRET || "dev-session-secret";
+}
+
+function signSessionData(sessionData) {
+  const payload = Buffer.from(JSON.stringify(sessionData)).toString("base64url");
+  const signature = crypto
+    .createHmac("sha256", getSessionSecret())
+    .update(payload)
+    .digest("base64url");
+  return `${payload}.${signature}`;
+}
+
+function verifySessionToken(token) {
+  const [payload, signature] = token.split(".");
+  if (!payload || !signature) {
+    return null;
+  }
+
+  const expectedSignature = crypto
+    .createHmac("sha256", getSessionSecret())
+    .update(payload)
+    .digest("base64url");
+
+  const signatureBuffer = Buffer.from(signature);
+  const expectedBuffer = Buffer.from(expectedSignature);
+
+  if (
+    signatureBuffer.length !== expectedBuffer.length ||
+    !crypto.timingSafeEqual(signatureBuffer, expectedBuffer)
+  ) {
+    return null;
+  }
+
+  try {
+    const json = Buffer.from(payload, "base64url").toString("utf-8");
+    return JSON.parse(json);
+  } catch (error) {
+    return null;
+  }
+}
 
 /**
  * Hash a password using bcrypt
@@ -48,7 +95,9 @@ export async function createSession(userId, userEmail = null) {
     createdAt: Date.now(),
   };
 
-  cookieStore.set(SESSION_COOKIE_NAME, JSON.stringify(sessionData), {
+  const sessionToken = signSessionData(sessionData);
+
+  cookieStore.set(SESSION_COOKIE_NAME, sessionToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
@@ -70,7 +119,11 @@ export async function getSession() {
   }
 
   try {
-    const sessionData = JSON.parse(sessionCookie.value);
+    const sessionData = verifySessionToken(sessionCookie.value);
+
+    if (!sessionData) {
+      return null;
+    }
 
     // Check if session is expired
     if (Date.now() - sessionData.createdAt > SESSION_DURATION) {
@@ -123,7 +176,6 @@ export async function getCurrentUser() {
 
     // Check if user is deactivated - auto-logout
     if (data.deactivated_at) {
-      console.log("User is deactivated, returning null for auto-logout");
       return null;
     }
 
@@ -173,7 +225,7 @@ export async function createEmailVerificationToken(userId) {
     // Generate secure random token
     const token = crypto.randomBytes(32).toString("hex");
     const expiresAt = new Date();
-    expiresAt.setHours(expiresAt.getHours() + 1); // 1 hour expiry
+    expiresAt.setHours(expiresAt.getHours() + 4); // 4 hours expiry
 
     // Delete any existing tokens for this user
     await supabase
@@ -341,8 +393,6 @@ export async function registerUser(userData) {
  */
 export async function loginUser(email, password) {
   try {
-    console.log("🔍 Looking up user:", email);
-
     // Find user by email (include activated_at and deactivated_at)
     const { data: user, error } = await supabase
       .from("users")
@@ -359,32 +409,24 @@ export async function loginUser(email, password) {
     }
 
     if (!user) {
-      console.log("❌ User not found");
       return {
         success: false,
         error: "Neplatný email nebo heslo",
       };
     }
 
-    console.log("✓ User found:", user.contact_email);
-
     // Verify password
-    console.log("🔐 Verifying password...");
     const isValidPassword = await comparePassword(password, user.password_hash);
 
     if (!isValidPassword) {
-      console.log("❌ Invalid password");
       return {
         success: false,
         error: "Neplatný email nebo heslo",
       };
     }
 
-    console.log("✓ Password valid");
-
     // Check if account is activated
     if (!user.activated_at) {
-      console.log("❌ Account not activated");
       return {
         success: false,
         error: "ACCOUNT_NOT_ACTIVATED", // Special error code
@@ -394,7 +436,6 @@ export async function loginUser(email, password) {
 
     // Check if account is deactivated
     if (user.deactivated_at) {
-      console.log("❌ Account is deactivated");
       return {
         success: false,
         error: "ACCOUNT_DEACTIVATED", // Special error code
@@ -409,9 +450,7 @@ export async function loginUser(email, password) {
       .eq("id", user.id);
 
     // Create session
-    console.log("🍪 Creating session...");
     await createSession(user.id, user.contact_email);
-    console.log("✓ Session created");
 
     return {
       success: true,

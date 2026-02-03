@@ -34,11 +34,13 @@ export default async function SubscriptionUpgradePage() {
     );
   }
 
-  // Filter out the current plan and inactive plans
   const currentPlanId = subscriptionData.currentPlan?.plan_id;
-  const availablePlans = allPlans.filter(
-    (plan) => plan.is_active && plan.id !== currentPlanId
-  );
+  const proPlan = allPlans.find((plan) => plan.is_active && plan.id === 2);
+  const availablePlans = proPlan
+    ? proPlan.id === currentPlanId
+      ? []
+      : [proPlan]
+    : [];
 
   return (
     <Layout user={user}>

@@ -12,9 +12,31 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "FKTR – fakturuj v klidu",
+  metadataBase: new URL("https://www.fktr.cz"),
+  title: {
+    default: "FKTR – fakturuj v klidu",
+    template: "%s | FKTR",
+  },
   description:
     "Minimalistická appka pro vystavení faktur. Méně kliků, více klidu.",
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    title: "FKTR – fakturuj v klidu",
+    description:
+      "Minimalistická appka pro vystavení faktur. Méně kliků, více klidu.",
+    url: "https://www.fktr.cz",
+    siteName: "FKTR",
+    locale: "cs_CZ",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "FKTR – fakturuj v klidu",
+    description:
+      "Minimalistická appka pro vystavení faktur. Méně kliků, více klidu.",
+  },
 };
 
 export default function RootLayout({ children }) {

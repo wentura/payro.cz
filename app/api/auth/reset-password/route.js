@@ -5,6 +5,7 @@
  */
 
 import { hashPassword } from "@/app/lib/auth";
+import { logAuditEvent } from "@/app/lib/audit";
 import { supabase } from "@/app/lib/supabase";
 import { NextResponse } from "next/server";
 
@@ -82,7 +83,13 @@ export async function POST(request) {
       .delete()
       .eq("id", resetToken.id);
 
-    console.log("✓ Password reset successful for user:", resetToken.user_id);
+    await logAuditEvent({
+      userId: resetToken.user_id,
+      action: "auth.password_reset_completed",
+      entityType: "user",
+      entityId: resetToken.user_id,
+      request,
+    });
 
     return NextResponse.json({
       success: true,

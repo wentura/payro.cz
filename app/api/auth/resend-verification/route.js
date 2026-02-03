@@ -5,6 +5,7 @@
  */
 
 import { createEmailVerificationToken } from "@/app/lib/auth";
+import { logAuditEvent } from "@/app/lib/audit";
 import { sendVerificationEmail } from "@/app/lib/email";
 import { supabase } from "@/app/lib/supabase";
 import { NextResponse } from "next/server";
@@ -74,6 +75,14 @@ export async function POST(request) {
         { status: 500 }
       );
     }
+
+    await logAuditEvent({
+      userId: user.id,
+      action: "auth.verification_email_sent",
+      entityType: "user",
+      entityId: user.id,
+      request,
+    });
 
     return NextResponse.json({
       success: true,

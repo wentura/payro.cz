@@ -11,6 +11,8 @@ import { formatDateCZ } from "@/app/lib/utils";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import DeactivateUserButtonWrapper from "@/app/components/DeactivateUserButtonWrapper";
+import AdminChangePlanButton from "@/app/components/AdminChangePlanButton";
+import SoftDeleteUserButtonWrapper from "@/app/components/SoftDeleteUserButtonWrapper";
 
 /**
  * Admin Page
@@ -20,7 +22,14 @@ import DeactivateUserButtonWrapper from "@/app/components/DeactivateUserButtonWr
 
 const ADMIN_EMAIL = "svoboda.zbynek@gmail.com";
 
-export default async function AdminPage() {
+const FILTERS = [
+  { id: "active", label: "Aktivní" },
+  { id: "deactivated", label: "Deaktivovaní" },
+  { id: "deleted", label: "Smazaní" },
+  { id: "all", label: "Všichni" },
+];
+
+export default async function AdminPage({ searchParams }) {
   const user = await getCurrentUser();
 
   if (!user) {
@@ -47,6 +56,16 @@ export default async function AdminPage() {
   // Get all users with stats and subscription data
   const allUsers = await getAllUsersWithStats();
   const subscriptionStats = await getSubscriptionStats();
+  const resolvedSearchParams = await searchParams;
+  const currentFilter = resolvedSearchParams?.filter || "active";
+  const filteredUsers = allUsers.filter((userData) => {
+    if (currentFilter === "all") return true;
+    if (currentFilter === "deleted") return userData.deleted_at !== null;
+    if (currentFilter === "deactivated") {
+      return userData.deactivated_at !== null && userData.deleted_at === null;
+    }
+    return userData.deactivated_at === null && userData.deleted_at === null;
+  });
 
   return (
     <ServerLayout user={user}>
@@ -191,7 +210,22 @@ export default async function AdminPage() {
 
         {/* Users List with Subscription Info */}
         <Card title="Uživatelé a předplatné">
-          {allUsers.length === 0 ? (
+          <div className="mb-4 flex flex-wrap gap-2">
+            {FILTERS.map((filter) => (
+              <Link
+                key={filter.id}
+                href={`/admin?filter=${filter.id}`}
+                className={`text-sm px-3 py-1 rounded-full border transition-colors ${
+                  currentFilter === filter.id
+                    ? "bg-blue-600 text-white border-blue-600"
+                    : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
+                }`}
+              >
+                {filter.label}
+              </Link>
+            ))}
+          </div>
+          {filteredUsers.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
               <p>Žádní uživatelé nenalezeni</p>
             </div>
@@ -221,7 +255,7 @@ export default async function AdminPage() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {allUsers.map((userData) => (
+                  {filteredUsers.map((userData) => (
                     <tr key={userData.id} className="hover:bg-gray-50">
                       <td className="px-4 py-4 whitespace-nowrap">
                         <div>
@@ -352,15 +386,24 @@ export default async function AdminPage() {
                       <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex flex-col space-y-2">
                           <div className="flex space-x-2">
-                            <button className="text-blue-600 hover:text-blue-900 text-xs">
-                              Změnit plán
-                            </button>
+                            <AdminChangePlanButton
+                              userId={userData.id}
+                              currentPlanId={userData.subscription?.plan?.id}
+                              currentBillingCycle={
+                                userData.subscription?.billingCycle || "monthly"
+                              }
+                            />
                             <button className="text-orange-600 hover:text-orange-900 text-xs">
                               Detaily
                             </button>
                           </div>
                           <DeactivateUserButtonWrapper
                             userId={userData.id}
+                            isDeactivated={userData.deactivated_at !== null}
+                          />
+                          <SoftDeleteUserButtonWrapper
+                            userId={userData.id}
+                            isDeleted={userData.deleted_at !== null}
                             isDeactivated={userData.deactivated_at !== null}
                           />
                         </div>

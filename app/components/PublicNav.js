@@ -68,12 +68,12 @@ export default function PublicNav() {
             >
               Přihlásit se
             </Link>
-            {/* <Link
+            <Link
               href="/register"
               className="bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-md text-sm font-medium transition-colors"
             >
               Registrace zdarma
-            </Link> */}
+            </Link>
           </div>
 
           {/* Mobile Menu Button */}

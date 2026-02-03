@@ -194,7 +194,7 @@ export default async function SubscriptionUpgradePage() {
 **Doporučení:**
 ```javascript
 // Pro statická data (units, payment types, due terms):
-export const revalidate = 3600; // 1 hodina
+export const revalidate = 14400; // 4 hodiny
 
 // Pro user-specific data:
 export const dynamic = 'force-dynamic';
@@ -383,7 +383,7 @@ CREATE INDEX IF NOT EXISTS idx_invoices_user_created
   - [x] NewInvoiceForm optimalizace → Už přijímá data jako props
   - [x] SubscriptionUpgradePage → Server Component (už bylo hotové)
 - [x] Fáze 3: Fine-tuning ✅ DOKONČENO
-  - [x] Caching implementace → Next.js unstable_cache pro reference data (1 hodina revalidate)
+  - [x] Caching implementace → Next.js unstable_cache pro reference data (4 hodiny revalidate)
   - [x] Database optimalizace → Composite indexy pro invoices (user_id + status_id, user_id + created_at)
   - [x] Bundle size optimalizace → Dynamic imports pro ARESModal a Modal komponenty
 
@@ -409,7 +409,7 @@ CREATE INDEX IF NOT EXISTS idx_invoices_user_created
 - NewInvoiceForm už optimalizováno
 
 **Fáze 3:** Fine-tuning (Caching, Database, Bundle)
-- Caching pro reference data (1 hodina)
+- Caching pro reference data (4 hodiny)
 - Database composite indexy
 - Dynamic imports pro modaly
 
@@ -471,7 +471,7 @@ CREATE INDEX IF NOT EXISTS idx_invoices_user_created
 
 1. **Caching pro reference data** ✅
    - Implementován Next.js `unstable_cache` pro `getDueTerms()`, `getPaymentTypes()`, `getUnits()`
-   - Revalidate: 3600 sekund (1 hodina)
+   - Revalidate: 14400 sekund (4 hodiny)
    - Cache tags: `["reference-data"]` pro možnost invalidace
    - Statická reference data se nyní cachují a nejsou načítána z databáze při každém requestu
 
@@ -495,7 +495,7 @@ CREATE INDEX IF NOT EXISTS idx_invoices_user_created
 **Caching:**
 - Použito `unstable_cache` z Next.js pro server-side caching
 - Cache key: `["due-terms"]`, `["payment-types"]`, `["units"]`
-- Revalidate: 3600 sekund (1 hodina)
+- Revalidate: 14400 sekund (4 hodiny)
 - Cache tags umožňují invalidaci při změnách v databázi
 
 **Database indexy:**

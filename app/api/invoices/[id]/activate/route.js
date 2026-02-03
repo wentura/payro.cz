@@ -6,6 +6,7 @@
  */
 
 import { getCurrentUser } from "@/app/lib/auth";
+import { logAuditEvent } from "@/app/lib/audit";
 import { supabase } from "@/app/lib/supabase";
 import { NextResponse } from "next/server";
 
@@ -65,6 +66,15 @@ export async function POST(request, { params }) {
         );
       }
 
+      await logAuditEvent({
+        userId: user.id,
+        action: "invoice.activated",
+        entityType: "invoice",
+        entityId: id,
+        metadata: { statusId: 1, reason: "no_invoice_number" },
+        request,
+      });
+
       return NextResponse.json({
         success: true,
         message: "Faktura byla aktivována jako koncept",
@@ -110,6 +120,15 @@ export async function POST(request, { params }) {
         );
       }
 
+      await logAuditEvent({
+        userId: user.id,
+        action: "invoice.activated",
+        entityType: "invoice",
+        entityId: id,
+        metadata: { statusId: 1, reason: "invoice_number_collision" },
+        request,
+      });
+
       return NextResponse.json({
         success: true,
         message:
@@ -135,6 +154,15 @@ export async function POST(request, { params }) {
         { status: 500 }
       );
     }
+
+    await logAuditEvent({
+      userId: user.id,
+      action: "invoice.activated",
+      entityType: "invoice",
+      entityId: id,
+      metadata: { statusId: 2 },
+      request,
+    });
 
     return NextResponse.json({
       success: true,

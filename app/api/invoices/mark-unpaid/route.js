@@ -3,6 +3,7 @@
  */
 
 import { getCurrentUser } from "@/app/lib/auth";
+import { logAuditEvent } from "@/app/lib/audit";
 import { supabase } from "@/app/lib/supabase";
 import { NextResponse } from "next/server";
 
@@ -48,6 +49,14 @@ export async function POST(request) {
         { status: 500 }
       );
     }
+
+    await logAuditEvent({
+      userId: user.id,
+      action: "invoice.mark_unpaid",
+      entityType: "invoice",
+      entityId: invoiceId,
+      request,
+    });
 
     return NextResponse.redirect(
       new URL(`/invoices/${invoiceId}`, request.url)

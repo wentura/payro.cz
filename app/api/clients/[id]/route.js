@@ -5,6 +5,7 @@
  */
 
 import { getCurrentUser } from "@/app/lib/auth";
+import { logAuditEvent } from "@/app/lib/audit";
 import { supabase } from "@/app/lib/supabase";
 import { NextResponse } from "next/server";
 
@@ -126,6 +127,14 @@ export async function PUT(request, { params }) {
       );
     }
 
+    await logAuditEvent({
+      userId: user.id,
+      action: "client.updated",
+      entityType: "client",
+      entityId: data.id,
+      request,
+    });
+
     return NextResponse.json({
       success: true,
       data,
@@ -187,6 +196,14 @@ export async function DELETE(request, { params }) {
         { status: 500 }
       );
     }
+
+    await logAuditEvent({
+      userId: user.id,
+      action: "client.deleted",
+      entityType: "client",
+      entityId: id,
+      request,
+    });
 
     return NextResponse.json({
       success: true,

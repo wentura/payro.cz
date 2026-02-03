@@ -126,7 +126,7 @@ async function _getUnitsUncached() {
   return data || [];
 }
 
-// Cache pro 1 hodinu
+// Cache pro 4 hodiny
 export const getUnits = unstable_cache(
   _getUnitsUncached,
   ['units'],

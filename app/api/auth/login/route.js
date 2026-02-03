@@ -5,6 +5,8 @@
  */
 
 import { loginUser } from "@/app/lib/auth";
+import { logAuditEvent } from "@/app/lib/audit";
+import { getRequestIp, rateLimit } from "@/app/lib/rate-limit";
 import { NextResponse } from "next/server";
 
 export async function POST(request) {
@@ -12,7 +14,21 @@ export async function POST(request) {
     const body = await request.json();
     const { contact_email, password } = body;
 
-    console.log("Login attempt for:", contact_email);
+    if (process.env.NODE_ENV === "production") {
+      const ip = getRequestIp(request);
+      const rate = await rateLimit({
+        key: `auth:login:${ip}`,
+        limit: 10,
+        windowSeconds: 600,
+      });
+
+      if (!rate.allowed) {
+        return NextResponse.json(
+          { success: false, error: "Příliš mnoho pokusů. Zkuste to později." },
+          { status: 429 }
+        );
+      }
+    }
 
     // Validate input
     if (!contact_email || !password) {
@@ -24,11 +40,6 @@ export async function POST(request) {
 
     // Attempt login
     const result = await loginUser(contact_email, password);
-
-    console.log("Login result:", {
-      success: result.success,
-      error: result.error,
-    });
 
     if (!result.success) {
       // Check if account is not activated
@@ -48,7 +59,14 @@ export async function POST(request) {
       );
     }
 
-    console.log("Login successful for:", result.user.contact_email);
+    await logAuditEvent({
+      userId: result.user.id,
+      action: "auth.login",
+      entityType: "user",
+      entityId: result.user.id,
+      metadata: { success: true },
+      request,
+    });
 
     return NextResponse.json({
       success: true,

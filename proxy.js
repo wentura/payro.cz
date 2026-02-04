@@ -25,17 +25,8 @@ export function proxy(request) {
   // Check if user has session cookie
   const sessionCookie = request.cookies.get("payro_session");
 
-  // Only consider authenticated if cookie exists AND looks valid (starts with "{")
-  // This prevents bad JWT cookies from being treated as valid sessions
-  let isAuthenticated = false;
-  if (sessionCookie && sessionCookie.value) {
-    try {
-      // Quick check: valid session cookies should be JSON objects
-      isAuthenticated = sessionCookie.value.startsWith("{");
-    } catch {
-      isAuthenticated = false;
-    }
-  }
+  // Consider authenticated if session cookie exists
+  const isAuthenticated = !!sessionCookie?.value;
 
   // Check if route is protected
   const isProtectedRoute = PROTECTED_ROUTES.some((route) =>
@@ -49,8 +40,11 @@ export function proxy(request) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // Don't redirect from login/register pages - always allow access
-  // This fixes the issue where bad cookies cause unwanted redirects
+  // Redirect authenticated users away from public auth pages
+  if (isAuthenticated && PUBLIC_ROUTES.some((route) => pathname.startsWith(route))) {
+    const redirectTo = request.nextUrl.searchParams.get("redirect") || "/dashboard";
+    return NextResponse.redirect(new URL(redirectTo, request.url));
+  }
 
   return NextResponse.next();
 }

@@ -66,7 +66,11 @@ export async function POST(request) {
     );
 
     if (!emailResult.success) {
-      console.error("Failed to send verification email:", emailResult.error);
+      console.error("Failed to send verification email:", {
+        userId: user.id,
+        error: emailResult.error,
+        env: process.env.NODE_ENV,
+      });
       return NextResponse.json(
         {
           success: false,
@@ -75,6 +79,12 @@ export async function POST(request) {
         { status: 500 }
       );
     }
+
+    console.info("Verification email queued:", {
+      userId: user.id,
+      messageId: emailResult.messageId,
+      env: process.env.NODE_ENV,
+    });
 
     await logAuditEvent({
       userId: user.id,

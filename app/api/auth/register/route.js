@@ -156,8 +156,18 @@ export async function POST(request) {
       if (!emailResult.success) {
         // User was created but email failed
         // Log error but don't fail registration
-        console.error("Failed to send verification email:", emailResult.error);
+        console.error("Failed to send verification email:", {
+          userId: result.user.id,
+          error: emailResult.error,
+          env: process.env.NODE_ENV,
+        });
         // Continue - user can request resend later
+      } else {
+        console.info("Verification email queued:", {
+          userId: result.user.id,
+          messageId: emailResult.messageId,
+          env: process.env.NODE_ENV,
+        });
       }
     }
 

@@ -94,6 +94,12 @@ Pokud jste se neregistrovali, můžete tento email ignorovat.
       };
     }
 
+    console.info("Resend verification email sent:", {
+      messageId: data?.id,
+      to: user.contact_email,
+      env: process.env.NODE_ENV,
+    });
+
     return {
       success: true,
       messageId: data?.id,
@@ -179,6 +185,12 @@ Důležité: Tento odkaz je platný pouze 4 hodiny. Pokud jste o obnovení hesla
         error: error.message || "Chyba při odesílání emailu",
       };
     }
+
+    console.info("Resend password reset email sent:", {
+      messageId: data?.id,
+      to: user.contact_email,
+      env: process.env.NODE_ENV,
+    });
 
     return {
       success: true,

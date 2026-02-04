@@ -1,17 +1,16 @@
-# FKTR.cz – Rebrand Plan (from Payro.cz)
+# FKTR.cz – Rebrand Plan
 
 ## 🎯 Cíl
-Zachovat plně funkční aplikaci Payro.cz, ale kompletně přejmenovat brand a vizuální identitu na **FKTR.cz**.  
+Zachovat plně funkční aplikaci a kompletně přejmenovat brand a vizuální identitu na **FKTR.cz**.  
 Cílem je posílit značku, sjednotit tone-of-voice a zlepšit vnímanou kvalitu bez zásahu do jádra appky.
 
 ---
 
 ## 🧩 FÁZE 1 – Doména a DNS
 1. Zaregistruj **fktr.cz** (pokud ještě není).
-2. V DNS nastav stejné A/CNAME záznamy jako pro payro.cz.
+2. V DNS nastav správné A/CNAME záznamy pro fktr.cz.
 3. Přidej do `next.config.js` doménu `fktr.cz`.
-4. Připrav 301 redirecty:  
-   `payro.cz/*` → `fktr.cz/*`
+4. Připrav 301 redirecty na fktr.cz.
 
 ---
 
@@ -70,12 +69,12 @@ Platba převodem, potvrzení do 3 dnů.
 ---
 
 ## 🔁 FÁZE 5 – Redirect, SEO a metadata
-1. Nastav 301 redirecty `payro.cz` → `fktr.cz`.
+1. Nastav 301 redirecty na fktr.cz.
 2. Aktualizuj:
    - `robots.txt`
    - `siteurl` v konfiguraci SEO
    - favicon, manifest.json, OpenGraph image (např. `/og/fktr.jpg`)
-3. Nastav přeposílání e-mailů `info@payro.cz` → `info@fktr.cz`.
+3. Nastav přeposílání e-mailů na `info@fktr.cz`.
 
 ---
 
@@ -99,13 +98,13 @@ V repozáři vytvoř složku:
 | D+1 | redirect DNS + favicon/logo |
 | D+2 | přepsání textů a metadat |
 | D+3 | build a deploy na fktr.cz |
-| D+4 | veřejné oznámení: “Payro je teď FKTR. Méně kliků, více klidu.” |
+| D+4 | veřejné oznámení: “FKTR je připraven. Méně kliků, více klidu.” |
 
 ---
 
 ## ✅ Shrnutí
-- **Payro.cz** zůstává jako infrastruktura (DB, auth, storage).  
 - **FKTR.cz** přebírá veřejnou identitu a marketing.  
-- Do budoucna lze Payro interně přejmenovat (repo → fktr).
+- Infrastruktura (DB, auth, storage) zůstává zachována.  
+- Do budoucna lze interně sjednotit názvy (repo → fktr).
 
 ---

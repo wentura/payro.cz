@@ -110,28 +110,27 @@ export default function ResetPasswordPage() {
         ) : (
           <div className="mt-8 space-y-6">
             <div className="rounded-md bg-green-50 p-4">
-              <p className="text-sm text-green-800 mb-2">
-                ✓ Reset hesla byl úspěšně vytvořen!
-              </p>
-              <p className="text-xs text-green-700">
-                V produkci by byl odkaz odeslán emailem. Pro vývoj použijte
-                tento odkaz:
+              <p className="text-sm text-green-800">
+                Pokud účet existuje, byl odeslán email s odkazem pro obnovení
+                hesla.
               </p>
             </div>
 
-            <div className="p-4 bg-blue-50 border-2 border-blue-200 rounded">
-              <p className="text-xs font-medium text-gray-700 mb-2">
-                Magic Link (kopírujte celý):
-              </p>
-              <div className="bg-white p-3 rounded border border-gray-300 break-all">
-                <a
-                  href={magicLink}
-                  className="text-sm text-blue-600 hover:text-blue-800"
-                >
-                  {magicLink}
-                </a>
+            {magicLink && (
+              <div className="p-4 bg-blue-50 border-2 border-blue-200 rounded">
+                <p className="text-xs font-medium text-gray-700 mb-2">
+                  Magic Link (kopírujte celý):
+                </p>
+                <div className="bg-white p-3 rounded border border-gray-300 break-all">
+                  <a
+                    href={magicLink}
+                    className="text-sm text-blue-600 hover:text-blue-800"
+                  >
+                    {magicLink}
+                  </a>
+                </div>
               </div>
-            </div>
+            )}
 
             <div className="text-center">
               <Link

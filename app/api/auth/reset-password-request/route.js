@@ -100,7 +100,11 @@ export async function POST(request) {
     );
 
     if (!emailResult.success) {
-      console.error("Failed to send password reset email:", emailResult.error);
+      console.error("Failed to send password reset email:", {
+        userId: user.id,
+        error: emailResult.error,
+        env: process.env.NODE_ENV,
+      });
       // Don't fail the request - user can try again
       // But log the error for debugging
       return NextResponse.json(
@@ -112,9 +116,21 @@ export async function POST(request) {
       );
     }
 
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const resetLink = `${baseUrl}/reset-password/${token}`;
+
+    console.info("Password reset email queued:", {
+      userId: user.id,
+      messageId: emailResult.messageId,
+      env: process.env.NODE_ENV,
+    });
+
     return NextResponse.json({
       success: true,
-      message: "Pokud účet existuje, byl odeslán email s odkazem pro obnovení hesla.",
+      message:
+        "Pokud účet existuje, byl odeslán email s odkazem pro obnovení hesla.",
+      resetLink:
+        process.env.NODE_ENV !== "production" ? resetLink : undefined,
     });
   } catch (error) {
     console.error("Error in reset-password-request:", error);

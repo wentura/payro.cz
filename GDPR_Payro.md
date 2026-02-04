@@ -3,7 +3,7 @@
 ## 1. Kdo údaje zpracovává
 Provozovatel služby **FKTR.cz**:  
 **Zbyněk Svoboda, IČO: 74811002,**  
-[e-mail: info@fktr.cz]  
+[e-mail: info@zbyneksvoboda.cz]  
 Nejsem plátce DPH.
 
 ## 2. Jaké údaje sbírám

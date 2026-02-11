@@ -1,9 +1,7 @@
-"use client";
-
 /**
  * Soft Delete User Button Wrapper
  *
- * Client Component wrapper for SoftDeleteUserButton
+ * Server wrapper that renders SoftDeleteUserButton (Client Component)
  */
 
 import SoftDeleteUserButton from "./SoftDeleteUserButton";

@@ -10,6 +10,7 @@ import Card from "@/app/components/ui/Card";
 import { getCurrentUser } from "@/app/lib/auth";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import RetryPaymentButton from "./RetryPaymentButton";
 
 export default async function PaymentFailurePage({ searchParams }) {
   const user = await getCurrentUser();
@@ -47,8 +48,8 @@ export default async function PaymentFailurePage({ searchParams }) {
             </h1>
 
             <p className="text-lg text-gray-600 mb-8">
-              Omlouváme se, ale platba nebyla dokončena. Váš předplatný nebyl
-              změněn.
+              Omlouváme se, ale platba nebyla dokončena. Vaše předplatné nebylo
+              změněno.
             </p>
 
             {/* Error Details */}
@@ -149,16 +150,10 @@ export default async function PaymentFailurePage({ searchParams }) {
 
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button
-                variant="primary"
-                className="w-full sm:w-auto"
-                onClick={() => window.history.back()}
-              >
-                Zkusit znovu
-              </Button>
+              <RetryPaymentButton />
               <Link href="/dashboard">
                 <Button variant="secondary" className="w-full sm:w-auto">
-                  Jít na Dashboard
+                  Přejít na přehled
                 </Button>
               </Link>
             </div>
@@ -175,13 +170,6 @@ export default async function PaymentFailurePage({ searchParams }) {
                   className="text-blue-600 hover:text-blue-800"
                 >
                   podpora@fktr.cz
-                </a>{" "}
-                nebo volejte{" "}
-                <a
-                  href="tel:+420123456789"
-                  className="text-blue-600 hover:text-blue-800"
-                >
-                  +420 123 456 789
                 </a>
               </p>
             </div>

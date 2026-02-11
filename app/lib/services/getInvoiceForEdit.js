@@ -8,12 +8,21 @@ import { supabase } from "@/app/lib/supabase";
 
 export async function getInvoiceForEdit(invoiceId, userId) {
   try {
-    const { data: invoice, error: invoiceError } = await supabase
-      .from("invoices")
-      .select("*")
-      .eq("id", invoiceId)
-      .eq("user_id", userId)
-      .single();
+    const [invoiceResult, itemsResult] = await Promise.all([
+      supabase
+        .from("invoices")
+        .select("*")
+        .eq("id", invoiceId)
+        .eq("user_id", userId)
+        .single(),
+      supabase
+        .from("invoice_items")
+        .select("*")
+        .eq("invoice_id", invoiceId)
+        .order("order_number", { ascending: true }),
+    ]);
+
+    const { data: invoice, error: invoiceError } = invoiceResult;
 
     if (invoiceError || !invoice) {
       return null;
@@ -24,12 +33,7 @@ export async function getInvoiceForEdit(invoiceId, userId) {
       return { error: "Lze upravovat pouze faktury ve stavu Koncept" };
     }
 
-    // Get invoice items
-    const { data: items, error: itemsError } = await supabase
-      .from("invoice_items")
-      .select("*")
-      .eq("invoice_id", invoiceId)
-      .order("order_number", { ascending: true });
+    const { data: items, error: itemsError } = itemsResult;
 
     if (itemsError) {
       console.error("Error fetching invoice items:", itemsError);

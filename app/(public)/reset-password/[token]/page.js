@@ -7,6 +7,17 @@
 import Link from "next/link";
 import ResetPasswordForm from "./ResetPasswordForm";
 
+export const metadata = {
+  title: "Obnovení hesla",
+  robots: {
+    index: false,
+    follow: false,
+  },
+  alternates: {
+    canonical: "/reset-password",
+  },
+};
+
 export default async function ResetPasswordTokenPage({ params }) {
   const { token } = await params;
 

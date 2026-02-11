@@ -5,9 +5,11 @@
  */
 
 import Layout from "@/app/components/Layout";
+import Button from "@/app/components/ui/Button";
 import { getCurrentUser } from "@/app/lib/auth";
 import { getSubscriptionData } from "@/app/lib/services/getSubscriptionData";
 import { getPlans } from "@/app/lib/services/getPlans";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import SubscriptionUpgradeForm from "./SubscriptionUpgradeForm";
 
@@ -27,8 +29,20 @@ export default async function SubscriptionUpgradePage() {
   if (!subscriptionData) {
     return (
       <Layout user={user}>
-        <div className="min-h-screen flex items-center justify-center text-gray-600 text-2xl font-bold">
-          Chyba při načítání dat
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center space-y-4">
+            <p className="text-gray-700 text-xl font-semibold">
+              Chyba při načítání dat
+            </p>
+            <div className="flex justify-center gap-3">
+              <Link href="/subscription/upgrade">
+                <Button variant="primary">Zkusit znovu</Button>
+              </Link>
+              <Link href="/dashboard">
+                <Button variant="secondary">Přejít na přehled</Button>
+              </Link>
+            </div>
+          </div>
         </div>
       </Layout>
     );

@@ -9,32 +9,25 @@ import { supabase } from "@/app/lib/supabase";
 
 export async function getSubscriptionData(userId) {
   try {
-    // Get current subscription plan
-    const { data: planData, error: planError } = await supabase.rpc(
-      "get_user_current_plan",
-      { user_uuid: userId }
-    );
+    const [planResult, usageResult] = await Promise.all([
+      supabase.rpc("get_user_current_plan", { user_uuid: userId }),
+      supabase.rpc("get_user_monthly_invoice_count", { user_uuid: userId }),
+    ]);
 
-    if (planError) {
-      console.error("Error fetching user plan:", planError);
+    if (planResult.error) {
+      console.error("Error fetching user plan:", planResult.error);
       return null;
     }
 
-    // Get current month invoice count
-    const { data: usageData, error: usageError } = await supabase.rpc(
-      "get_user_monthly_invoice_count",
-      { user_uuid: userId }
-    );
-
-    if (usageError) {
-      console.error("Error fetching usage:", usageError);
+    if (usageResult.error) {
+      console.error("Error fetching usage:", usageResult.error);
       return null;
     }
 
     // Default to free plan if no active subscription
     const currentPlan =
-      planData && planData.length > 0
-        ? planData[0]
+      planResult.data && planResult.data.length > 0
+        ? planResult.data[0]
         : {
             plan_id: 1, // Free plan ID
             plan_name: "Free",
@@ -46,7 +39,7 @@ export async function getSubscriptionData(userId) {
             },
           };
 
-    const currentUsage = usageData || 0;
+    const currentUsage = usageResult.data || 0;
     const canCreateInvoice =
       currentPlan.invoice_limit_monthly === 0 ||
       currentUsage < currentPlan.invoice_limit_monthly;

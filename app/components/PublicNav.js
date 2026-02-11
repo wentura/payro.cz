@@ -72,7 +72,7 @@ export default function PublicNav() {
               href="/register"
               className="bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-md text-sm font-medium transition-colors"
             >
-              Registrace zdarma
+              Začít zdarma
             </Link>
           </div>
 
@@ -121,6 +121,27 @@ export default function PublicNav() {
           <div className="md:hidden border-t border-gray-200 pb-3">
             <div className="pt-2 space-y-1">
               <Link
+                href="/pricing"
+                className="block px-4 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Ceník
+              </Link>
+              <Link
+                href="/vseobecne-obchodni-podminky"
+                className="block px-4 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                VOP
+              </Link>
+              <Link
+                href="/ochrana-osobnich-udaju"
+                className="block px-4 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                GDPR
+              </Link>
+              <Link
                 href="/login"
                 className="block px-4 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 transition-colors"
                 onClick={() => setIsMenuOpen(false)}
@@ -132,7 +153,7 @@ export default function PublicNav() {
                 className="block px-4 py-2 text-base font-medium text-blue-600 hover:bg-blue-50 transition-colors"
                 onClick={() => setIsMenuOpen(false)}
               >
-                Registrace zdarma
+                Začít zdarma
               </Link>
             </div>
           </div>

@@ -1,6 +1,8 @@
 import AdminSubscriptionsManager from "@/app/components/AdminSubscriptionsManager";
 import ServerLayout from "@/app/components/ServerLayout";
 import { getCurrentUser } from "@/app/lib/auth";
+import { getAllUsersWithStats } from "@/app/lib/services/AdminService";
+import { getPlans } from "@/app/lib/services/getPlans";
 import { redirect } from "next/navigation";
 
 /**
@@ -10,23 +12,6 @@ import { redirect } from "next/navigation";
  */
 
 const ADMIN_EMAIL = "svoboda.zbynek@gmail.com";
-
-async function getInitialData() {
-  try {
-    // For now, return empty data - the client component will fetch it
-    // In a real implementation, you could fetch server-side data here
-    return {
-      users: [],
-      plans: [],
-    };
-  } catch (error) {
-    console.error("Error fetching initial data:", error);
-    return {
-      users: [],
-      plans: [],
-    };
-  }
-}
 
 export default async function AdminSubscriptionsPage() {
   const user = await getCurrentUser();
@@ -52,13 +37,17 @@ export default async function AdminSubscriptionsPage() {
     );
   }
 
-  const initialData = await getInitialData();
+  const [users, plans] = await Promise.all([
+    getAllUsersWithStats(),
+    getPlans(),
+  ]);
 
   return (
     <ServerLayout user={user}>
       <AdminSubscriptionsManager
-        initialUsers={initialData.users}
-        initialPlans={initialData.plans}
+        initialUsers={users}
+        initialPlans={plans}
+        initialUser={user}
       />
     </ServerLayout>
   );

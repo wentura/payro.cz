@@ -7,6 +7,7 @@ import {
   getAllUsersWithStats,
   getSubscriptionStats,
 } from "@/app/lib/services/AdminService";
+import { getPlans } from "@/app/lib/services/getPlans";
 import { formatDateCZ } from "@/app/lib/utils";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -54,8 +55,11 @@ export default async function AdminPage({ searchParams }) {
   }
 
   // Get all users with stats and subscription data
-  const allUsers = await getAllUsersWithStats();
-  const subscriptionStats = await getSubscriptionStats();
+  const [allUsers, subscriptionStats, availablePlans] = await Promise.all([
+    getAllUsersWithStats(),
+    getSubscriptionStats(),
+    getPlans(),
+  ]);
   const resolvedSearchParams = await searchParams;
   const currentFilter = resolvedSearchParams?.filter || "active";
   const filteredUsers = allUsers.filter((userData) => {
@@ -392,6 +396,7 @@ export default async function AdminPage({ searchParams }) {
                               currentBillingCycle={
                                 userData.subscription?.billingCycle || "monthly"
                               }
+                              initialPlans={availablePlans}
                             />
                             <button className="text-orange-600 hover:text-orange-900 text-xs">
                               Detaily

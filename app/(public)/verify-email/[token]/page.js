@@ -8,6 +8,17 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 
+export const metadata = {
+  title: "Ověření emailu",
+  robots: {
+    index: false,
+    follow: false,
+  },
+  alternates: {
+    canonical: "/resend-verification",
+  },
+};
+
 async function verifyEmail(token) {
   try {
     const headerStore = await headers();

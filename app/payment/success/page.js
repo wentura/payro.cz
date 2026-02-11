@@ -43,7 +43,7 @@ export default async function PaymentSuccessPage({ searchParams }) {
             </div>
 
             <h1 className="text-3xl font-bold text-gray-900 mb-4">
-              Hotovo. FKTR Pro aktivní.
+              Hotovo. FKTR Pro je aktivní.
             </h1>
 
             <p className="text-lg text-gray-600 mb-8">
@@ -110,7 +110,7 @@ export default async function PaymentSuccessPage({ searchParams }) {
                     />
                   </svg>
                   <span className="text-gray-700">
-                    Vaše předplatné bude brzy aktivováno.
+                    Předplatné je aktivní a můžete pokračovat.
                   </span>
                 </div>
                 <div className="flex items-center">
@@ -152,7 +152,7 @@ export default async function PaymentSuccessPage({ searchParams }) {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/dashboard">
                 <Button variant="primary" className="w-full sm:w-auto">
-                  Jít na Dashboard
+                  Přejít na přehled
                 </Button>
               </Link>
               <Link href="/invoices/new">
@@ -170,7 +170,7 @@ export default async function PaymentSuccessPage({ searchParams }) {
                   href="mailto:podpora@fktr.cz"
                   className="text-blue-600 hover:text-blue-800"
                 >
-                  info@fktr.cz
+                  podpora@fktr.cz
                 </a>
               </p>
             </div>

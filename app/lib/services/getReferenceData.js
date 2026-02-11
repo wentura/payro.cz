@@ -8,24 +8,33 @@
 import { unstable_cache } from "next/cache";
 import { supabase } from "@/app/lib/supabase";
 
-export async function getClients(userId) {
-  try {
-    const { data, error } = await supabase
-      .from("clients")
-      .select("*")
-      .eq("user_id", userId)
-      .order("name", { ascending: true });
+export function getClients(userId) {
+  return unstable_cache(
+    async () => {
+      try {
+        const { data, error } = await supabase
+          .from("clients")
+          .select("*")
+          .eq("user_id", userId)
+          .order("name", { ascending: true });
 
-    if (error) {
-      console.error("Error fetching clients:", error);
-      return [];
+        if (error) {
+          console.error("Error fetching clients:", error);
+          return [];
+        }
+
+        return data || [];
+      } catch (error) {
+        console.error("Error in getClients:", error);
+        return [];
+      }
+    },
+    ["clients", userId],
+    {
+      revalidate: 300,
+      tags: ["clients", `clients-${userId}`],
     }
-
-    return data || [];
-  } catch (error) {
-    console.error("Error in getClients:", error);
-    return [];
-  }
+  )();
 }
 
 async function _getDueTermsUncached() {

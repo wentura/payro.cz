@@ -4,6 +4,14 @@
  * Všeobecné obchodní podmínky for FKTR.cz
  */
 
+export const metadata = {
+  title: "Obchodní podmínky",
+  description: "Všeobecné obchodní podmínky služby FKTR.cz.",
+  alternates: {
+    canonical: "/vseobecne-obchodni-podminky",
+  },
+};
+
 export default function TermsOfServicePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">

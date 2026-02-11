@@ -49,7 +49,7 @@ Tento dokument obsahuje praktické guidelines založené na zkušenostech z prod
 
 ```javascript
 // ✅ app/invoices/new/page.js (Server Component)
-import { getClients, getDueTerms } from '@/lib/services/getReferenceData';
+import { getClients, getDueTerms } from '@/app/lib/services/getReferenceData';
 import NewInvoiceForm from './NewInvoiceForm';
 
 export default async function NewInvoicePage() {

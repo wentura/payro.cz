@@ -20,11 +20,10 @@ export default function HomePage() {
             Méně kliků, více času.
           </h2>
 
-          <p className="text-base text-gray-600 mb-8 max-w-3xl mx-auto hidden">
-            Minimalistický fakturační systém postavený přímo pro české
-            podnikatele a freelancery. Vytvářejte faktury, spravujte klienty a
-            sledujte splatnosti faktur na jednom místě. A využij více času na
-            to, co vás baví.
+          <p className="text-base text-gray-600 mb-8 max-w-3xl mx-auto">
+            Minimalistický fakturační systém pro české podnikatele a freelancery.
+            Vystavujte faktury, spravujte klienty a hlídejte splatnosti na jednom
+            místě.
           </p>
           <div className="flex justify-center space-x-4">
             <Link
@@ -123,16 +122,16 @@ export default function HomePage() {
         {/* CTA Section */}
         <div className="mt-16 text-center">
           <h2 className="text-3xl font-bold text-gray-900 mb-4">
-            Připraveni začít?
+            Vytvořte první fakturu do minuty
           </h2>
           <p className="text-xl text-gray-600 mb-8">
-            Zaregistrujte se zdarma a vytvořte svou první fakturu během minuty.
+            Registrace je zdarma a zabere jen chvíli.
           </p>
           <Link
             href="/register"
             className="inline-block bg-blue-600 text-white hover:bg-blue-700 px-8 py-4 rounded-lg text-lg font-semibold transition-colors shadow-lg hover:shadow-xl"
           >
-            Začít fakturovat zdarma
+            Začít zdarma
           </Link>
         </div>
       </div>

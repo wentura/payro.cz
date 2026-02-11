@@ -17,6 +17,7 @@ export default function ResetPasswordForm({ token }) {
     password_confirm: "",
   });
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e) => {
@@ -70,9 +71,8 @@ export default function ResetPasswordForm({ token }) {
         return;
       }
 
-      // Success - redirect to login
-      alert("Heslo bylo úspěšně změněno! Nyní se můžete přihlásit.");
-      router.push("/login");
+      setSuccess(true);
+      setIsLoading(false);
     } catch (err) {
       console.error("Password reset error:", err);
       setError("Neočekávaná chyba při resetování hesla");
@@ -92,7 +92,24 @@ export default function ResetPasswordForm({ token }) {
           </p>
         </div>
 
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+        {success ? (
+          <div className="mt-8 space-y-6">
+            <div className="rounded-md bg-green-50 p-4 border border-green-200">
+              <p className="text-sm text-green-800">
+                Heslo bylo úspěšně změněno. Nyní se můžete přihlásit.
+              </p>
+            </div>
+            <div className="text-center">
+              <Link
+                href="/login"
+                className="text-sm font-medium text-blue-600 hover:text-blue-500"
+              >
+                Přejít na přihlášení
+              </Link>
+            </div>
+          </div>
+        ) : (
+          <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           {error && (
             <div className="rounded-md bg-red-50 p-4">
               <p className="text-sm text-red-800">{error}</p>
@@ -158,7 +175,8 @@ export default function ResetPasswordForm({ token }) {
               ← Zpět na přihlášení
             </Link>
           </div>
-        </form>
+          </form>
+        )}
       </div>
     </div>
   );

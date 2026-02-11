@@ -21,10 +21,11 @@ export default function AdminChangePlanButton({
   userId,
   currentPlanId,
   currentBillingCycle,
+  initialPlans = [],
 }) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
-  const [plans, setPlans] = useState([]);
+  const [plans, setPlans] = useState(initialPlans);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");

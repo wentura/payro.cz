@@ -30,12 +30,21 @@ export const metadata = {
     siteName: "FKTR",
     locale: "cs_CZ",
     type: "website",
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "FKTR – fakturuj v klidu",
+      },
+    ],
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: "FKTR – fakturuj v klidu",
     description:
       "Minimalistická appka pro vystavení faktur. Méně kliků, více klidu.",
+    images: ["/opengraph-image"],
   },
 };
 

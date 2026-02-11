@@ -4,9 +4,10 @@
  * Server-side function to fetch subscription plans
  */
 
+import { unstable_cache } from "next/cache";
 import { supabase } from "@/app/lib/supabase";
 
-export async function getPlans() {
+async function _getPlansUncached() {
   try {
     const { data, error } = await supabase
       .from("subscription_plans")
@@ -25,6 +26,11 @@ export async function getPlans() {
     return [];
   }
 }
+
+export const getPlans = unstable_cache(_getPlansUncached, ["plans"], {
+  revalidate: 3600,
+  tags: ["subscription-plans"],
+});
 
 
 

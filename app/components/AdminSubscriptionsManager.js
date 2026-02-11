@@ -16,8 +16,9 @@ import { useCallback, useEffect, useState } from "react";
 export default function AdminSubscriptionsManager({
   initialUsers,
   initialPlans,
+  initialUser,
 }) {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(initialUser || null);
   const [users, setUsers] = useState(initialUsers || []);
   const [availablePlans, setAvailablePlans] = useState(initialPlans || []);
   const [loading, setLoading] = useState(false);
@@ -71,10 +72,6 @@ export default function AdminSubscriptionsManager({
       setLoading(false);
     }
   }, []);
-
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
 
   const handleUserSelect = (userId) => {
     const user = users.find((u) => u.id === userId);

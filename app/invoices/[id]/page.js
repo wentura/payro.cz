@@ -4,6 +4,7 @@ import Button from "@/app/components/ui/Button";
 import Card from "@/app/components/ui/Card";
 import { getCurrentUser } from "@/app/lib/auth";
 import { supabase } from "@/app/lib/supabase";
+import { getUnits } from "@/app/lib/services/getReferenceData";
 import { formatCurrency, formatDateCZ, formatNumber } from "@/app/lib/utils";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -17,28 +18,32 @@ import DuplicateInvoiceButtonWrapper from "./DuplicateInvoiceButtonWrapper";
 
 async function getInvoice(invoiceId, userId) {
   try {
-    const { data: invoice, error: invoiceError } = await supabase
-      .from("invoices")
-      .select(
+    const [invoiceResult, itemsResult] = await Promise.all([
+      supabase
+        .from("invoices")
+        .select(
+          `
+          *,
+          clients!inner(*)
         `
-        *,
-        clients!inner(*)
-      `
-      )
-      .eq("id", invoiceId)
-      .eq("user_id", userId)
-      .single();
+        )
+        .eq("id", invoiceId)
+        .eq("user_id", userId)
+        .single(),
+      supabase
+        .from("invoice_items")
+        .select("*")
+        .eq("invoice_id", invoiceId)
+        .order("order_number", { ascending: true }),
+    ]);
+
+    const { data: invoice, error: invoiceError } = invoiceResult;
 
     if (invoiceError || !invoice) {
       return null;
     }
 
-    // Get invoice items
-    const { data: items, error: itemsError } = await supabase
-      .from("invoice_items")
-      .select("*")
-      .eq("invoice_id", invoiceId)
-      .order("order_number", { ascending: true });
+    const { data: items, error: itemsError } = itemsResult;
 
     if (itemsError) {
       console.error("Error fetching invoice items:", itemsError);
@@ -49,20 +54,6 @@ async function getInvoice(invoiceId, userId) {
   } catch (error) {
     console.error("Error in getInvoice:", error);
     return null;
-  }
-}
-
-async function getUnits() {
-  try {
-    const { data, error } = await supabase.from("units").select("*");
-
-    if (error) {
-      return [];
-    }
-
-    return data || [];
-  } catch (error) {
-    return [];
   }
 }
 
@@ -92,8 +83,10 @@ export default async function InvoiceDetailPage({ params }) {
   }
 
   const { id } = await params;
-  const invoice = await getInvoice(id, user.id);
-  const units = await getUnits();
+  const [invoice, units] = await Promise.all([
+    getInvoice(id, user.id),
+    getUnits(),
+  ]);
 
   if (!invoice) {
     return (

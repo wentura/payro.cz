@@ -2,6 +2,7 @@ import PaymentQRCode from "@/app/components/PaymentQRCode";
 import { getCurrentUser } from "@/app/lib/auth";
 import { generateInvoiceSPAYD } from "@/app/lib/payment-qr";
 import { supabase } from "@/app/lib/supabase";
+import { getUnits } from "@/app/lib/services/getReferenceData";
 import { formatCurrency, formatDateCZ, formatNumber } from "@/app/lib/utils";
 import { redirect } from "next/navigation";
 import PrintButton from "./PrintButton";
@@ -14,28 +15,32 @@ import PrintButton from "./PrintButton";
 
 async function getInvoice(invoiceId, userId) {
   try {
-    const { data: invoice, error: invoiceError } = await supabase
-      .from("invoices")
-      .select(
+    const [invoiceResult, itemsResult] = await Promise.all([
+      supabase
+        .from("invoices")
+        .select(
+          `
+          *,
+          clients!inner(*)
         `
-        *,
-        clients!inner(*)
-      `
-      )
-      .eq("id", invoiceId)
-      .eq("user_id", userId)
-      .single();
+        )
+        .eq("id", invoiceId)
+        .eq("user_id", userId)
+        .single(),
+      supabase
+        .from("invoice_items")
+        .select("*")
+        .eq("invoice_id", invoiceId)
+        .order("order_number", { ascending: true }),
+    ]);
+
+    const { data: invoice, error: invoiceError } = invoiceResult;
 
     if (invoiceError || !invoice) {
       return null;
     }
 
-    // Get invoice items
-    const { data: items, error: itemsError } = await supabase
-      .from("invoice_items")
-      .select("*")
-      .eq("invoice_id", invoiceId)
-      .order("order_number", { ascending: true });
+    const { data: items, error: itemsError } = itemsResult;
 
     if (itemsError) {
       return { ...invoice, items: [] };
@@ -65,16 +70,6 @@ async function getUser(userId) {
   }
 }
 
-async function getUnits() {
-  try {
-    const { data, error } = await supabase.from("units").select("*");
-    if (error) return [];
-    return data || [];
-  } catch (error) {
-    return [];
-  }
-}
-
 export default async function InvoicePrintPage({ params }) {
   const currentUser = await getCurrentUser();
 
@@ -83,9 +78,11 @@ export default async function InvoicePrintPage({ params }) {
   }
 
   const { id } = await params;
-  const invoice = await getInvoice(id, currentUser.id);
-  const issuer = await getUser(currentUser.id);
-  const units = await getUnits();
+  const [invoice, issuer, units] = await Promise.all([
+    getInvoice(id, currentUser.id),
+    getUser(currentUser.id),
+    getUnits(),
+  ]);
 
   if (!invoice) {
     return <div>Faktura nenalezena</div>;

@@ -1,17 +1,10 @@
-"use client";
-
 /**
  * Wrapper for ActivateInvoiceButton
- * 
- * Client component wrapper to enable dynamic import
+ *
+ * Server wrapper that renders client component
  */
 
-import dynamic from "next/dynamic";
-
-const ActivateInvoiceButton = dynamic(
-  () => import("./ActivateInvoiceButton"),
-  { ssr: false }
-);
+import ActivateInvoiceButton from "./ActivateInvoiceButton";
 
 export default function ActivateInvoiceButtonWrapper({ invoiceId }) {
   return <ActivateInvoiceButton invoiceId={invoiceId} />;

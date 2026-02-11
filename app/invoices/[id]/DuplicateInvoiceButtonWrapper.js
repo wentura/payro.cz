@@ -1,17 +1,10 @@
-"use client";
-
 /**
  * Wrapper for DuplicateInvoiceButton
- * 
- * Client component wrapper to enable dynamic import
+ *
+ * Server wrapper that renders client component
  */
 
-import dynamic from "next/dynamic";
-
-const DuplicateInvoiceButton = dynamic(
-  () => import("./DuplicateInvoiceButton"),
-  { ssr: false }
-);
+import DuplicateInvoiceButton from "./DuplicateInvoiceButton";
 
 export default function DuplicateInvoiceButtonWrapper({ invoiceId }) {
   return <DuplicateInvoiceButton invoiceId={invoiceId} />;

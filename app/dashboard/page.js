@@ -1,6 +1,7 @@
 import ServerLayout from "@/app/components/ServerLayout";
 import SubscriptionStatus from "@/app/components/SubscriptionStatus";
 import Badge from "@/app/components/ui/Badge";
+import Button from "@/app/components/ui/Button";
 import Card from "@/app/components/ui/Card";
 import { getCurrentUser } from "@/app/lib/auth";
 import { supabase } from "@/app/lib/supabase";
@@ -21,30 +22,37 @@ import { redirect } from "next/navigation";
 
 async function getDashboardData(userId) {
   try {
-    // Get invoice statistics (exclude cancelled invoices)
-    const { data: invoices, error: invoicesError } = await supabase
-      .from("invoices")
-      .select(
+    const [invoicesResult, clientCountResult] = await Promise.all([
+      supabase
+        .from("invoices")
+        .select(
+          `
+          id,
+          invoice_number,
+          issue_date,
+          due_date,
+          payment_date,
+          total_amount,
+          currency,
+          status_id,
+          is_paid,
+          is_canceled,
+          is_deleted,
+          client_id,
+          clients!inner(name)
         `
-        id,
-        invoice_number,
-        issue_date,
-        due_date,
-        payment_date,
-        total_amount,
-        currency,
-        status_id,
-        is_paid,
-        is_canceled,
-        is_deleted,
-        client_id,
-        clients!inner(name)
-      `
-      )
-      .eq("user_id", userId)
-      .eq("is_deleted", false)
-      .neq("status_id", 4) // Exclude cancelled invoices (status_id = 4)
-      .order("created_at", { ascending: false });
+        )
+        .eq("user_id", userId)
+        .eq("is_deleted", false)
+        .neq("status_id", 4) // Exclude cancelled invoices (status_id = 4)
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("clients")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", userId),
+    ]);
+
+    const { data: invoices, error: invoicesError } = invoicesResult;
 
     if (invoicesError) {
       console.error("Error fetching invoices:", invoicesError);
@@ -84,11 +92,7 @@ async function getDashboardData(userId) {
     // Get recent invoices (last 5)
     const recentInvoices = invoices.slice(0, 5);
 
-    // Get client count
-    const { count: clientCount } = await supabase
-      .from("clients")
-      .select("*", { count: "exact", head: true })
-      .eq("user_id", userId);
+    const { count: clientCount } = clientCountResult;
 
     return {
       stats: {
@@ -128,7 +132,7 @@ const statusVariants = {
   6: "partial_paid",
 };
 
-export default async function DashboardPage() {
+export default async function DashboardPage({ searchParams }) {
   // Check authentication
   const user = await getCurrentUser();
 
@@ -147,12 +151,19 @@ export default async function DashboardPage() {
       <ServerLayout user={user}>
         <div className="text-center py-12">
           <p className="text-gray-500">Chyba při načítání dat dashboardu</p>
+          <div className="mt-4">
+            <Link href="/dashboard">
+              <Button variant="secondary">Zkusit znovu</Button>
+            </Link>
+          </div>
         </div>
       </ServerLayout>
     );
   }
 
   const { stats, recentInvoices } = dashboardData;
+  const resolvedSearchParams = await searchParams;
+  const showVerifiedBanner = resolvedSearchParams?.verified === "true";
 
   return (
     <ServerLayout user={user}>
@@ -161,6 +172,14 @@ export default async function DashboardPage() {
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Přehled</h1>
         </div>
+
+        {showVerifiedBanner && (
+          <div className="rounded-md bg-green-50 border border-green-200 p-4">
+            <p className="text-sm text-green-800">
+              Účet je aktivní. Můžete vytvořit první fakturu nebo přidat klienta.
+            </p>
+          </div>
+        )}
 
         {/* Statistics Cards */}
         <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-2 md:gap-4">

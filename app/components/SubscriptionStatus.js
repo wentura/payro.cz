@@ -18,6 +18,13 @@ export default function SubscriptionStatus({ subscription }) {
           <p className="text-gray-500">
             Něco se pokazilo. Ale klid, zkus to znovu.
           </p>
+          <div className="mt-3">
+            <Link href="/dashboard">
+              <Button variant="secondary" size="sm">
+                Obnovit
+              </Button>
+            </Link>
+          </div>
         </div>
       </Card>
     );

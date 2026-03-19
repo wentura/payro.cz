@@ -5,6 +5,7 @@
  */
 
 import { getCurrentUser } from "@/app/lib/auth";
+import { logAuditEvent } from "@/app/lib/audit";
 import { supabase } from "@/app/lib/supabase";
 import { NextResponse } from "next/server";
 
@@ -28,12 +29,6 @@ export async function POST(request) {
       subscriptionId,
       reason = "Manuální aktivace po obdržení platby",
     } = body;
-
-    console.log("Admin subscription activation request:", {
-      userId,
-      subscriptionId,
-      reason,
-    });
 
     if (!userId || !subscriptionId) {
       return NextResponse.json(
@@ -166,17 +161,18 @@ export async function POST(request) {
 
     if (paymentError) {
       console.error("Error creating payment record:", paymentError);
-      // Don't fail the activation if payment record creation fails
-      console.warn(
-        "Payment record creation failed, but subscription was activated"
-      );
     }
 
-    console.log("Successfully activated subscription:", {
-      subscriptionId: updatedSubscription.id,
-      plan: subscription.subscription_plans.name,
-      billingCycle: subscription.billing_cycle,
-      paymentRecordId: paymentRecord?.id,
+    await logAuditEvent({
+      userId: user.id,
+      action: "admin.subscription_activated",
+      entityType: "subscription",
+      entityId: subscriptionId,
+      metadata: {
+        plan: subscription.subscription_plans.name,
+        billingCycle: subscription.billing_cycle,
+      },
+      request,
     });
 
     return NextResponse.json({

@@ -45,7 +45,7 @@ export default function PricingClient() {
                 Ročně
                 {!isYearly && (
                   <span className="absolute -top-4 -right-4 bg-green-500 text-white text-xs px-2 py-1 rounded-full font-bold">
-                    -2 měsíce
+                    2 měsíce zdarma
                   </span>
                 )}
               </button>

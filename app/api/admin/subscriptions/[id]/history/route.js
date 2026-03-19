@@ -31,8 +31,6 @@ export async function GET(request, { params }) {
       );
     }
 
-    console.log("Fetching subscription status history for:", subscriptionId);
-
     // Get subscription status history
     const { data: history, error: historyError } = await supabase
       .from("subscription_status_history")
@@ -54,21 +52,12 @@ export async function GET(request, { params }) {
       .order("created_at", { ascending: false });
 
     if (historyError) {
-      console.error(
-        "Error fetching subscription status history:",
-        historyError
-      );
+      console.error("Error fetching subscription status history:", historyError);
       return NextResponse.json(
         { success: false, error: "Failed to fetch status history" },
         { status: 500 }
       );
     }
-
-    console.log(
-      "Successfully fetched status history:",
-      history?.length || 0,
-      "records"
-    );
 
     return NextResponse.json({
       success: true,

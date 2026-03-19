@@ -36,6 +36,13 @@ export default function AdminChangePlanButton({
     currentBillingCycle || "monthly"
   );
 
+  // Preselect first plan when modal opens and user has no current plan
+  useEffect(() => {
+    if (isOpen && plans.length > 0 && !selectedPlanId) {
+      setSelectedPlanId(String(plans[0].id));
+    }
+  }, [isOpen, plans, selectedPlanId]);
+
   useEffect(() => {
     if (!isOpen) return;
     if (plans.length > 0) return;

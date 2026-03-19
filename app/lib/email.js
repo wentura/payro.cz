@@ -87,25 +87,19 @@ Pokud jste se neregistrovali, můžete tento email ignorovat.
     });
 
     if (error) {
-      console.error("Error sending verification email:", error);
+      console.error("[Email] verification failed");
       return {
         success: false,
         error: error.message || "Chyba při odesílání emailu",
       };
     }
 
-    console.info("Resend verification email sent:", {
-      messageId: data?.id,
-      to: user.contact_email,
-      env: process.env.NODE_ENV,
-    });
-
     return {
       success: true,
       messageId: data?.id,
     };
   } catch (error) {
-    console.error("Error in sendVerificationEmail:", error);
+    console.error("[Email] verification failed (exception)");
     return {
       success: false,
       error: "Neočekávaná chyba při odesílání emailu",
@@ -179,25 +173,19 @@ Důležité: Tento odkaz je platný pouze 4 hodiny. Pokud jste o obnovení hesla
     });
 
     if (error) {
-      console.error("Error sending password reset email:", error);
+      console.error("[Resend] Password reset email failed");
       return {
         success: false,
         error: error.message || "Chyba při odesílání emailu",
       };
     }
 
-    console.info("Resend password reset email sent:", {
-      messageId: data?.id,
-      to: user.contact_email,
-      env: process.env.NODE_ENV,
-    });
-
     return {
       success: true,
       messageId: data?.id,
     };
   } catch (error) {
-    console.error("Error in sendPasswordResetEmail:", error);
+    console.error("[Resend] sendPasswordResetEmail exception");
     return {
       success: false,
       error: "Neočekávaná chyba při odesílání emailu",

@@ -22,7 +22,9 @@ export function convertToIBAN(bankAccount) {
   // Parse Czech format: "prefix-account/bankCode" or "account/bankCode"
   const parts = bankAccount.trim().split("/");
   if (parts.length !== 2) {
-    console.warn("Invalid bank account format:", bankAccount);
+    if (process.env.NODE_ENV === "development") {
+      console.warn("Invalid bank account format (length check failed)");
+    }
     return null;
   }
 
@@ -52,8 +54,6 @@ export function convertToIBAN(bankAccount) {
   const checksum = String(98 - Number(remainder)).padStart(2, "0");
 
   const iban = `CZ${checksum}${bban}`;
-
-  console.log(`✓ Converted ${bankAccount} → ${iban}`);
   return iban;
 }
 
@@ -172,7 +172,6 @@ export function generateInvoiceSPAYD(invoice, issuer) {
     amount: invoice?.total_amount,
     currency: invoice?.currency || "CZK",
     variableSymbol: invoice?.invoice_number,
-    dueDate: invoice?.due_date,
     beneficiaryName: issuer?.name,
     message: `Faktura ${invoice?.invoice_number || ""}`,
   });

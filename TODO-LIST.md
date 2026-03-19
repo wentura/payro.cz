@@ -6,7 +6,7 @@
 - [x] Audit log tabulka + logování klíčových akcí (viz `database/migration-audit-log.sql`, `app/lib/audit.js`)
 - [x] GDPR export dat (API: `app/api/user/gdpr/export/route.js`)
 - [x] GDPR mazání/anonymizace (API: `app/api/user/gdpr/delete/route.js`)
-- [x] Podepsané session cookie (HMAC) + odstranění citlivých logů
+- [x] Podepsané session cookie (HMAC) + odstranění citlivých logů (email, bank account, PII z console.log)
 - [x] Rate limiting pro auth endpointy (viz `database/migration-rate-limits.sql`, `app/lib/rate-limit.js`)
 
 ### Ruční kroky k nasazení (A)

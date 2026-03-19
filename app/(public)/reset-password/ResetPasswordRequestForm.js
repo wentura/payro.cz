@@ -13,13 +13,16 @@ export default function ResetPasswordRequestForm() {
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
-  const [magicLink, setMagicLink] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+  const [resetLink, setResetLink] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setSuccess(false);
+    setSuccessMessage("");
+    setResetLink("");
     setIsLoading(true);
 
     try {
@@ -40,7 +43,11 @@ export default function ResetPasswordRequestForm() {
       }
 
       setSuccess(true);
-      setMagicLink(result.resetLink);
+      setSuccessMessage(
+        result.message ||
+          "Pokud účet existuje, byl odeslán email s odkazem pro obnovení hesla."
+      );
+      setResetLink(result.resetLink || "");
       setIsLoading(false);
     } catch (err) {
       console.error("Password reset request error:", err);
@@ -110,23 +117,20 @@ export default function ResetPasswordRequestForm() {
         ) : (
           <div className="mt-8 space-y-6">
             <div className="rounded-md bg-green-50 p-4">
-              <p className="text-sm text-green-800">
-                Pokud účet existuje, byl odeslán email s odkazem pro obnovení
-                hesla.
-              </p>
+              <p className="text-sm text-green-800">{successMessage}</p>
             </div>
 
-            {magicLink && (
+            {resetLink && (
               <div className="p-4 bg-blue-50 border-2 border-blue-200 rounded">
                 <p className="text-xs font-medium text-gray-700 mb-2">
                   Magic Link (kopírujte celý):
                 </p>
                 <div className="bg-white p-3 rounded border border-gray-300 break-all">
                   <a
-                    href={magicLink}
+                    href={resetLink}
                     className="text-sm text-blue-600 hover:text-blue-800"
                   >
-                    {magicLink}
+                    {resetLink}
                   </a>
                 </div>
               </div>

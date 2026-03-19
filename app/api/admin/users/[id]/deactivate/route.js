@@ -5,6 +5,7 @@
  */
 
 import { getCurrentUser } from "@/app/lib/auth";
+import { logAuditEvent } from "@/app/lib/audit";
 import { supabase } from "@/app/lib/supabase";
 import { NextResponse } from "next/server";
 
@@ -26,11 +27,6 @@ export async function POST(request, { params }) {
     const { id } = await params;
     const body = await request.json();
     const { action } = body; // 'deactivate' or 'reactivate'
-
-    console.log("Admin user deactivation request:", {
-      userId: id,
-      action,
-    });
 
     if (!id) {
       return NextResponse.json(
@@ -115,11 +111,13 @@ export async function POST(request, { params }) {
 
     const isDeactivated = updatedUser.deactivated_at !== null;
 
-    console.log("Successfully updated user deactivation status:", {
-      userId: updatedUser.id,
-      email: updatedUser.contact_email,
-      deactivated: isDeactivated,
-      action: requestedAction,
+    await logAuditEvent({
+      userId: user.id,
+      action: "admin.user_deactivation",
+      entityType: "user",
+      entityId: id,
+      metadata: { deactivated: isDeactivated, action: requestedAction },
+      request,
     });
 
     return NextResponse.json({

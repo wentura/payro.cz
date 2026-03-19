@@ -8,7 +8,7 @@
 /**
  * Convert Czech bank account to IBAN format
  * @param {string} accountNumber - Czech account format (e.g., "123456789/0100")
- * @returns {string} IBAN format (e.g., "CZ6501000000000123456789")
+ * @returns {string} IBAN format (e.g., "CZ6362106701002210171536" - checksum mod-97)
  */
 export function czechAccountToIBAN(accountNumber) {
   if (!accountNumber) return "";

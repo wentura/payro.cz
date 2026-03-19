@@ -48,8 +48,9 @@ export async function POST(request) {
       // Don't reveal if user exists or not (security)
       return NextResponse.json({
         success: true,
-        message: "Pokud účet existuje, byl odeslán reset hesla",
-        resetLink: "", // Don't show link if user doesn't exist
+        message:
+          "Pokud účet existuje, byl odeslán email s odkazem pro obnovení hesla.",
+        ...(process.env.NODE_ENV !== "production" && { resetLink: "" }),
       });
     }
 
@@ -100,13 +101,7 @@ export async function POST(request) {
     );
 
     if (!emailResult.success) {
-      console.error("Failed to send password reset email:", {
-        userId: user.id,
-        error: emailResult.error,
-        env: process.env.NODE_ENV,
-      });
-      // Don't fail the request - user can try again
-      // But log the error for debugging
+      console.error("[Resend] Password reset request – email failed");
       return NextResponse.json(
         {
           success: false,
@@ -118,12 +113,6 @@ export async function POST(request) {
 
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
     const resetLink = `${baseUrl}/reset-password/${token}`;
-
-    console.info("Password reset email queued:", {
-      userId: user.id,
-      messageId: emailResult.messageId,
-      env: process.env.NODE_ENV,
-    });
 
     return NextResponse.json({
       success: true,

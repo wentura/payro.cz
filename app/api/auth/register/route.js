@@ -45,8 +45,7 @@ export async function POST(request) {
 
     // Anti-bot validation: Check honeypot field FIRST (before any DB operations)
     if (my_name && my_name.trim() !== "") {
-      // Bot detected - fake positive response
-      console.log("Bot detected: honeypot field filled", { contact_email });
+      // Bot detected - fake positive response (no logging of PII)
       return NextResponse.json({
         success: true,
         message: "Registrace proběhla úspěšně. Zkontrolujte svůj email pro aktivaci účtu.",
@@ -69,12 +68,7 @@ export async function POST(request) {
       isNaN(correctAnswer) ||
       userAnswer !== correctAnswer
     ) {
-      // Bot detected - fake positive response
-      console.log("Bot detected: incorrect math answer", {
-        contact_email,
-        userAnswer,
-        correctAnswer,
-      });
+      // Bot detected - fake positive response (no logging of PII)
       return NextResponse.json({
         success: true,
         message: "Registrace proběhla úspěšně. Zkontrolujte svůj email pro aktivaci účtu.",
@@ -154,20 +148,9 @@ export async function POST(request) {
       );
 
       if (!emailResult.success) {
-        // User was created but email failed
-        // Log error but don't fail registration
-        console.error("Failed to send verification email:", {
-          userId: result.user.id,
-          error: emailResult.error,
-          env: process.env.NODE_ENV,
-        });
+        // User was created but email failed - log without PII
+        console.error("[Email] register verification failed");
         // Continue - user can request resend later
-      } else {
-        console.info("Verification email queued:", {
-          userId: result.user.id,
-          messageId: emailResult.messageId,
-          env: process.env.NODE_ENV,
-        });
       }
     }
 

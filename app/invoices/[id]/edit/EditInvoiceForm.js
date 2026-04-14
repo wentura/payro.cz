@@ -24,16 +24,18 @@ export default function EditInvoiceForm({
   units,
 }) {
   const router = useRouter();
+  const SMALL_BUYER_LIMIT = 10000;
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
 
   const [formData, setFormData] = useState({
-    client_id: invoice.client_id,
+    client_id: invoice.client_id || "",
     issue_date: invoice.issue_date,
     due_term_id: invoice.due_term_id || "",
     payment_type_id: invoice.payment_type_id || "",
     currency: invoice.currency || "CZK",
     note: invoice.note || "",
+    is_small_buyer: !invoice.client_id,
   });
 
   const [items, setItems] = useState(
@@ -51,6 +53,16 @@ export default function EditInvoiceForm({
       ...formData,
       [e.target.name]: e.target.value,
     });
+  };
+
+  const handleRecipientTypeChange = (value) => {
+    const isSmallBuyer = value === "small_buyer";
+    setFormData((prev) => ({
+      ...prev,
+      is_small_buyer: isSmallBuyer,
+      client_id: isSmallBuyer ? "" : prev.client_id,
+      currency: isSmallBuyer ? "CZK" : prev.currency || "CZK",
+    }));
   };
 
   const handleItemChange = (index, field, value) => {
@@ -102,6 +114,14 @@ export default function EditInvoiceForm({
       return;
     }
 
+    const total = calculateTotal();
+    if (formData.is_small_buyer && total > SMALL_BUYER_LIMIT) {
+      setError(
+        "Faktura pro malého odběratele může mít maximálně 10 000 Kč včetně DPH."
+      );
+      return;
+    }
+
     setIsSaving(true);
 
     try {
@@ -112,6 +132,8 @@ export default function EditInvoiceForm({
         },
         body: JSON.stringify({
           ...formData,
+          client_id: formData.is_small_buyer ? null : formData.client_id,
+          currency: formData.is_small_buyer ? "CZK" : formData.currency,
           items: validItems.map((item, index) => ({
             id: item.id && !item.id.startsWith("new_") ? item.id : null,
             description: item.description,
@@ -141,6 +163,8 @@ export default function EditInvoiceForm({
   };
 
   const total = calculateTotal();
+  const isSmallBuyerLimitExceeded =
+    formData.is_small_buyer && total > SMALL_BUYER_LIMIT;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -154,12 +178,25 @@ export default function EditInvoiceForm({
       <Card title="Základní údaje">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left px-1">
           <Select
+            label="Typ odběratele"
+            name="recipient_type"
+            value={formData.is_small_buyer ? "small_buyer" : "client"}
+            onChange={(e) => handleRecipientTypeChange(e.target.value)}
+            options={[
+              { value: "client", label: "Klient" },
+              { value: "small_buyer", label: "Malý odběratel (anonymní)" },
+            ]}
+            className="text-gray-700 text-base"
+          />
+
+          <Select
             label="Klient"
             name="client_id"
             value={formData.client_id}
             onChange={handleChange}
             options={clients.map((c) => ({ value: c.id, label: c.name }))}
-            required
+            required={!formData.is_small_buyer}
+            disabled={formData.is_small_buyer}
             placeholder="Vyberte klienta"
             className="text-gray-700 text-base"
           />
@@ -205,13 +242,25 @@ export default function EditInvoiceForm({
             name="currency"
             value={formData.currency}
             onChange={handleChange}
-            options={[
-              { value: "CZK", label: "CZK - Česká koruna" },
-              { value: "EUR", label: "EUR - Euro" },
-            ]}
+            options={
+              formData.is_small_buyer
+                ? [{ value: "CZK", label: "CZK - Česká koruna" }]
+                : [
+                    { value: "CZK", label: "CZK - Česká koruna" },
+                    { value: "EUR", label: "EUR - Euro" },
+                  ]
+            }
+            disabled={formData.is_small_buyer}
             className="text-gray-700 text-base"
           />
         </div>
+
+        {formData.is_small_buyer && (
+          <div className="mt-4 rounded-md bg-blue-50 p-3 text-sm text-blue-900">
+            Faktura je vystavena pro anonymního malého odběratele. Celková částka
+            nesmí překročit 10 000 Kč včetně DPH.
+          </div>
+        )}
 
         <div className="mt-4 px-1 text-left">
           <Textarea
@@ -332,6 +381,11 @@ export default function EditInvoiceForm({
               {formatCurrency(total, formData.currency)}
             </span>
           </div>
+          {isSmallBuyerLimitExceeded && (
+            <p className="mt-2 text-sm text-red-700">
+              Překročen limit 10 000 Kč pro malého odběratele.
+            </p>
+          )}
         </div>
       </Card>
 
@@ -345,7 +399,11 @@ export default function EditInvoiceForm({
           Zrušit
         </Button>
 
-        <Button type="submit" variant="primary" disabled={isSaving}>
+        <Button
+          type="submit"
+          variant="primary"
+          disabled={isSaving || isSmallBuyerLimitExceeded}
+        >
           {isSaving ? "Ukládání..." : "Uložit změny"}
         </Button>
       </div>

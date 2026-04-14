@@ -87,6 +87,7 @@ export async function POST(request, { params }) {
       payment_type_id: invoice.payment_type_id,
       currency: invoice.currency || "CZK",
       note: invoice.note,
+      is_small_buyer: !invoice.client_id,
     };
 
     // Prepare items for duplicate

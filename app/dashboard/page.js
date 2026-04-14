@@ -39,7 +39,7 @@ async function getDashboardData(userId) {
           is_canceled,
           is_deleted,
           client_id,
-          clients!inner(name)
+          clients(name)
         `
         )
         .eq("user_id", userId)
@@ -324,7 +324,7 @@ export default async function DashboardPage({ searchParams }) {
                         </Link>
                       </td>
                       <td className="px-2 py-4 whitespace-nowrap text-gray-900 max-w-[8ch] md:max-w-56  overflow-hidden text-ellipsis text-left">
-                        {invoice.clients?.name || "N/A"}
+                        {invoice.clients?.name || "Malý odběratel"}
                       </td>
                       <td className="px-2 py-4 whitespace-nowrap text-xs text-gray-900 text-left md:w-44">
                       {formatDateCZ(invoice.issue_date)}

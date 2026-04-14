@@ -6,6 +6,7 @@
 
 import { getCurrentUser } from "@/app/lib/auth";
 import { logAuditEvent } from "@/app/lib/audit";
+import { updateInvoiceWithItems } from "@/app/lib/services/InvoiceService";
 import { supabase } from "@/app/lib/supabase";
 import { NextResponse } from "next/server";
 
@@ -97,6 +98,7 @@ export async function PUT(request, { params }) {
       payment_type_id,
       currency,
       note,
+      is_small_buyer,
       items,
     } = body;
 
@@ -125,91 +127,25 @@ export async function PUT(request, { params }) {
       );
     }
 
-    // Validate required fields
-    if (!client_id || !issue_date) {
-      return NextResponse.json(
-        { success: false, error: "Klient a datum vystavení jsou povinné" },
-        { status: 400 }
-      );
-    }
-
-    if (!items || items.length === 0) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Faktura musí obsahovat alespoň jednu položku",
-        },
-        { status: 400 }
-      );
-    }
-
-    // Calculate due date if due_term_id is provided
-    let dueDate = null;
-    if (due_term_id) {
-      const { data: dueTerm } = await supabase
-        .from("due_terms")
-        .select("days_count")
-        .eq("id", due_term_id)
-        .single();
-
-      if (dueTerm) {
-        const issueDateTime = new Date(issue_date);
-        issueDateTime.setDate(issueDateTime.getDate() + dueTerm.days_count);
-        dueDate = issueDateTime.toISOString().split("T")[0];
-      }
-    }
-
-    // Calculate total from items
-    const totalAmount = items.reduce((sum, item) => {
-      return sum + parseFloat(item.quantity) * parseFloat(item.unit_price);
-    }, 0);
-
-    // Update invoice
-    const { error: updateError } = await supabase
-      .from("invoices")
-      .update({
+    const result = await updateInvoiceWithItems(
+      id,
+      {
         client_id,
         issue_date,
-        due_date: dueDate,
-        due_term_id: due_term_id || null,
-        payment_type_id: payment_type_id || null,
-        currency: currency || "CZK",
-        total_amount: totalAmount,
-        note: note || null,
-      })
-      .eq("id", id)
-      .eq("user_id", user.id);
+        due_term_id,
+        payment_type_id,
+        currency,
+        note,
+        is_small_buyer: Boolean(is_small_buyer),
+      },
+      items,
+      user.id
+    );
 
-    if (updateError) {
-      console.error("Error updating invoice:", updateError);
+    if (!result.success) {
       return NextResponse.json(
-        { success: false, error: "Chyba při aktualizaci faktury" },
-        { status: 500 }
-      );
-    }
-
-    // Delete all existing items
-    await supabase.from("invoice_items").delete().eq("invoice_id", id);
-
-    // Insert new items
-    const itemsToInsert = items.map((item, index) => ({
-      invoice_id: id,
-      description: item.description,
-      quantity: parseFloat(item.quantity),
-      unit_id: item.unit_id || null,
-      unit_price: parseFloat(item.unit_price),
-      order_number: index + 1,
-    }));
-
-    const { error: itemsError } = await supabase
-      .from("invoice_items")
-      .insert(itemsToInsert);
-
-    if (itemsError) {
-      console.error("Error updating invoice items:", itemsError);
-      return NextResponse.json(
-        { success: false, error: "Chyba při aktualizaci položek faktury" },
-        { status: 500 }
+        { success: false, error: result.error },
+        { status: result.status || 500 }
       );
     }
 

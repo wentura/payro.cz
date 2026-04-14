@@ -24,7 +24,7 @@ async function getInvoice(invoiceId, userId) {
         .select(
           `
           *,
-          clients!inner(*)
+          clients(*)
         `
         )
         .eq("id", invoiceId)
@@ -154,7 +154,7 @@ export default async function InvoiceDetailPage({ params }) {
               {invoice.invoice_number || "Koncept faktury"}
             </h1>
             <p className="mt-2 text-gray-600">
-              Detail faktury pro {invoice.clients?.name}
+              Detail faktury pro {invoice.clients?.name || "malého odběratele"}
             </p>
           </div>
           <div className="flex items-center space-x-4">
@@ -204,14 +204,14 @@ export default async function InvoiceDetailPage({ params }) {
           </Card>
 
           <Card
-            title="Informace o klientovi"
+            title="Informace o odběrateli"
             className="px-1 md:px-4 md:pt-4 pt-2"
           >
             <dl className="space-y-3 text-left px-1 md:px-4">
               <div className="text-sm font-medium text-gray-500">
                 Název:{" "}
                 <span className="font-bold text-gray-900">
-                  {invoice.clients?.name}
+                  {invoice.clients?.name || "Malý odběratel (anonymní)"}
                 </span>
               </div>
 

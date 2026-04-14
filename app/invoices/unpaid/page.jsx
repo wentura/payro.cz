@@ -21,7 +21,7 @@ async function getUnpaidInvoices(userId) {
       .select(
         `
         *,
-        clients!inner(name)
+        clients(name)
       `
       )
       .eq("user_id", userId)
@@ -166,7 +166,7 @@ export default async function UnpaidInvoicesPage() {
                         </Link>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 max-w-[8ch] md:max-w-56  overflow-hidden text-ellipsis text-left">
-                        {invoice.clients?.name || "N/A"}
+                        {invoice.clients?.name || "Malý odběratel"}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden md:table-cell text-left">
                         {formatDateCZ(invoice.issue_date)}

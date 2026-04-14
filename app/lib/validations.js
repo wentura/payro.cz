@@ -58,14 +58,33 @@ export const clientSchema = z.object({
 /**
  * Invoice schema
  */
-export const invoiceSchema = z.object({
-  client_id: z.string().uuid("Vyberte klienta"),
-  issue_date: z.string().min(1, "Datum vystavení je povinné"),
-  due_term_id: z.number().or(z.string()).optional(),
-  payment_type_id: z.number().or(z.string()).optional(),
-  currency: z.enum(["CZK", "EUR"]).default("CZK"),
-  note: z.string().optional(),
-});
+export const invoiceSchema = z
+  .object({
+    client_id: z.string().uuid("Vyberte klienta").nullable().optional(),
+    issue_date: z.string().min(1, "Datum vystavení je povinné"),
+    due_term_id: z.number().or(z.string()).optional(),
+    payment_type_id: z.number().or(z.string()).optional(),
+    currency: z.enum(["CZK", "EUR"]).default("CZK"),
+    note: z.string().optional(),
+    is_small_buyer: z.boolean().default(false),
+  })
+  .superRefine((data, ctx) => {
+    if (!data.is_small_buyer && !data.client_id) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["client_id"],
+        message: "Vyberte klienta",
+      });
+    }
+
+    if (data.is_small_buyer && data.currency !== "CZK") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["currency"],
+        message: "Faktura pro malého odběratele musí být v měně CZK",
+      });
+    }
+  });
 
 /**
  * Invoice item schema

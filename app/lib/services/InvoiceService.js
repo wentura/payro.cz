@@ -7,6 +7,50 @@
 import { supabase } from "@/app/lib/supabase";
 import { incrementInvoiceUsage } from "./SubscriptionService";
 
+const SMALL_BUYER_LIMIT = 10000;
+
+function validateInvoiceRecipient(invoiceData, totalAmount) {
+  const isSmallBuyer =
+    invoiceData.is_small_buyer === true || !invoiceData.client_id;
+
+  if (!invoiceData.issue_date) {
+    return {
+      success: false,
+      error: "Datum vystavení je povinné",
+      status: 400,
+    };
+  }
+
+  if (!isSmallBuyer && !invoiceData.client_id) {
+    return {
+      success: false,
+      error: "Klient je povinný",
+      status: 400,
+    };
+  }
+
+  if (isSmallBuyer) {
+    if ((invoiceData.currency || "CZK") !== "CZK") {
+      return {
+        success: false,
+        error: "Faktura pro malého odběratele musí být v měně CZK",
+        status: 400,
+      };
+    }
+
+    if (totalAmount > SMALL_BUYER_LIMIT) {
+      return {
+        success: false,
+        error:
+          "Faktura pro malého odběratele může mít maximálně 10 000 Kč včetně DPH.",
+        status: 400,
+      };
+    }
+  }
+
+  return null;
+}
+
 /**
  * Create a new invoice with items
  * @param {Object} invoiceData - Invoice data
@@ -16,15 +60,6 @@ import { incrementInvoiceUsage } from "./SubscriptionService";
  */
 export async function createInvoiceWithItems(invoiceData, items, userId) {
   try {
-    // Validate required fields
-    if (!invoiceData.client_id || !invoiceData.issue_date) {
-      return {
-        success: false,
-        error: "Klient a datum vystavení jsou povinné",
-        status: 400,
-      };
-    }
-
     if (!items || items.length === 0) {
       return {
         success: false,
@@ -61,18 +96,27 @@ export async function createInvoiceWithItems(invoiceData, items, userId) {
         sum + parseFloat(item.quantity || 0) * parseFloat(item.unit_price || 0),
       0
     );
+    const recipientValidationError = validateInvoiceRecipient(
+      invoiceData,
+      totalAmount
+    );
+    if (recipientValidationError) {
+      return recipientValidationError;
+    }
+    const isSmallBuyer =
+      invoiceData.is_small_buyer === true || !invoiceData.client_id;
 
     // Create invoice
     const { data: invoice, error: invoiceError } = await supabase
       .from("invoices")
       .insert({
         user_id: userId,
-        client_id: invoiceData.client_id,
+        client_id: isSmallBuyer ? null : invoiceData.client_id,
         issue_date: invoiceData.issue_date,
         due_date: dueDate?.toISOString().split("T")[0],
         payment_type_id: invoiceData.payment_type_id,
         due_term_id: invoiceData.due_term_id,
-        currency: invoiceData.currency || "CZK",
+        currency: isSmallBuyer ? "CZK" : invoiceData.currency || "CZK",
         total_amount: totalAmount,
         note: invoiceData.note,
         status_id: 1, // Draft status
@@ -152,15 +196,6 @@ export async function updateInvoiceWithItems(
   userId
 ) {
   try {
-    // Validate required fields
-    if (!invoiceData.client_id || !invoiceData.issue_date) {
-      return {
-        success: false,
-        error: "Klient a datum vystavení jsou povinné",
-        status: 400,
-      };
-    }
-
     if (!items || items.length === 0) {
       return {
         success: false,
@@ -197,17 +232,26 @@ export async function updateInvoiceWithItems(
         sum + parseFloat(item.quantity || 0) * parseFloat(item.unit_price || 0),
       0
     );
+    const recipientValidationError = validateInvoiceRecipient(
+      invoiceData,
+      totalAmount
+    );
+    if (recipientValidationError) {
+      return recipientValidationError;
+    }
+    const isSmallBuyer =
+      invoiceData.is_small_buyer === true || !invoiceData.client_id;
 
     // Update invoice
     const { data: updatedInvoice, error: invoiceError } = await supabase
       .from("invoices")
       .update({
-        client_id: invoiceData.client_id,
+        client_id: isSmallBuyer ? null : invoiceData.client_id,
         issue_date: invoiceData.issue_date,
         due_date: dueDate?.toISOString().split("T")[0],
         payment_type_id: invoiceData.payment_type_id,
         due_term_id: invoiceData.due_term_id,
-        currency: invoiceData.currency || "CZK",
+        currency: isSmallBuyer ? "CZK" : invoiceData.currency || "CZK",
         total_amount: totalAmount,
         note: invoiceData.note,
       })
@@ -294,7 +338,7 @@ export async function getInvoicesWithFilters(userId, filters = {}) {
       .select(
         `
         *,
-        clients!inner(name, company_id),
+        clients(name, company_id),
         invoice_statuses!inner(name),
         payment_types!inner(name),
         due_terms!inner(name, days_count)

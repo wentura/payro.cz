@@ -32,6 +32,7 @@ export async function POST(request) {
       payment_type_id,
       currency,
       note,
+      is_small_buyer,
       items,
     } = body;
 
@@ -59,6 +60,7 @@ export async function POST(request) {
         payment_type_id,
         currency,
         note,
+        is_small_buyer: Boolean(is_small_buyer),
       },
       items,
       user.id

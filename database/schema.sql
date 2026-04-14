@@ -144,7 +144,7 @@ CREATE INDEX IF NOT EXISTS idx_clients_user_id ON clients(user_id);
 CREATE TABLE IF NOT EXISTS invoices (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  client_id UUID NOT NULL REFERENCES clients(id) ON DELETE RESTRICT,
+  client_id UUID REFERENCES clients(id) ON DELETE RESTRICT,
   invoice_number TEXT,
   issue_date DATE NOT NULL DEFAULT CURRENT_DATE,
   due_date DATE,
@@ -158,6 +158,10 @@ CREATE TABLE IF NOT EXISTS invoices (
   is_deleted BOOLEAN DEFAULT FALSE,
   note TEXT,
   status_id BIGINT NOT NULL DEFAULT 1 REFERENCES invoice_statuses(id),
+  CONSTRAINT invoices_small_buyer_check CHECK (
+    client_id IS NOT NULL
+    OR (currency = 'CZK' AND total_amount <= 10000)
+  ),
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 

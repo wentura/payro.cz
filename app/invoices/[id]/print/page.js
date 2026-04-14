@@ -21,7 +21,7 @@ async function getInvoice(invoiceId, userId) {
         .select(
           `
           *,
-          clients!inner(*)
+          clients(*)
         `
         )
         .eq("id", invoiceId)
@@ -202,7 +202,7 @@ export default async function InvoicePrintPage({ params }) {
               </h2>
               <div className="text-xs leading-snug">
                 <p className="font-bold text-gray-700 mb-0.5">
-                  {invoice.clients?.name}
+                  {invoice.clients?.name || "Malý odběratel (anonymní)"}
                 </p>
                 {invoice.clients?.company_id && (
                   <p className="text-gray-700">

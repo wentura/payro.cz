@@ -1,9 +1,14 @@
-import Layout from "@/app/components/Layout";
+import ServerLayout from "@/app/components/ServerLayout";
+import Pagination from "@/app/components/Pagination";
 import Badge from "@/app/components/ui/Badge";
 import Button from "@/app/components/ui/Button";
 import Card from "@/app/components/ui/Card";
 import { getCurrentUser } from "@/app/lib/auth";
-import { supabase } from "@/app/lib/supabase";
+import {
+  getInvoicesWithFilters,
+  getInvoiceStatistics,
+  INVOICE_PAGE_SIZE,
+} from "@/app/lib/services/InvoiceService";
 import { formatCurrency, formatDateCZ } from "@/app/lib/utils";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -14,45 +19,13 @@ import { redirect } from "next/navigation";
  * Displays invoices that are overdue based on due_date being in the past
  */
 
-async function getOverdueInvoices(userId) {
-  try {
-    // Get all unpaid invoices (draft and sent status)
-    const { data, error } = await supabase
-      .from("invoices")
-      .select(
-        `
-        *,
-        clients(name)
-      `
-      )
-      .eq("user_id", userId)
-      .eq("is_deleted", false)
-      .in("status_id", [1, 2]) // Status 1 = "Koncept", 2 = "Odeslaná"
-      .order("due_date", { ascending: true }); // Order by due date, oldest first
-
-    if (error) {
-      console.error("Error fetching invoices:", error);
-      return [];
-    }
-
-    // Filter invoices that are overdue (due_date is in the past)
-    const today = new Date();
-    today.setHours(0, 0, 0, 0); // Reset time to start of day for accurate comparison
-
-    const overdueInvoices = (data || []).filter((invoice) => {
-      if (!invoice.due_date) return false;
-
-      const dueDate = new Date(invoice.due_date);
-      dueDate.setHours(0, 0, 0, 0); // Reset time to start of day
-
-      return dueDate < today;
-    });
-
-    return overdueInvoices;
-  } catch (error) {
-    console.error("Error in getOverdueInvoices:", error);
-    return [];
-  }
+async function getOverdueInvoices(userId, page) {
+  return getInvoicesWithFilters(userId, {
+    page,
+    overdue: true,
+    orderBy: "due_date",
+    orderDirection: "asc",
+  });
 }
 
 const statusLabels = {
@@ -73,24 +46,29 @@ const statusVariants = {
   6: "partial_paid",
 };
 
-export default async function OverdueInvoicesPage() {
+export default async function OverdueInvoicesPage({ searchParams }) {
   const user = await getCurrentUser();
 
   if (!user) {
     redirect("/login");
   }
 
-  const invoices = await getOverdueInvoices(user.id);
+  const params = await searchParams;
+  const page = Math.max(1, Number.parseInt(params?.page, 10) || 1);
+  const [{ invoices, total, pageSize }, stats] = await Promise.all([
+    getOverdueInvoices(user.id, page),
+    getInvoiceStatistics(user.id),
+  ]);
 
   return (
-    <Layout user={user}>
+    <ServerLayout user={user}>
       <div className="space-y-6">
         {/* Page Header */}
         <div className="flex justify-between text-center md:text-left">
           <div className="mx-auto md:mx-0">
             <h1 className="text-3xl font-bold text-gray-900">Po splatnosti</h1>
             <p className="mt-2 text-gray-600">
-              Přehled všech faktur po splatnosti ({invoices.length})
+              Přehled všech faktur po splatnosti ({total})
             </p>
           </div>
           <div className="space-x-3 hidden md:flex">
@@ -235,15 +213,25 @@ export default async function OverdueInvoicesPage() {
               </table>
             </div>
           )}
+          <Pagination
+            page={page}
+            pageSize={pageSize || INVOICE_PAGE_SIZE}
+            total={total}
+            makeHref={(nextPage) =>
+              nextPage > 1
+                ? `/invoices/overdue?page=${nextPage}`
+                : "/invoices/overdue"
+            }
+          />
         </Card>
 
         {/* Summary Stats */}
-        {invoices.length > 0 && (
+        {total > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Card>
               <div className="text-center">
                 <div className="text-3xl font-bold text-red-600">
-                  {invoices.length}
+                  {stats.overdue}
                 </div>
                 <div className="text-sm text-gray-500 mt-1">
                   Faktury po splatnosti
@@ -253,13 +241,7 @@ export default async function OverdueInvoicesPage() {
             <Card>
               <div className="text-center">
                 <div className="text-3xl font-bold text-red-700">
-                  {formatCurrency(
-                    invoices.reduce(
-                      (sum, invoice) => sum + (invoice.total_amount || 0),
-                      0
-                    ),
-                    "CZK"
-                  )}
+                  {formatCurrency(stats.overdueAmount, "CZK")}
                 </div>
                 <div className="text-sm text-gray-500 mt-1">
                   Celková částka po splatnosti
@@ -269,20 +251,7 @@ export default async function OverdueInvoicesPage() {
             <Card>
               <div className="text-center">
                 <div className="text-3xl font-bold text-orange-600">
-                  {invoices.length > 0
-                    ? Math.round(
-                        invoices.reduce((sum, invoice) => {
-                          const today = new Date();
-                          const dueDate = new Date(invoice.due_date);
-                          return (
-                            sum +
-                            Math.floor(
-                              (today - dueDate) / (1000 * 60 * 60 * 24)
-                            )
-                          );
-                        }, 0) / invoices.length
-                      )
-                    : 0}
+                  {stats.overdueAverageDays}
                 </div>
                 <div className="text-sm text-gray-500 mt-1">
                   Průměrně dní po splatnosti
@@ -293,7 +262,7 @@ export default async function OverdueInvoicesPage() {
         )}
 
         {/* Warning Alert for Overdue Invoices */}
-        {invoices.length > 0 && (
+        {total > 0 && (
           <div className="rounded-md bg-red-50 p-4">
             <div className="flex">
               <div className="flex-shrink-0">
@@ -311,7 +280,7 @@ export default async function OverdueInvoicesPage() {
               </div>
               <div className="ml-3">
                 <h3 className="text-sm font-medium text-red-800">
-                  Pozor: Máte {invoices.length} faktur po splatnosti
+                  Pozor: Máte {stats.overdue} faktur po splatnosti
                 </h3>
                 <div className="mt-2 text-sm text-red-700">
                   <p>
@@ -325,6 +294,6 @@ export default async function OverdueInvoicesPage() {
           </div>
         )}
       </div>
-    </Layout>
+    </ServerLayout>
   );
 }

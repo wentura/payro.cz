@@ -4,7 +4,7 @@
  * Form for editing an existing client
  */
 
-import Layout from "@/app/components/Layout";
+import ServerLayout from "@/app/components/ServerLayout";
 import Button from "@/app/components/ui/Button";
 import { getCurrentUser } from "@/app/lib/auth";
 import { getClient } from "@/app/lib/services/getClient";
@@ -24,7 +24,7 @@ export default async function EditClientPage({ params }) {
 
   if (!client) {
     return (
-      <Layout user={user} className="flex-grow flex flex-col">
+      <ServerLayout user={user} className="flex-grow flex flex-col">
         <div className="space-y-6 w-full mx-auto">
           <div className="text-center py-12">
             <p className="text-red-500">Klient nenalezen</p>
@@ -33,12 +33,12 @@ export default async function EditClientPage({ params }) {
             </Link>
           </div>
         </div>
-      </Layout>
+      </ServerLayout>
     );
   }
 
   return (
-    <Layout user={user} className="flex-grow flex flex-col">
+    <ServerLayout user={user} className="flex-grow flex flex-col">
       <div className="space-y-6 w-full mx-auto">
         {/* Page Header */}
         <div className="flex justify-between items-center">
@@ -55,6 +55,6 @@ export default async function EditClientPage({ params }) {
 
         <EditClientForm client={client} />
       </div>
-    </Layout>
+    </ServerLayout>
   );
 }

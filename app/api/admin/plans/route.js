@@ -4,11 +4,9 @@
  * Handles subscription plans CRUD operations
  */
 
-import { getCurrentUser } from "@/app/lib/auth";
+import { getCurrentUser, isAdminUser } from "@/app/lib/auth";
 import { supabase } from "@/app/lib/supabase";
 import { NextResponse } from "next/server";
-
-const ADMIN_EMAIL = "svoboda.zbynek@gmail.com";
 
 /**
  * GET /api/admin/plans
@@ -18,7 +16,7 @@ export async function GET(request) {
   try {
     const user = await getCurrentUser();
 
-    if (!user || user.contact_email !== ADMIN_EMAIL) {
+    if (!user || !isAdminUser(user)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -81,7 +79,7 @@ export async function POST(request) {
   try {
     const user = await getCurrentUser();
 
-    if (!user || user.contact_email !== ADMIN_EMAIL) {
+    if (!user || !isAdminUser(user)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -146,7 +144,7 @@ export async function PUT(request) {
   try {
     const user = await getCurrentUser();
 
-    if (!user || user.contact_email !== ADMIN_EMAIL) {
+    if (!user || !isAdminUser(user)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

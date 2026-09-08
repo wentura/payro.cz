@@ -1,17 +1,15 @@
 /**
  * Server Layout Component
  *
- * Server-side wrapper that fetches admin status and passes it to client Layout
+ * Server-side wrapper that fetches admin status from the user record
  */
 
-import { isCurrentUserAdmin } from "@/app/lib/auth";
+import { isAdminUser } from "@/app/lib/auth";
 import Layout from "./Layout";
 
-export default async function ServerLayout({ children, user }) {
-  const isAdmin = await isCurrentUserAdmin();
-
+export default function ServerLayout({ children, user }) {
   return (
-    <Layout user={user} isAdmin={isAdmin} className="flex-grow flex flex-col">
+    <Layout user={user} isAdmin={isAdminUser(user)} className="flex-grow flex flex-col">
       {children}
     </Layout>
   );

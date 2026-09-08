@@ -7,7 +7,23 @@
 
 import { NextResponse } from "next/server";
 
-// Public routes that don't require authentication
+function getSafeRedirectPath(value, fallback = "/dashboard") {
+  if (typeof value !== "string") {
+    return fallback;
+  }
+
+  const path = value.trim();
+  if (!path.startsWith("/") || path.startsWith("//") || path.includes("\\")) {
+    return fallback;
+  }
+
+  if (path.includes("://")) {
+    return fallback;
+  }
+
+  return path;
+}
+
 const PUBLIC_ROUTES = ["/login", "/register", "/reset-password"];
 
 // Routes that require authentication
@@ -17,6 +33,8 @@ const PROTECTED_ROUTES = [
   "/invoices",
   "/settings",
   "/admin",
+  "/subscription",
+  "/payment",
 ];
 
 export function proxy(request) {
@@ -36,13 +54,15 @@ export function proxy(request) {
   // Redirect to login if accessing protected route without authentication
   if (isProtectedRoute && !isAuthenticated) {
     const loginUrl = new URL("/login", request.url);
-    loginUrl.searchParams.set("redirect", pathname);
+    loginUrl.searchParams.set("redirect", getSafeRedirectPath(pathname));
     return NextResponse.redirect(loginUrl);
   }
 
   // Redirect authenticated users away from public auth pages
   if (isAuthenticated && PUBLIC_ROUTES.some((route) => pathname.startsWith(route))) {
-    const redirectTo = request.nextUrl.searchParams.get("redirect") || "/dashboard";
+    const redirectTo = getSafeRedirectPath(
+      request.nextUrl.searchParams.get("redirect")
+    );
     return NextResponse.redirect(new URL(redirectTo, request.url));
   }
 

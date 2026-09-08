@@ -6,6 +6,7 @@
  * Client component with interactive login form
  */
 
+import { getSafeRedirectPath } from "@/app/lib/safe-redirect";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
@@ -13,7 +14,7 @@ import { useState } from "react";
 export default function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectTo = searchParams.get("redirect") || "/dashboard";
+  const redirectTo = getSafeRedirectPath(searchParams.get("redirect"));
 
   const [formData, setFormData] = useState({
     contact_email: "",

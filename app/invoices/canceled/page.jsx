@@ -1,9 +1,13 @@
-import Layout from "@/app/components/Layout";
+import ServerLayout from "@/app/components/ServerLayout";
+import Pagination from "@/app/components/Pagination";
 import Badge from "@/app/components/ui/Badge";
 import Button from "@/app/components/ui/Button";
 import Card from "@/app/components/ui/Card";
 import { getCurrentUser } from "@/app/lib/auth";
-import { supabase } from "@/app/lib/supabase";
+import {
+  getInvoicesWithFilters,
+  INVOICE_PAGE_SIZE,
+} from "@/app/lib/services/InvoiceService";
 import { formatCurrency, formatDateCZ } from "@/app/lib/utils";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -15,31 +19,8 @@ import ActivateInvoiceButtonWrapper from "./ActivateInvoiceButtonWrapper";
  * Displays only canceled invoices (status_id = 4)
  */
 
-async function getCanceledInvoices(userId) {
-  try {
-    const { data, error } = await supabase
-      .from("invoices")
-      .select(
-        `
-        *,
-        clients(name)
-      `
-      )
-      .eq("user_id", userId)
-      .eq("is_deleted", false)
-      .eq("status_id", 4) // Status 4 = "Stornovaná"
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      console.error("Error fetching canceled invoices:", error);
-      return [];
-    }
-
-    return data || [];
-  } catch (error) {
-    console.error("Error in getCanceledInvoices:", error);
-    return [];
-  }
+async function getCanceledInvoices(userId, page) {
+  return getInvoicesWithFilters(userId, { page, status_id: 4 });
 }
 
 const statusLabels = {
@@ -60,17 +41,19 @@ const statusVariants = {
   6: "partial_paid",
 };
 
-export default async function CanceledInvoicesPage() {
+export default async function CanceledInvoicesPage({ searchParams }) {
   const user = await getCurrentUser();
 
   if (!user) {
     redirect("/login");
   }
 
-  const invoices = await getCanceledInvoices(user.id);
+  const params = await searchParams;
+  const page = Math.max(1, Number.parseInt(params?.page, 10) || 1);
+  const { invoices, total, pageSize } = await getCanceledInvoices(user.id, page);
 
   return (
-    <Layout user={user}>
+    <ServerLayout user={user}>
       <div className="space-y-6 w-full mx-auto">
         {/* Page Header */}
         <div className="flex justify-between text-center md:text-left max-w-7xl mx-auto">
@@ -79,7 +62,7 @@ export default async function CanceledInvoicesPage() {
               Zrušené faktury
             </h1>
             <p className="mt-2 text-gray-600">
-              Přehled všech zrušených faktur ({invoices.length})
+              Přehled všech zrušených faktur ({total})
             </p>
           </div>
           <div className="space-x-3 hidden md:flex">
@@ -200,6 +183,16 @@ export default async function CanceledInvoicesPage() {
               </table>
             </div>
           )}
+          <Pagination
+            page={page}
+            pageSize={pageSize || INVOICE_PAGE_SIZE}
+            total={total}
+            makeHref={(nextPage) =>
+              nextPage > 1
+                ? `/invoices/canceled?page=${nextPage}`
+                : "/invoices/canceled"
+            }
+          />
         </Card>
 
         {/* Summary Stats */}
@@ -234,7 +227,7 @@ export default async function CanceledInvoicesPage() {
           </div>
         )}
       </div>
-    </Layout>
+    </ServerLayout>
   );
 }
 

@@ -6,8 +6,10 @@
 
 import { getCurrentUser } from "@/app/lib/auth";
 import { logAuditEvent } from "@/app/lib/audit";
+import { parseWithSchema } from "@/app/lib/api-validation";
 import { updateInvoiceWithItems } from "@/app/lib/services/InvoiceService";
 import { supabase } from "@/app/lib/supabase";
+import { invoiceCreateApiSchema } from "@/app/lib/validations";
 import { NextResponse } from "next/server";
 
 /**
@@ -90,7 +92,14 @@ export async function PUT(request, { params }) {
     // Await params in Next.js 15
     const { id } = await params;
 
-    const body = await request.json();
+    const parsed = parseWithSchema(invoiceCreateApiSchema, await request.json());
+    if (!parsed.success) {
+      return NextResponse.json(
+        { success: false, error: parsed.error },
+        { status: 400 }
+      );
+    }
+
     const {
       client_id,
       issue_date,
@@ -100,7 +109,7 @@ export async function PUT(request, { params }) {
       note,
       is_small_buyer,
       items,
-    } = body;
+    } = parsed.data;
 
     // Validate invoice exists and is a draft
     const { data: existingInvoice, error: checkError } = await supabase

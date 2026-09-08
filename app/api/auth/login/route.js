@@ -6,35 +6,34 @@
 
 import { loginUser } from "@/app/lib/auth";
 import { logAuditEvent } from "@/app/lib/audit";
+import { parseWithSchema } from "@/app/lib/api-validation";
 import { getRequestIp, rateLimit } from "@/app/lib/rate-limit";
+import { loginSchema } from "@/app/lib/validations";
 import { NextResponse } from "next/server";
 
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { contact_email, password } = body;
-
-    if (process.env.NODE_ENV === "production") {
-      const ip = getRequestIp(request);
-      const rate = await rateLimit({
-        key: `auth:login:${ip}`,
-        limit: 10,
-        windowSeconds: 600,
-      });
-
-      if (!rate.allowed) {
-        return NextResponse.json(
-          { success: false, error: "Příliš mnoho pokusů. Zkuste to později." },
-          { status: 429 }
-        );
-      }
-    }
-
-    // Validate input
-    if (!contact_email || !password) {
+    const parsed = parseWithSchema(loginSchema, body);
+    if (!parsed.success) {
       return NextResponse.json(
-        { success: false, error: "Email a heslo jsou povinné" },
+        { success: false, error: parsed.error },
         { status: 400 }
+      );
+    }
+    const { contact_email, password } = parsed.data;
+
+    const ip = getRequestIp(request);
+    const rate = await rateLimit({
+      key: `auth:login:${ip}`,
+      limit: 10,
+      windowSeconds: 600,
+    });
+
+    if (!rate.allowed) {
+      return NextResponse.json(
+        { success: false, error: "Příliš mnoho pokusů. Zkuste to později." },
+        { status: 429 }
       );
     }
 

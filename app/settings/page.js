@@ -1,4 +1,4 @@
-import Layout from "@/app/components/Layout";
+import ServerLayout from "@/app/components/ServerLayout";
 import { getCurrentUser } from "@/app/lib/auth";
 import { getUserProfile } from "@/app/lib/services/getUserProfile";
 import { redirect } from "next/navigation";
@@ -21,21 +21,21 @@ export default async function SettingsPage() {
 
   if (!userData) {
     return (
-      <Layout user={user}>
+      <ServerLayout user={user}>
         <div className="max-w-7xl mx-auto">
           <div className="text-center py-12">
             <p className="text-red-500">Chyba při načítání uživatelských dat</p>
           </div>
         </div>
-      </Layout>
+      </ServerLayout>
     );
   }
 
   return (
-    <Layout user={user}>
+    <ServerLayout user={user}>
       <div className="max-w-7xl mx-auto">
         <SettingsForm userData={userData} />
       </div>
-    </Layout>
+    </ServerLayout>
   );
 }

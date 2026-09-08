@@ -14,7 +14,7 @@ export function getClients(userId) {
       try {
         const { data, error } = await supabase
           .from("clients")
-          .select("*")
+          .select("id, name, company_id")
           .eq("user_id", userId)
           .order("name", { ascending: true });
 

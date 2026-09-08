@@ -4,14 +4,14 @@
  * Server-side function to fetch user profile data
  */
 
-import { getCurrentUser } from "@/app/lib/auth";
 import { supabase } from "@/app/lib/supabase";
+import { USER_PUBLIC_COLUMNS, sanitizeUser } from "@/app/lib/user-public";
 
 export async function getUserProfile(userId) {
   try {
     const { data, error } = await supabase
       .from("users")
-      .select("*")
+      .select(USER_PUBLIC_COLUMNS)
       .eq("id", userId)
       .single();
 
@@ -19,10 +19,9 @@ export async function getUserProfile(userId) {
       return null;
     }
 
-    return data;
+    return sanitizeUser(data);
   } catch (error) {
     console.error("Error in getUserProfile:", error);
     return null;
   }
 }
-

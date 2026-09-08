@@ -4,11 +4,10 @@
  * Sets plan to active without payment
  */
 
-import { getCurrentUser } from "@/app/lib/auth";
+import { getCurrentUser, isAdminUser } from "@/app/lib/auth";
 import { supabase } from "@/app/lib/supabase";
 import { NextResponse } from "next/server";
 
-const ADMIN_EMAIL = "svoboda.zbynek@gmail.com";
 
 function getPeriodEnd(billingCycle) {
   const now = new Date();
@@ -25,7 +24,7 @@ export async function POST(request, { params }) {
   try {
     const adminUser = await getCurrentUser();
 
-    if (!adminUser || adminUser.contact_email !== ADMIN_EMAIL) {
+    if (!adminUser || !isAdminUser(adminUser)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

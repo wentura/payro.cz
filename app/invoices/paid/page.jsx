@@ -1,9 +1,14 @@
-import Layout from "@/app/components/Layout";
+import ServerLayout from "@/app/components/ServerLayout";
+import Pagination from "@/app/components/Pagination";
 import Badge from "@/app/components/ui/Badge";
 import Button from "@/app/components/ui/Button";
 import Card from "@/app/components/ui/Card";
 import { getCurrentUser } from "@/app/lib/auth";
-import { supabase } from "@/app/lib/supabase";
+import {
+  getInvoicesWithFilters,
+  getInvoiceStatistics,
+  INVOICE_PAGE_SIZE,
+} from "@/app/lib/services/InvoiceService";
 import { formatCurrency, formatDateCZ } from "@/app/lib/utils";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -14,31 +19,8 @@ import { redirect } from "next/navigation";
  * Displays only paid invoices with filtering and search
  */
 
-async function getPaidInvoices(userId) {
-  try {
-    const { data, error } = await supabase
-      .from("invoices")
-      .select(
-        `
-        *,
-        clients(name)
-      `
-      )
-      .eq("user_id", userId)
-      .eq("is_deleted", false)
-      .eq("status_id", 3) // Status 3 = "Zaplacená"
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      console.error("Error fetching paid invoices:", error);
-      return [];
-    }
-
-    return data || [];
-  } catch (error) {
-    console.error("Error in getPaidInvoices:", error);
-    return [];
-  }
+async function getPaidInvoices(userId, page) {
+  return getInvoicesWithFilters(userId, { page, status_id: 3 });
 }
 
 const statusLabels = {
@@ -59,17 +41,22 @@ const statusVariants = {
   6: "partial_paid",
 };
 
-export default async function PaidInvoicesPage() {
+export default async function PaidInvoicesPage({ searchParams }) {
   const user = await getCurrentUser();
 
   if (!user) {
     redirect("/login");
   }
 
-  const invoices = await getPaidInvoices(user.id);
+  const params = await searchParams;
+  const page = Math.max(1, Number.parseInt(params?.page, 10) || 1);
+  const [{ invoices, total, pageSize }, stats] = await Promise.all([
+    getPaidInvoices(user.id, page),
+    getInvoiceStatistics(user.id),
+  ]);
 
   return (
-    <Layout user={user}>
+    <ServerLayout user={user}>
       <div className="space-y-6">
         {/* Page Header */}
         <div className="flex justify-between text-center">
@@ -78,7 +65,7 @@ export default async function PaidInvoicesPage() {
               Zaplacené faktury
             </h1>
             <p className="mt-2 text-gray-600">
-              Přehled všech zaplacených faktur ({invoices.length})
+              Přehled všech zaplacených faktur ({total})
             </p>
           </div>
           <div className="space-x-3 hidden md:flex">
@@ -199,15 +186,23 @@ export default async function PaidInvoicesPage() {
               </table>
             </div>
           )}
+          <Pagination
+            page={page}
+            pageSize={pageSize || INVOICE_PAGE_SIZE}
+            total={total}
+            makeHref={(nextPage) =>
+              nextPage > 1 ? `/invoices/paid?page=${nextPage}` : "/invoices/paid"
+            }
+          />
         </Card>
 
         {/* Summary Stats */}
-        {invoices.length > 0 && (
+        {total > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Card>
               <div className="text-center">
                 <div className="text-3xl font-bold text-green-600">
-                  {invoices.length}
+                  {stats.paid}
                 </div>
                 <div className="text-sm text-gray-500 mt-1">
                   Zaplacené faktury
@@ -217,13 +212,7 @@ export default async function PaidInvoicesPage() {
             <Card>
               <div className="text-center">
                 <div className="text-3xl font-bold text-blue-600">
-                  {formatCurrency(
-                    invoices.reduce(
-                      (sum, invoice) => sum + (invoice.total_amount || 0),
-                      0
-                    ),
-                    "CZK"
-                  )}
+                  {formatCurrency(stats.totalRevenue, "CZK")}
                 </div>
                 <div className="text-sm text-gray-500 mt-1">Celková částka</div>
               </div>
@@ -231,14 +220,8 @@ export default async function PaidInvoicesPage() {
             <Card>
               <div className="text-center">
                 <div className="text-3xl font-bold text-purple-600">
-                  {invoices.length > 0
-                    ? formatCurrency(
-                        invoices.reduce(
-                          (sum, invoice) => sum + (invoice.total_amount || 0),
-                          0
-                        ) / invoices.length,
-                        "CZK"
-                      )
+                  {stats.paid > 0
+                    ? formatCurrency(stats.totalRevenue / stats.paid, "CZK")
                     : "0 CZK"}
                 </div>
                 <div className="text-sm text-gray-500 mt-1">
@@ -249,6 +232,6 @@ export default async function PaidInvoicesPage() {
           </div>
         )}
       </div>
-    </Layout>
+    </ServerLayout>
   );
 }

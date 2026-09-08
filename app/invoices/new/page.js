@@ -4,7 +4,7 @@
  * Form for creating a new invoice with items
  */
 
-import Layout from "@/app/components/Layout";
+import ServerLayout from "@/app/components/ServerLayout";
 import Button from "@/app/components/ui/Button";
 import { getCurrentUser } from "@/app/lib/auth";
 import { getSubscriptionData } from "@/app/lib/services/getSubscriptionData";
@@ -25,7 +25,8 @@ export default async function NewInvoicePage({ searchParams }) {
     redirect("/login");
   }
 
-  const preselectedClientId = searchParams?.client_id || null;
+  const resolvedSearchParams = await searchParams;
+  const preselectedClientId = resolvedSearchParams?.client_id || null;
 
   // Load all data in parallel
   const [clients, dueTerms, paymentTypes, units, subscription] =
@@ -38,7 +39,7 @@ export default async function NewInvoicePage({ searchParams }) {
     ]);
 
   return (
-    <Layout user={user} className="flex-grow flex flex-col">
+    <ServerLayout user={user}>
       <div className="space-y-6 max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
         {/* Page Header */}
         <div className="flex justify-between items-center">
@@ -61,6 +62,6 @@ export default async function NewInvoicePage({ searchParams }) {
           subscription={subscription}
         />
       </div>
-    </Layout>
+    </ServerLayout>
   );
 }

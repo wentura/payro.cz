@@ -1,11 +1,17 @@
-import PaymentQRCode from "@/app/components/PaymentQRCode";
+import dynamic from "next/dynamic";
 import { getCurrentUser } from "@/app/lib/auth";
 import { generateInvoiceSPAYD } from "@/app/lib/payment-qr";
 import { supabase } from "@/app/lib/supabase";
 import { getUnits } from "@/app/lib/services/getReferenceData";
+import { USER_PUBLIC_COLUMNS } from "@/app/lib/user-public";
 import { formatCurrency, formatDateCZ, formatNumber } from "@/app/lib/utils";
 import { redirect } from "next/navigation";
 import PrintButton from "./PrintButton";
+
+const PaymentQRCode = dynamic(() => import("@/app/components/PaymentQRCode"), {
+  ssr: false,
+  loading: () => null,
+});
 
 /**
  * Invoice Print Page
@@ -56,7 +62,7 @@ async function getUser(userId) {
   try {
     const { data, error } = await supabase
       .from("users")
-      .select("*")
+      .select(USER_PUBLIC_COLUMNS)
       .eq("id", userId)
       .single();
 

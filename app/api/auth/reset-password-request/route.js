@@ -4,17 +4,27 @@
  * Generates a magic link for password reset and sends it via email
  */
 
-import { supabase } from "@/app/lib/supabase";
+import { parseWithSchema } from "@/app/lib/api-validation";
+import { hashToken, normalizeEmail } from "@/app/lib/auth";
 import { logAuditEvent } from "@/app/lib/audit";
 import { sendPasswordResetEmail } from "@/app/lib/email";
 import { getRequestIp, rateLimit } from "@/app/lib/rate-limit";
+import { supabase } from "@/app/lib/supabase";
+import { passwordResetRequestSchema } from "@/app/lib/validations";
 import crypto from "crypto";
 import { NextResponse } from "next/server";
 
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { contact_email } = body;
+    const parsed = parseWithSchema(passwordResetRequestSchema, body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { success: false, error: parsed.error },
+        { status: 400 }
+      );
+    }
+    const email = normalizeEmail(parsed.data.contact_email);
 
     const ip = getRequestIp(request);
     const rate = await rateLimit({
@@ -30,18 +40,11 @@ export async function POST(request) {
       );
     }
 
-    if (!contact_email) {
-      return NextResponse.json(
-        { success: false, error: "Email je povinný" },
-        { status: 400 }
-      );
-    }
-
     // Check if user exists
     const { data: user, error: userError } = await supabase
       .from("users")
       .select("id, contact_email, name")
-      .eq("contact_email", contact_email)
+      .eq("contact_email", email)
       .single();
 
     if (userError || !user) {
@@ -78,7 +81,7 @@ export async function POST(request) {
       .from("password_reset_tokens")
       .insert({
         user_id: user.id,
-        token,
+        token: hashToken(token),
         expires_at: expiresAt.toISOString(),
       });
 

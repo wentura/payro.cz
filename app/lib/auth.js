@@ -8,10 +8,12 @@ import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { cookies } from "next/headers";
 import { supabase } from "./supabase";
+import { USER_PUBLIC_COLUMNS, sanitizeUser } from "./user-public";
 
 const SESSION_COOKIE_NAME = "payro_session";
 const SESSION_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "svoboda.zbynek@gmail.com";
+export const ADMIN_EMAIL =
+  process.env.ADMIN_EMAIL || "svoboda.zbynek@gmail.com";
 const SESSION_SECRET = process.env.SESSION_SECRET || "";
 
 function getSessionSecret() {
@@ -77,6 +79,18 @@ export async function hashPassword(password) {
  */
 export async function comparePassword(password, hash) {
   return await bcrypt.compare(password, hash);
+}
+
+export function isAdminUser(user) {
+  return user?.contact_email === ADMIN_EMAIL;
+}
+
+export function normalizeEmail(email) {
+  return typeof email === "string" ? email.trim().toLowerCase() : email;
+}
+
+export function hashToken(token) {
+  return crypto.createHash("sha256").update(token).digest("hex");
 }
 
 /**
@@ -163,9 +177,7 @@ export async function getCurrentUser() {
   try {
     const { data, error } = await supabase
       .from("users")
-      .select(
-        "id, name, company_id, contact_email, contact_phone, contact_website, bank_account, billing_details, default_settings, created_at, deactivated_at"
-      )
+      .select(USER_PUBLIC_COLUMNS)
       .eq("id", session.userId)
       .single();
 
@@ -174,12 +186,11 @@ export async function getCurrentUser() {
       return null;
     }
 
-    // Check if user is deactivated - auto-logout
-    if (data.deactivated_at) {
+    if (data.deactivated_at || data.deleted_at || !data.activated_at) {
       return null;
     }
 
-    return data;
+    return sanitizeUser(data);
   } catch (error) {
     console.error("Error in getCurrentUser:", error);
     return null;
@@ -191,8 +202,8 @@ export async function getCurrentUser() {
  * @returns {Promise<boolean>} True if user is admin
  */
 export async function isCurrentUserAdmin() {
-  const session = await getSession();
-  return session?.isAdmin === true;
+  const user = await getCurrentUser();
+  return isAdminUser(user);
 }
 
 /**
@@ -233,12 +244,11 @@ export async function createEmailVerificationToken(userId) {
       .delete()
       .eq("user_id", userId);
 
-    // Create new token
     const { error: tokenError } = await supabase
       .from("email_verification_tokens")
       .insert({
         user_id: userId,
-        token,
+        token: hashToken(token),
         expires_at: expiresAt.toISOString(),
       });
 
@@ -271,10 +281,11 @@ export async function createEmailVerificationToken(userId) {
  */
 export async function verifyEmailToken(token) {
   try {
+    const hashedToken = hashToken(token);
     const { data: tokenData, error } = await supabase
       .from("email_verification_tokens")
       .select("user_id, expires_at")
-      .eq("token", token)
+      .eq("token", hashedToken)
       .single();
 
     if (error || !tokenData) {
@@ -310,11 +321,12 @@ export async function verifyEmailToken(token) {
 
 export async function registerUser(userData) {
   try {
-    // Check if user already exists
+    const contactEmail = normalizeEmail(userData.contact_email);
+
     const { data: existingUser } = await supabase
       .from("users")
       .select("id")
-      .eq("contact_email", userData.contact_email)
+      .eq("contact_email", contactEmail)
       .single();
 
     if (existingUser) {
@@ -332,7 +344,7 @@ export async function registerUser(userData) {
       .from("users")
       .insert({
         name: userData.name,
-        contact_email: userData.contact_email,
+        contact_email: contactEmail,
         password_hash: passwordHash,
         company_id: userData.company_id || null,
         activated_at: null, // Explicitly set to NULL
@@ -344,7 +356,7 @@ export async function registerUser(userData) {
           country: "Česká republika",
         },
       })
-      .select()
+      .select(USER_PUBLIC_COLUMNS)
       .single();
 
     if (error || !newUser) {
@@ -396,8 +408,8 @@ export async function loginUser(email, password) {
     // Find user by email (include activated_at and deactivated_at)
     const { data: user, error } = await supabase
       .from("users")
-      .select("id, password_hash, name, contact_email, activated_at, deactivated_at")
-      .eq("contact_email", email)
+      .select("id, password_hash, name, contact_email, activated_at, deactivated_at, deleted_at")
+      .eq("contact_email", normalizeEmail(email))
       .single();
 
     if (error) {
@@ -434,11 +446,10 @@ export async function loginUser(email, password) {
       };
     }
 
-    // Check if account is deactivated
-    if (user.deactivated_at) {
+    if (user.deactivated_at || user.deleted_at) {
       return {
         success: false,
-        error: "ACCOUNT_DEACTIVATED", // Special error code
+        error: "ACCOUNT_DEACTIVATED",
         message: "Váš účet byl deaktivován. Kontaktujte administrátora.",
       };
     }

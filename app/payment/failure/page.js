@@ -4,7 +4,7 @@
  * Displays payment failure information
  */
 
-import Layout from "@/app/components/Layout";
+import ServerLayout from "@/app/components/ServerLayout";
 import Button from "@/app/components/ui/Button";
 import Card from "@/app/components/ui/Card";
 import { getCurrentUser } from "@/app/lib/auth";
@@ -19,10 +19,11 @@ export default async function PaymentFailurePage({ searchParams }) {
     redirect("/login");
   }
 
-  const { error, plan_name, amount } = searchParams;
+  const resolvedSearchParams = await searchParams;
+  const { error, plan_name, amount } = resolvedSearchParams;
 
   return (
-    <Layout user={user}>
+    <ServerLayout user={user}>
       <div className="max-w-2xl mx-auto py-12">
         <Card>
           <div className="text-center">
@@ -176,6 +177,6 @@ export default async function PaymentFailurePage({ searchParams }) {
           </div>
         </Card>
       </div>
-    </Layout>
+    </ServerLayout>
   );
 }

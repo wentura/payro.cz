@@ -4,11 +4,9 @@
  * Handles subscription cancellation and fallback to Free plan
  */
 
-import { getCurrentUser } from "@/app/lib/auth";
+import { getCurrentUser, isAdminUser } from "@/app/lib/auth";
 import { supabase } from "@/app/lib/supabase";
 import { NextResponse } from "next/server";
-
-const ADMIN_EMAIL = "svoboda.zbynek@gmail.com";
 
 /**
  * POST /api/admin/subscriptions/cancel
@@ -18,7 +16,7 @@ export async function POST(request) {
   try {
     const user = await getCurrentUser();
 
-    if (!user || user.contact_email !== ADMIN_EMAIL) {
+    if (!user || !isAdminUser(user)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

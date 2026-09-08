@@ -6,11 +6,32 @@
  */
 
 import { NextResponse } from "next/server";
+import { getCurrentUser } from "@/app/lib/auth";
+import { getRequestIp, rateLimit } from "@/app/lib/rate-limit";
 
 const ARES_BASE_URL = "https://ares.gov.cz/ekonomicke-subjekty-v-be/rest";
 
 export async function POST(request) {
   try {
+    const user = await getCurrentUser();
+    if (!user) {
+      return NextResponse.json({ error: "Nepřihlášen" }, { status: 401 });
+    }
+
+    const ip = getRequestIp(request);
+    const rate = await rateLimit({
+      key: `ares:search:${user.id}:${ip}`,
+      limit: 30,
+      windowSeconds: 3600,
+    });
+
+    if (!rate.allowed) {
+      return NextResponse.json(
+        { error: "Příliš mnoho požadavků. Zkuste to později." },
+        { status: 429 }
+      );
+    }
+
     const { query } = await request.json();
 
     if (!query || typeof query !== "string") {

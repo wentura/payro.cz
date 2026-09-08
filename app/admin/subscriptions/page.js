@@ -1,6 +1,6 @@
 import AdminSubscriptionsManager from "@/app/components/AdminSubscriptionsManager";
 import ServerLayout from "@/app/components/ServerLayout";
-import { getCurrentUser } from "@/app/lib/auth";
+import { getCurrentUser, isAdminUser } from "@/app/lib/auth";
 import { getAllUsersWithStats } from "@/app/lib/services/AdminService";
 import { getPlans } from "@/app/lib/services/getPlans";
 import { redirect } from "next/navigation";
@@ -11,8 +11,6 @@ import { redirect } from "next/navigation";
  * Server component that fetches initial data and renders the client component
  */
 
-const ADMIN_EMAIL = "svoboda.zbynek@gmail.com";
-
 export default async function AdminSubscriptionsPage() {
   const user = await getCurrentUser();
 
@@ -21,7 +19,7 @@ export default async function AdminSubscriptionsPage() {
   }
 
   // Check if user is admin
-  if (user.contact_email !== ADMIN_EMAIL) {
+  if (!isAdminUser(user)) {
     return (
       <ServerLayout user={user}>
         <div className="text-center py-12">

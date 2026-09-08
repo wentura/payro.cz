@@ -4,6 +4,7 @@
 
 import { getCurrentUser } from "@/app/lib/auth";
 import { logAuditEvent } from "@/app/lib/audit";
+import { isAllowedInvoiceStatusId } from "@/app/lib/invoice-status";
 import { supabase } from "@/app/lib/supabase";
 import { NextResponse } from "next/server";
 
@@ -29,11 +30,33 @@ export async function POST(request) {
       );
     }
 
-    // Update invoice status
+    if (!isAllowedInvoiceStatusId(statusId)) {
+      return NextResponse.json(
+        { success: false, error: "Neplatný status faktury" },
+        { status: 400 }
+      );
+    }
+
+    const parsedStatusId = parseInt(statusId, 10);
+
+    const { data: existing, error: existingError } = await supabase
+      .from("invoices")
+      .select("id")
+      .eq("id", invoiceId)
+      .eq("user_id", user.id)
+      .single();
+
+    if (existingError || !existing) {
+      return NextResponse.json(
+        { success: false, error: "Faktura nenalezena" },
+        { status: 404 }
+      );
+    }
+
     const { error } = await supabase
       .from("invoices")
       .update({
-        status_id: parseInt(statusId),
+        status_id: parsedStatusId,
       })
       .eq("id", invoiceId)
       .eq("user_id", user.id);
@@ -51,7 +74,7 @@ export async function POST(request) {
       action: "invoice.status_updated",
       entityType: "invoice",
       entityId: invoiceId,
-      metadata: { statusId: parseInt(statusId, 10) },
+      metadata: { statusId: parsedStatusId },
       request,
     });
 

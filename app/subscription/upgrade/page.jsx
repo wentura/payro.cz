@@ -4,7 +4,7 @@
  * Server component that loads data and passes to client form component
  */
 
-import Layout from "@/app/components/Layout";
+import ServerLayout from "@/app/components/ServerLayout";
 import Button from "@/app/components/ui/Button";
 import { getCurrentUser } from "@/app/lib/auth";
 import { getSubscriptionData } from "@/app/lib/services/getSubscriptionData";
@@ -28,7 +28,7 @@ export default async function SubscriptionUpgradePage() {
 
   if (!subscriptionData) {
     return (
-      <Layout user={user}>
+      <ServerLayout user={user}>
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center space-y-4">
             <p className="text-gray-700 text-xl font-semibold">
@@ -44,7 +44,7 @@ export default async function SubscriptionUpgradePage() {
             </div>
           </div>
         </div>
-      </Layout>
+      </ServerLayout>
     );
   }
 
@@ -57,7 +57,7 @@ export default async function SubscriptionUpgradePage() {
     : [];
 
   return (
-    <Layout user={user}>
+    <ServerLayout user={user}>
       <div className="max-w-4xl mx-auto py-8">
         {/* Header */}
         <div className="text-center mb-8">
@@ -72,6 +72,6 @@ export default async function SubscriptionUpgradePage() {
           availablePlans={availablePlans}
         />
       </div>
-    </Layout>
+    </ServerLayout>
   );
 }

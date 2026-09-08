@@ -4,14 +4,14 @@
  * Handles user profile GET and UPDATE
  */
 
-import { getCurrentUser } from "@/app/lib/auth";
+import { ADMIN_EMAIL, getCurrentUser, normalizeEmail } from "@/app/lib/auth";
 import { logAuditEvent } from "@/app/lib/audit";
+import { parseWithSchema } from "@/app/lib/api-validation";
 import { supabase } from "@/app/lib/supabase";
+import { USER_PUBLIC_COLUMNS, sanitizeUser } from "@/app/lib/user-public";
+import { profileUpdateSchema } from "@/app/lib/validations";
 import { NextResponse } from "next/server";
 
-/**
- * GET user profile
- */
 export async function GET() {
   try {
     const user = await getCurrentUser();
@@ -25,7 +25,7 @@ export async function GET() {
 
     return NextResponse.json({
       success: true,
-      data: user,
+      data: sanitizeUser(user),
     });
   } catch (error) {
     console.error("Error in GET /api/user/profile:", error);
@@ -36,9 +36,6 @@ export async function GET() {
   }
 }
 
-/**
- * PUT - Update user profile
- */
 export async function PUT(request) {
   try {
     const user = await getCurrentUser();
@@ -50,7 +47,14 @@ export async function PUT(request) {
       );
     }
 
-    const body = await request.json();
+    const parsed = parseWithSchema(profileUpdateSchema, await request.json());
+    if (!parsed.success) {
+      return NextResponse.json(
+        { success: false, error: parsed.error },
+        { status: 400 }
+      );
+    }
+
     const {
       name,
       company_id,
@@ -63,22 +67,30 @@ export async function PUT(request) {
       city,
       zip,
       country,
-    } = body;
+    } = parsed.data;
 
-    // Validate required fields
-    if (!name || !contact_email) {
+    const nextEmail = normalizeEmail(contact_email);
+    const isCurrentAdmin = user.contact_email === ADMIN_EMAIL;
+
+    if (nextEmail === ADMIN_EMAIL && !isCurrentAdmin) {
       return NextResponse.json(
-        { success: false, error: "Jméno a email jsou povinné" },
+        { success: false, error: "Tento email nelze použít" },
         { status: 400 }
       );
     }
 
-    // Check if email is already used by another user
-    if (contact_email !== user.contact_email) {
+    if (isCurrentAdmin && nextEmail !== ADMIN_EMAIL) {
+      return NextResponse.json(
+        { success: false, error: "Administrátorský email nelze změnit" },
+        { status: 400 }
+      );
+    }
+
+    if (nextEmail !== user.contact_email) {
       const { data: existingUser } = await supabase
         .from("users")
         .select("id")
-        .eq("contact_email", contact_email)
+        .eq("contact_email", nextEmail)
         .neq("id", user.id)
         .single();
 
@@ -90,7 +102,6 @@ export async function PUT(request) {
       }
     }
 
-    // Create billing details object
     const billing_details = {
       street: street || "",
       house_number: house_number || "",
@@ -99,20 +110,19 @@ export async function PUT(request) {
       country: country || "Česká republika",
     };
 
-    // Update user
     const { data, error } = await supabase
       .from("users")
       .update({
         name,
         company_id: company_id || null,
-        contact_email,
+        contact_email: nextEmail,
         contact_phone: contact_phone || null,
         contact_website: contact_website || null,
         bank_account: bank_account || null,
         billing_details,
       })
       .eq("id", user.id)
-      .select()
+      .select(USER_PUBLIC_COLUMNS)
       .single();
 
     if (error || !data) {
@@ -133,7 +143,7 @@ export async function PUT(request) {
 
     return NextResponse.json({
       success: true,
-      data,
+      data: sanitizeUser(data),
     });
   } catch (error) {
     console.error("Error in PUT /api/user/profile:", error);

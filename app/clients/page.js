@@ -1,4 +1,5 @@
-import Layout from "@/app/components/Layout";
+import ServerLayout from "@/app/components/ServerLayout";
+import Pagination from "@/app/components/Pagination";
 import Button from "@/app/components/ui/Button";
 import Card from "@/app/components/ui/Card";
 import { getCurrentUser } from "@/app/lib/auth";
@@ -12,44 +13,56 @@ import { redirect } from "next/navigation";
  * Displays all clients with search and filtering
  */
 
-async function getClients(userId) {
+const CLIENT_PAGE_SIZE = 50;
+
+async function getClients(userId, page) {
   try {
-    const { data, error } = await supabase
+    const from = (page - 1) * CLIENT_PAGE_SIZE;
+    const to = from + CLIENT_PAGE_SIZE - 1;
+    const { data, error, count } = await supabase
       .from("clients")
-      .select("*")
+      .select(
+        "id, name, company_id, vat_number, contact_email, contact_phone, address, created_at",
+        {
+          count: "exact",
+        }
+      )
       .eq("user_id", userId)
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending: false })
+      .range(from, to);
 
     if (error) {
       console.error("Error fetching clients:", error);
-      return [];
+      return { clients: [], total: 0 };
     }
 
-    return data || [];
+    return { clients: data || [], total: count || 0 };
   } catch (error) {
     console.error("Error in getClients:", error);
-    return [];
+    return { clients: [], total: 0 };
   }
 }
 
-export default async function ClientsPage() {
+export default async function ClientsPage({ searchParams }) {
   const user = await getCurrentUser();
 
   if (!user) {
     redirect("/login");
   }
 
-  const clients = await getClients(user.id);
+  const params = await searchParams;
+  const page = Math.max(1, Number.parseInt(params?.page, 10) || 1);
+  const { clients, total } = await getClients(user.id, page);
 
   return (
-    <Layout user={user}>
+    <ServerLayout user={user}>
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Page Header */}
         <div className="flex justify-between items-center">
           <div className="mx-auto md:mx-0">
             <h1 className="text-3xl font-bold text-gray-900">Klienti</h1>
             <p className="mt-2 text-gray-600">
-              Správa vašich klientů a zákazníků ({clients.length})
+              Správa vašich klientů a zákazníků ({total})
             </p>
           </div>
           <Link href="/clients/new">
@@ -150,6 +163,14 @@ export default async function ClientsPage() {
               </table>
             </div>
           )}
+          <Pagination
+            page={page}
+            pageSize={CLIENT_PAGE_SIZE}
+            total={total}
+            makeHref={(nextPage) =>
+              nextPage > 1 ? `/clients?page=${nextPage}` : "/clients"
+            }
+          />
         </Card>
 
         {/* Statistics
@@ -180,6 +201,6 @@ export default async function ClientsPage() {
           </div>
         )} */}
       </div>
-    </Layout>
+    </ServerLayout>
   );
 }

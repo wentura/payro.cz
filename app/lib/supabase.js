@@ -51,11 +51,21 @@ const { url: supabaseUrl, anonKey: supabaseAnonKey, serviceRoleKey } =
   getSupabaseConfig();
 
 /**
- * Creates a Supabase client instance
- * @returns {Object} Supabase client
+ * Creates a Supabase client instance.
+ *
+ * Server routes use custom bcrypt sessions, not Supabase Auth JWTs.
+ * RLS policies are based on auth.uid(), so the anon key would see 0 rows
+ * (login looks like "invalid email or password"). Service role bypasses RLS.
  */
 export function createSupabaseClient() {
   const apiKey = serviceRoleKey || supabaseAnonKey;
+
+  if (!serviceRoleKey) {
+    console.warn(
+      "SUPABASE_SERVICE_ROLE_KEY is missing. Anon key cannot read users under RLS."
+    );
+  }
+
   return createClient(supabaseUrl, apiKey, {
     auth: {
       persistSession: false, // We're using custom auth with bcrypt

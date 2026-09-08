@@ -7,7 +7,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
-export async function GET() {
+async function clearSessionCookie() {
   try {
     const cookieStore = await cookies();
     cookieStore.delete("payro_session");
@@ -19,4 +19,18 @@ export async function GET() {
       { status: 500 }
     );
   }
+}
+
+export async function POST() {
+  return clearSessionCookie();
+}
+
+export async function GET() {
+  return NextResponse.json(
+    {
+      success: false,
+      error: "Method not allowed. Use POST.",
+    },
+    { status: 405 }
+  );
 }

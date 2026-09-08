@@ -4,6 +4,7 @@
  * Get available subscription plans for upgrades
  */
 
+import { getCurrentUser } from "@/app/lib/auth";
 import { supabase } from "@/app/lib/supabase";
 import { NextResponse } from "next/server";
 
@@ -13,6 +14,14 @@ import { NextResponse } from "next/server";
  */
 export async function GET() {
   try {
+    const user = await getCurrentUser();
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
     const { data: plans, error } = await supabase
       .from("subscription_plans")
       .select("*")

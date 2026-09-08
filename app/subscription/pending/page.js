@@ -4,7 +4,7 @@
  * Shows users that their subscription is waiting for payment
  */
 
-import Layout from "@/app/components/Layout";
+import ServerLayout from "@/app/components/ServerLayout";
 import SPAYDQRCode from "@/app/components/SPAYDQRCode";
 import Button from "@/app/components/ui/Button";
 import Card from "@/app/components/ui/Card";
@@ -37,7 +37,7 @@ export default async function SubscriptionPendingPage({ searchParams }) {
     resolvedSearchParams || {};
 
   return (
-    <Layout user={user}>
+    <ServerLayout user={user}>
       <div className="max-w-2xl mx-auto py-12">
         <div>
           <div className="text-center">
@@ -237,6 +237,6 @@ export default async function SubscriptionPendingPage({ searchParams }) {
           </div>
         </div>
       </div>
-    </Layout>
+    </ServerLayout>
   );
 }

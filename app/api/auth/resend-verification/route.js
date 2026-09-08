@@ -4,45 +4,53 @@
  * Resends email verification link to user
  */
 
-import { createEmailVerificationToken } from "@/app/lib/auth";
+import { createEmailVerificationToken, normalizeEmail } from "@/app/lib/auth";
 import { logAuditEvent } from "@/app/lib/audit";
 import { sendVerificationEmail } from "@/app/lib/email";
+import { getRequestIp, rateLimit } from "@/app/lib/rate-limit";
 import { supabase } from "@/app/lib/supabase";
 import { NextResponse } from "next/server";
 
 export async function POST(request) {
   try {
+    const ip = getRequestIp(request);
+    const rate = await rateLimit({
+      key: `auth:resend-verification:${ip}`,
+      limit: 5,
+      windowSeconds: 3600,
+    });
+
+    if (!rate.allowed) {
+      return NextResponse.json(
+        { success: false, error: "Příliš mnoho pokusů. Zkuste to později." },
+        { status: 429 }
+      );
+    }
+
     const body = await request.json();
     const { contact_email } = body;
+    const email = typeof contact_email === "string" ? normalizeEmail(contact_email) : "";
 
-    if (!contact_email) {
+    if (!email) {
       return NextResponse.json(
         { success: false, error: "Email je povinný" },
         { status: 400 }
       );
     }
 
-    // Check if user exists
+    const genericSuccess = {
+      success: true,
+      message: "Pokud účet existuje a není aktivován, byl odeslán aktivační email",
+    };
+
     const { data: user, error: userError } = await supabase
       .from("users")
       .select("id, contact_email, name, activated_at")
-      .eq("contact_email", contact_email)
+      .eq("contact_email", email)
       .single();
 
-    if (userError || !user) {
-      // Don't reveal if user exists or not (security)
-      return NextResponse.json({
-        success: true,
-        message: "Pokud účet existuje a není aktivován, byl odeslán aktivační email",
-      });
-    }
-
-    // Check if user is already activated
-    if (user.activated_at) {
-      return NextResponse.json({
-        success: true,
-        message: "Účet je již aktivován. Můžete se přihlásit.",
-      });
+    if (userError || !user || user.activated_at) {
+      return NextResponse.json(genericSuccess);
     }
 
     // Create new verification token
@@ -70,13 +78,7 @@ export async function POST(request) {
         userId: user.id,
         error: emailResult.error,
       });
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Chyba při odesílání emailu. Zkuste to prosím později.",
-        },
-        { status: 500 }
-      );
+      return NextResponse.json(genericSuccess);
     }
 
     console.info("[Email] resend verification sent:", {
@@ -92,10 +94,7 @@ export async function POST(request) {
       request,
     });
 
-    return NextResponse.json({
-      success: true,
-      message: "Aktivační email byl odeslán. Zkontrolujte svou emailovou schránku.",
-    });
+    return NextResponse.json(genericSuccess);
   } catch (error) {
     console.error("Error in resend-verification:", error);
     return NextResponse.json(

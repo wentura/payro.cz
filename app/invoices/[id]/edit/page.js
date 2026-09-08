@@ -4,7 +4,7 @@
  * Server component that loads data and passes to client form component
  */
 
-import Layout from "@/app/components/Layout";
+import ServerLayout from "@/app/components/ServerLayout";
 import Button from "@/app/components/ui/Button";
 import { getCurrentUser } from "@/app/lib/auth";
 import { getInvoiceForEdit } from "@/app/lib/services/getInvoiceForEdit";
@@ -39,7 +39,7 @@ export default async function EditInvoicePage({ params }) {
   // Handle errors
   if (!invoice) {
     return (
-      <Layout user={user} className="flex-grow flex flex-col">
+      <ServerLayout user={user} className="flex-grow flex flex-col">
         <div className="min-h-screen bg-gray-50 py-8">
           <div className="max-w-5xl mx-auto px-4 text-center">
             <p className="text-red-600">Faktura nenalezena</p>
@@ -48,13 +48,13 @@ export default async function EditInvoicePage({ params }) {
             </Link>
           </div>
         </div>
-      </Layout>
+      </ServerLayout>
     );
   }
 
   if (invoice.error) {
     return (
-      <Layout user={user} className="flex-grow flex flex-col">
+      <ServerLayout user={user} className="flex-grow flex flex-col">
         <div className="min-h-screen bg-gray-50 py-8">
           <div className="max-w-5xl mx-auto px-4 text-center">
             <p className="text-red-600">{invoice.error}</p>
@@ -63,12 +63,12 @@ export default async function EditInvoicePage({ params }) {
             </Link>
           </div>
         </div>
-      </Layout>
+      </ServerLayout>
     );
   }
 
   return (
-    <Layout user={user} className="flex-grow flex flex-col">
+    <ServerLayout user={user} className="flex-grow flex flex-col">
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="max-w-5xl mx-auto px-2 sm:px-6 lg:px-8">
           <div className="mb-6">
@@ -86,6 +86,6 @@ export default async function EditInvoicePage({ params }) {
           />
         </div>
       </div>
-    </Layout>
+    </ServerLayout>
   );
 }

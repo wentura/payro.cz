@@ -7,13 +7,13 @@
 
 import { registerUser } from "@/app/lib/auth";
 import { logAuditEvent } from "@/app/lib/audit";
+import { parseWithSchema } from "@/app/lib/api-validation";
 import { sendVerificationEmail } from "@/app/lib/email";
 import { getRequestIp, rateLimit } from "@/app/lib/rate-limit";
+import { registerSchema } from "@/app/lib/validations";
 import { NextResponse } from "next/server";
 
-// Email validation regex
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
+// Anti-bot checks happen before schema validation
 export async function POST(request) {
   try {
     const body = await request.json();
@@ -82,43 +82,26 @@ export async function POST(request) {
     }
 
     // Validate input
-    if (!name || !contact_email || !password) {
+    const parsed = parseWithSchema(registerSchema, {
+      name,
+      contact_email,
+      password,
+      password_confirm,
+      company_id,
+    });
+    if (!parsed.success) {
       return NextResponse.json(
-        { success: false, error: "Všechna povinná pole musí být vyplněna" },
-        { status: 400 }
-      );
-    }
-
-    // Validate email format
-    if (!EMAIL_REGEX.test(contact_email)) {
-      return NextResponse.json(
-        { success: false, error: "Neplatný formát emailové adresy" },
-        { status: 400 }
-      );
-    }
-
-    // Validate passwords match
-    if (password !== password_confirm) {
-      return NextResponse.json(
-        { success: false, error: "Hesla se neshodují" },
-        { status: 400 }
-      );
-    }
-
-    // Validate password length
-    if (password.length < 8) {
-      return NextResponse.json(
-        { success: false, error: "Heslo musí mít alespoň 8 znaků" },
+        { success: false, error: parsed.error },
         { status: 400 }
       );
     }
 
     // Attempt registration
     const result = await registerUser({
-      name,
-      contact_email,
-      password,
-      company_id: company_id || null,
+      name: parsed.data.name,
+      contact_email: parsed.data.contact_email,
+      password: parsed.data.password,
+      company_id: parsed.data.company_id || null,
     });
 
     if (!result.success) {

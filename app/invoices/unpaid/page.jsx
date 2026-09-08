@@ -1,9 +1,14 @@
-import Layout from "@/app/components/Layout";
+import ServerLayout from "@/app/components/ServerLayout";
+import Pagination from "@/app/components/Pagination";
 import Badge from "@/app/components/ui/Badge";
 import Button from "@/app/components/ui/Button";
 import Card from "@/app/components/ui/Card";
 import { getCurrentUser } from "@/app/lib/auth";
-import { supabase } from "@/app/lib/supabase";
+import {
+  getInvoicesWithFilters,
+  getInvoiceStatistics,
+  INVOICE_PAGE_SIZE,
+} from "@/app/lib/services/InvoiceService";
 import { formatCurrency, formatDateCZ } from "@/app/lib/utils";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -14,62 +19,40 @@ import { redirect } from "next/navigation";
  * Displays only unpaid invoices (status: sent, draft)
  */
 
-async function getUnpaidInvoices(userId) {
-  try {
-    const { data, error } = await supabase
-      .from("invoices")
-      .select(
-        `
-        *,
-        clients(name)
-      `
-      )
-      .eq("user_id", userId)
-      .eq("is_deleted", false)
-      .in("status_id", [1, 2]) // Status 1 = "Koncept", 2 = "Odeslaná"
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      console.error("Error fetching unpaid invoices:", error);
-      return [];
-    }
-
-    return data || [];
-  } catch (error) {
-    console.error("Error in getUnpaidInvoices:", error);
-    return [];
-  }
-}
-
-const statusLabels = {
-  1: "Koncept",
-  2: "Odeslaná",
-  3: "Zaplacená",
-  4: "Stornovaná",
-  5: "Po splatnosti",
-  6: "Částečně zaplacená",
-};
-
-const statusVariants = {
-  1: "draft",
-  2: "sent",
-  3: "paid",
-  4: "canceled",
-  5: "overdue",
-  6: "partial_paid",
-};
-
-export default async function UnpaidInvoicesPage() {
+export default async function UnpaidInvoicesPage({ searchParams }) {
   const user = await getCurrentUser();
 
   if (!user) {
     redirect("/login");
   }
 
-  const invoices = await getUnpaidInvoices(user.id);
+  const params = await searchParams;
+  const page = Math.max(1, Number.parseInt(params?.page, 10) || 1);
+  const [{ invoices, total, pageSize }, stats] = await Promise.all([
+    getInvoicesWithFilters(user.id, { page, status_ids: [1, 2] }),
+    getInvoiceStatistics(user.id),
+  ]);
+
+  const statusLabels = {
+    1: "Koncept",
+    2: "Odeslaná",
+    3: "Zaplacená",
+    4: "Stornovaná",
+    5: "Po splatnosti",
+    6: "Částečně zaplacená",
+  };
+
+  const statusVariants = {
+    1: "draft",
+    2: "sent",
+    3: "paid",
+    4: "canceled",
+    5: "overdue",
+    6: "partial_paid",
+  };
 
   return (
-    <Layout user={user}>
+    <ServerLayout user={user}>
       <div className="space-y-6 w-full mx-auto">
         {/* Page Header */}
         <div className="flex justify-between text-center md:text-left max-w-7xl mx-auto">
@@ -78,7 +61,7 @@ export default async function UnpaidInvoicesPage() {
               Nezaplacené faktury
             </h1>
             <p className="mt-2 text-gray-600">
-              Přehled všech nezaplacených faktur ({invoices.length})
+              Přehled všech nezaplacených faktur ({total})
             </p>
           </div>
           <div className="space-x-3 hidden md:flex">
@@ -202,17 +185,26 @@ export default async function UnpaidInvoicesPage() {
                   ))}
                 </tbody>
               </table>
+              <Pagination
+                page={page}
+                pageSize={pageSize || INVOICE_PAGE_SIZE}
+                total={total}
+                makeHref={(nextPage) =>
+                  nextPage > 1
+                    ? `/invoices/unpaid?page=${nextPage}`
+                    : "/invoices/unpaid"
+                }
+              />
             </div>
           )}
         </Card>
 
-        {/* Summary Stats */}
-        {invoices.length > 0 && (
+        {total > 0 && (
           <div className="grid grid-cols-2 md:grid-cols-2 gap-6">
             <Card>
               <div className="text-center">
                 <div className="text-3xl font-bold text-orange-600">
-                  {invoices.length}
+                  {stats.unpaid}
                 </div>
                 <div className="text-sm text-gray-500 mt-1">
                   Nezaplacené faktury
@@ -222,40 +214,16 @@ export default async function UnpaidInvoicesPage() {
             <Card>
               <div className="text-center">
                 <div className="text-3xl font-bold text-red-600">
-                  {formatCurrency(
-                    invoices.reduce(
-                      (sum, invoice) => sum + (invoice.total_amount || 0),
-                      0
-                    ),
-                    "CZK"
-                  )}
+                  {formatCurrency(stats.unpaidAmount, "CZK")}
                 </div>
                 <div className="text-sm text-gray-500 mt-1">
                   Celková částka k úhradě
                 </div>
               </div>
             </Card>
-            {/* <Card>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-yellow-600">
-                  {invoices.length > 0
-                    ? formatCurrency(
-                        invoices.reduce(
-                          (sum, invoice) => sum + (invoice.total_amount || 0),
-                          0
-                        ) / invoices.length,
-                        "CZK"
-                      )
-                    : "0 CZK"}
-                </div>
-                <div className="text-sm text-gray-500 mt-1">
-                  Průměrná faktura
-                </div>
-              </div>
-            </Card> */}
           </div>
         )}
       </div>
-    </Layout>
+    </ServerLayout>
   );
 }

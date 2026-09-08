@@ -6,8 +6,10 @@
 
 import { getCurrentUser } from "@/app/lib/auth";
 import { logAuditEvent } from "@/app/lib/audit";
+import { parseWithSchema } from "@/app/lib/api-validation";
 import { createInvoiceWithItems } from "@/app/lib/services/InvoiceService";
 import { canUserCreateInvoice } from "@/app/lib/services/SubscriptionService";
+import { invoiceCreateApiSchema } from "@/app/lib/validations";
 import { NextResponse } from "next/server";
 
 /**
@@ -24,7 +26,14 @@ export async function POST(request) {
       );
     }
 
-    const body = await request.json();
+    const parsed = parseWithSchema(invoiceCreateApiSchema, await request.json());
+    if (!parsed.success) {
+      return NextResponse.json(
+        { success: false, error: parsed.error },
+        { status: 400 }
+      );
+    }
+
     const {
       client_id,
       issue_date,
@@ -34,7 +43,7 @@ export async function POST(request) {
       note,
       is_small_buyer,
       items,
-    } = body;
+    } = parsed.data;
 
     // Check subscription limits before creating invoice
     const canCreate = await canUserCreateInvoice(user.id);

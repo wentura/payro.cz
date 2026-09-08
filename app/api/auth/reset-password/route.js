@@ -4,36 +4,32 @@
  * Validates token and updates password
  */
 
-import { hashPassword } from "@/app/lib/auth";
+import { hashPassword, hashToken } from "@/app/lib/auth";
 import { logAuditEvent } from "@/app/lib/audit";
+import { parseWithSchema } from "@/app/lib/api-validation";
 import { supabase } from "@/app/lib/supabase";
+import { passwordResetSchema } from "@/app/lib/validations";
 import { NextResponse } from "next/server";
 
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { token, password } = body;
-
-    if (!token || !password) {
+    const parsed = parseWithSchema(passwordResetSchema, {
+      ...body,
+      password_confirm: body.password_confirm || body.password,
+    });
+    if (!parsed.success) {
       return NextResponse.json(
-        { success: false, error: "Token a heslo jsou povinné" },
+        { success: false, error: parsed.error },
         { status: 400 }
       );
     }
+    const { token, password } = parsed.data;
 
-    // Validate password
-    if (password.length < 8) {
-      return NextResponse.json(
-        { success: false, error: "Heslo musí mít alespoň 8 znaků" },
-        { status: 400 }
-      );
-    }
-
-    // Find and validate token
     const { data: resetToken, error: tokenError } = await supabase
       .from("password_reset_tokens")
-      .select("*")
-      .eq("token", token)
+      .select("id, user_id, expires_at")
+      .eq("token", hashToken(token))
       .single();
 
     if (tokenError || !resetToken) {

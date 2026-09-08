@@ -36,55 +36,61 @@ export const loginSchema = z.object({
  */
 export const clientSchema = z.object({
   name: z.string().min(2, "Název musí mít alespoň 2 znaky"),
-  company_id: z.string().optional(),
-  address: z
-    .object({
-      street: z.string().optional(),
-      house_number: z.string().optional(),
-      city: z.string().optional(),
-      zip: z.string().optional(),
-      country: z.string().default("Česká republika"),
-    })
-    .optional(),
-  contact_email: z
-    .string()
-    .email("Neplatná emailová adresa")
-    .optional()
-    .or(z.literal("")),
-  contact_phone: z.string().optional(),
-  note: z.string().optional(),
+  company_id: z.string().optional().nullable(),
+  vat_number: z.string().optional().nullable(),
+  contact_email: z.preprocess(
+    (val) => (val == null ? "" : val),
+    z.union([z.string().email("Neplatná emailová adresa"), z.literal("")])
+  ),
+  contact_phone: z.string().optional().nullable(),
+  note: z.string().optional().nullable(),
+  street: z.string().optional(),
+  house_number: z.string().optional(),
+  city: z.string().optional(),
+  zip: z.string().optional(),
+  country: z.string().optional(),
 });
 
 /**
  * Invoice schema
  */
-export const invoiceSchema = z
-  .object({
-    client_id: z.string().uuid("Vyberte klienta").nullable().optional(),
-    issue_date: z.string().min(1, "Datum vystavení je povinné"),
-    due_term_id: z.number().or(z.string()).optional(),
-    payment_type_id: z.number().or(z.string()).optional(),
-    currency: z.enum(["CZK", "EUR"]).default("CZK"),
-    note: z.string().optional(),
-    is_small_buyer: z.boolean().default(false),
-  })
-  .superRefine((data, ctx) => {
-    if (!data.is_small_buyer && !data.client_id) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["client_id"],
-        message: "Vyberte klienta",
-      });
-    }
+function refineInvoiceRecipient(data, ctx) {
+  if (!data.is_small_buyer && !data.client_id) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["client_id"],
+      message: "Vyberte klienta",
+    });
+  }
 
-    if (data.is_small_buyer && data.currency !== "CZK") {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["currency"],
-        message: "Faktura pro malého odběratele musí být v měně CZK",
-      });
+  if (data.is_small_buyer && data.currency !== "CZK") {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["currency"],
+      message: "Faktura pro malého odběratele musí být v měně CZK",
+    });
+  }
+}
+
+export const invoiceBaseSchema = z.object({
+  client_id: z.preprocess(
+    (val) => (val === "" ? null : val),
+    z.string().uuid("Vyberte klienta").nullable().optional()
+  ),
+  issue_date: z.string().min(1, "Datum vystavení je povinné"),
+  due_term_id: z.number().or(z.string()).optional().nullable(),
+  payment_type_id: z.number().or(z.string()).optional().nullable(),
+  currency: z.enum(["CZK", "EUR"]).default("CZK"),
+  note: z.string().optional(),
+  is_small_buyer: z.preprocess((val) => {
+    if (val === true || val === "true" || val === 1 || val === "1") {
+      return true;
     }
-  });
+    return false;
+  }, z.boolean()),
+});
+
+export const invoiceSchema = invoiceBaseSchema.superRefine(refineInvoiceRecipient);
 
 /**
  * Invoice item schema
@@ -101,7 +107,7 @@ export const invoiceItemSchema = z.object({
           message: "Množství musí být větší než 0",
         })
     ),
-  unit_id: z.number().or(z.string()).optional(),
+  unit_id: z.number().or(z.string()).optional().nullable(),
   unit_price: z
     .number()
     .min(0, "Cena nesmí být záporná")
@@ -112,6 +118,31 @@ export const invoiceItemSchema = z.object({
           message: "Cena nesmí být záporná",
         })
     ),
+});
+
+export const invoiceCreateApiSchema = invoiceBaseSchema
+  .extend({
+    items: z
+      .array(invoiceItemSchema)
+      .min(1, "Faktura musí obsahovat alespoň jednu položku"),
+  })
+  .superRefine(refineInvoiceRecipient);
+
+/**
+ * Flattened profile update payload from SettingsForm
+ */
+export const profileUpdateSchema = z.object({
+  name: z.string().min(2, "Jméno musí mít alespoň 2 znaky"),
+  company_id: z.string().optional().nullable(),
+  contact_email: z.string().email("Neplatná emailová adresa"),
+  contact_phone: z.string().optional().nullable(),
+  contact_website: z.string().optional().nullable(),
+  bank_account: z.string().optional().nullable(),
+  street: z.string().optional(),
+  house_number: z.string().optional(),
+  city: z.string().optional(),
+  zip: z.string().optional(),
+  country: z.string().optional(),
 });
 
 /**

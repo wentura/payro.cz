@@ -1,4 +1,4 @@
-import Layout from "@/app/components/Layout";
+import ServerLayout from "@/app/components/ServerLayout";
 import Badge from "@/app/components/ui/Badge";
 import Button from "@/app/components/ui/Button";
 import Card from "@/app/components/ui/Card";
@@ -90,14 +90,14 @@ export default async function InvoiceDetailPage({ params }) {
 
   if (!invoice) {
     return (
-      <Layout user={user}>
+      <ServerLayout user={user}>
         <div className="text-center py-12">
           <p className="text-red-500">Faktura nenalezena</p>
           <Link href="/invoices" className="mt-4 inline-block">
             <Button>Zpět na faktury</Button>
           </Link>
         </div>
-      </Layout>
+      </ServerLayout>
     );
   }
 
@@ -145,7 +145,7 @@ export default async function InvoiceDetailPage({ params }) {
     (showUnitPriceColumn ? 1 : 0);
 
   return (
-    <Layout user={user}>
+    <ServerLayout user={user}>
       <div className="space-y-6">
         {/* Page Header */}
         <div className="flex justify-between items-start">
@@ -454,6 +454,6 @@ export default async function InvoiceDetailPage({ params }) {
           </div>
         </Card>
       </div>
-    </Layout>
+    </ServerLayout>
   );
 }

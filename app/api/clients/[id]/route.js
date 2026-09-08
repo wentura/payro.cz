@@ -6,7 +6,10 @@
 
 import { getCurrentUser } from "@/app/lib/auth";
 import { logAuditEvent } from "@/app/lib/audit";
+import { parseWithSchema } from "@/app/lib/api-validation";
+import { revalidateClientsCache } from "@/app/lib/clients-cache";
 import { supabase } from "@/app/lib/supabase";
+import { clientSchema } from "@/app/lib/validations";
 import { NextResponse } from "next/server";
 
 /**
@@ -70,7 +73,14 @@ export async function PUT(request, { params }) {
     // Await params in Next.js 15
     const { id } = await params;
 
-    const body = await request.json();
+    const parsed = parseWithSchema(clientSchema, await request.json());
+    if (!parsed.success) {
+      return NextResponse.json(
+        { success: false, error: parsed.error },
+        { status: 400 }
+      );
+    }
+
     const {
       name,
       company_id,
@@ -83,15 +93,7 @@ export async function PUT(request, { params }) {
       city,
       zip,
       country,
-    } = body;
-
-    // Validate required fields
-    if (!name) {
-      return NextResponse.json(
-        { success: false, error: "Název je povinný" },
-        { status: 400 }
-      );
-    }
+    } = parsed.data;
 
     // Create address object
     const address = {
@@ -135,6 +137,8 @@ export async function PUT(request, { params }) {
       request,
     });
 
+    revalidateClientsCache(user.id);
+
     return NextResponse.json({
       success: true,
       data,
@@ -170,6 +174,7 @@ export async function DELETE(request, { params }) {
       .from("invoices")
       .select("id")
       .eq("client_id", id)
+      .eq("user_id", user.id)
       .limit(1);
 
     if (invoices && invoices.length > 0) {
@@ -204,6 +209,8 @@ export async function DELETE(request, { params }) {
       entityId: id,
       request,
     });
+
+    revalidateClientsCache(user.id);
 
     return NextResponse.json({
       success: true,

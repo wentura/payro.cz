@@ -4,11 +4,20 @@
  * Returns available payment types
  */
 
+import { getCurrentUser } from "@/app/lib/auth";
 import { supabase } from "@/app/lib/supabase";
 import { NextResponse } from "next/server";
 
 export async function GET() {
   try {
+    const user = await getCurrentUser();
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: "Nepřihlášen" },
+        { status: 401 }
+      );
+    }
+
     const { data, error } = await supabase
       .from("payment_types")
       .select("*")

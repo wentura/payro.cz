@@ -31,8 +31,8 @@ export async function getUserExportData(userId) {
   ] = await Promise.all([
     supabase.from("clients").select("*").eq("user_id", userId),
     supabase.from("invoices").select("*").eq("user_id", userId),
-    supabase.from("password_reset_tokens").select("*").eq("user_id", userId),
-    supabase.from("email_verification_tokens").select("*").eq("user_id", userId),
+    supabase.from("password_reset_tokens").select("id, expires_at, created_at").eq("user_id", userId),
+    supabase.from("email_verification_tokens").select("id, expires_at, created_at").eq("user_id", userId),
     supabase.from("user_subscriptions").select("*").eq("user_id", userId),
     supabase.from("invoice_usage").select("*").eq("user_id", userId),
   ]);

@@ -22,14 +22,6 @@ export async function getAllUsersWithStats() {
           created_at,
           deactivated_at,
           deleted_at,
-          invoices(
-            id,
-            total_amount,
-            currency,
-            is_paid,
-            is_canceled,
-            is_deleted
-          ),
           user_subscriptions!left(
             id,
             plan_id,
@@ -59,17 +51,40 @@ export async function getAllUsersWithStats() {
       return [];
     }
 
-    // Process users with stats
+    const { data: invoiceRows, error: invoicesError } = await supabase
+      .from("invoices")
+      .select("user_id, total_amount, is_paid, is_canceled")
+      .eq("is_deleted", false);
+
+    if (invoicesError) {
+      console.error("Error fetching invoice stats:", invoicesError);
+    }
+
+    const statsByUser = new Map();
+    for (const inv of invoiceRows || []) {
+      const current = statsByUser.get(inv.user_id) || {
+        totalInvoices: 0,
+        paidInvoices: 0,
+        unpaidInvoices: 0,
+        totalRevenue: 0,
+      };
+      current.totalInvoices += 1;
+      if (inv.is_paid) {
+        current.paidInvoices += 1;
+        current.totalRevenue += parseFloat(inv.total_amount || 0);
+      } else if (!inv.is_canceled) {
+        current.unpaidInvoices += 1;
+      }
+      statsByUser.set(inv.user_id, current);
+    }
+
     const userStats = users.map((user) => {
-      const invoices = (user.invoices || []).filter((inv) => !inv.is_deleted);
-      const totalInvoices = invoices.length;
-      const paidInvoices = invoices.filter((inv) => inv.is_paid).length;
-      const unpaidInvoices = invoices.filter(
-        (inv) => !inv.is_paid && !inv.is_canceled
-      ).length;
-      const totalRevenue = invoices
-        .filter((inv) => inv.is_paid)
-        .reduce((sum, inv) => sum + parseFloat(inv.total_amount || 0), 0);
+      const stats = statsByUser.get(user.id) || {
+        totalInvoices: 0,
+        paidInvoices: 0,
+        unpaidInvoices: 0,
+        totalRevenue: 0,
+      };
 
       // Get current subscription (most recent one, regardless of status)
       const currentSubscription =
@@ -91,12 +106,7 @@ export async function getAllUsersWithStats() {
 
       return {
         ...user,
-        stats: {
-          totalInvoices,
-          paidInvoices,
-          unpaidInvoices,
-          totalRevenue,
-        },
+        stats,
         subscription: {
           id: currentSubscription?.id,
           plan: currentPlan,

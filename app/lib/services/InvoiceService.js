@@ -6,6 +6,7 @@
 
 import { supabase } from "@/app/lib/supabase";
 import { incrementInvoiceUsage } from "./SubscriptionService";
+import { toNullableInt, toNullableUuid } from "@/app/lib/nullable-id";
 
 const SMALL_BUYER_LIMIT = 10000;
 
@@ -51,6 +52,17 @@ function validateInvoiceRecipient(invoiceData, totalAmount) {
   return null;
 }
 
+async function ensureClientBelongsToUser(clientId, userId) {
+  const { data: client, error } = await supabase
+    .from("clients")
+    .select("id")
+    .eq("id", clientId)
+    .eq("user_id", userId)
+    .single();
+
+  return !error && !!client;
+}
+
 /**
  * Create a new invoice with items
  * @param {Object} invoiceData - Invoice data
@@ -68,13 +80,15 @@ export async function createInvoiceWithItems(invoiceData, items, userId) {
       };
     }
 
-    // Calculate due date if due_term_id is provided
+    const dueTermId = toNullableInt(invoiceData.due_term_id);
+    const paymentTypeId = toNullableInt(invoiceData.payment_type_id);
+
     let dueDate = null;
-    if (invoiceData.due_term_id) {
+    if (dueTermId) {
       const { data: dueTerm, error: dueTermError } = await supabase
         .from("due_terms")
         .select("days_count")
-        .eq("id", invoiceData.due_term_id)
+        .eq("id", dueTermId)
         .single();
 
       if (dueTermError) {
@@ -106,16 +120,31 @@ export async function createInvoiceWithItems(invoiceData, items, userId) {
     const isSmallBuyer =
       invoiceData.is_small_buyer === true || !invoiceData.client_id;
 
+    if (!isSmallBuyer) {
+      const isClientOwnedByUser = await ensureClientBelongsToUser(
+        invoiceData.client_id,
+        userId
+      );
+
+      if (!isClientOwnedByUser) {
+        return {
+          success: false,
+          error: "Vybraný klient nepatří přihlášenému uživateli",
+          status: 403,
+        };
+      }
+    }
+
     // Create invoice
     const { data: invoice, error: invoiceError } = await supabase
       .from("invoices")
       .insert({
         user_id: userId,
-        client_id: isSmallBuyer ? null : invoiceData.client_id,
+        client_id: isSmallBuyer ? null : toNullableUuid(invoiceData.client_id),
         issue_date: invoiceData.issue_date,
         due_date: dueDate?.toISOString().split("T")[0],
-        payment_type_id: invoiceData.payment_type_id,
-        due_term_id: invoiceData.due_term_id,
+        payment_type_id: paymentTypeId,
+        due_term_id: dueTermId,
         currency: isSmallBuyer ? "CZK" : invoiceData.currency || "CZK",
         total_amount: totalAmount,
         note: invoiceData.note,
@@ -139,7 +168,7 @@ export async function createInvoiceWithItems(invoiceData, items, userId) {
       order_number: index + 1,
       description: item.description,
       quantity: parseFloat(item.quantity || 0),
-      unit_id: item.unit_id,
+      unit_id: toNullableInt(item.unit_id),
       unit_price: parseFloat(item.unit_price || 0),
     }));
 
@@ -204,13 +233,15 @@ export async function updateInvoiceWithItems(
       };
     }
 
-    // Calculate due date if due_term_id is provided
+    const dueTermId = toNullableInt(invoiceData.due_term_id);
+    const paymentTypeId = toNullableInt(invoiceData.payment_type_id);
+
     let dueDate = null;
-    if (invoiceData.due_term_id) {
+    if (dueTermId) {
       const { data: dueTerm, error: dueTermError } = await supabase
         .from("due_terms")
         .select("days_count")
-        .eq("id", invoiceData.due_term_id)
+        .eq("id", dueTermId)
         .single();
 
       if (dueTermError) {
@@ -242,15 +273,30 @@ export async function updateInvoiceWithItems(
     const isSmallBuyer =
       invoiceData.is_small_buyer === true || !invoiceData.client_id;
 
+    if (!isSmallBuyer) {
+      const isClientOwnedByUser = await ensureClientBelongsToUser(
+        invoiceData.client_id,
+        userId
+      );
+
+      if (!isClientOwnedByUser) {
+        return {
+          success: false,
+          error: "Vybraný klient nepatří přihlášenému uživateli",
+          status: 403,
+        };
+      }
+    }
+
     // Update invoice
     const { data: updatedInvoice, error: invoiceError } = await supabase
       .from("invoices")
       .update({
-        client_id: isSmallBuyer ? null : invoiceData.client_id,
+        client_id: isSmallBuyer ? null : toNullableUuid(invoiceData.client_id),
         issue_date: invoiceData.issue_date,
         due_date: dueDate?.toISOString().split("T")[0],
-        payment_type_id: invoiceData.payment_type_id,
-        due_term_id: invoiceData.due_term_id,
+        payment_type_id: paymentTypeId,
+        due_term_id: dueTermId,
         currency: isSmallBuyer ? "CZK" : invoiceData.currency || "CZK",
         total_amount: totalAmount,
         note: invoiceData.note,
@@ -290,7 +336,7 @@ export async function updateInvoiceWithItems(
       order_number: index + 1,
       description: item.description,
       quantity: parseFloat(item.quantity || 0),
-      unit_id: item.unit_id,
+      unit_id: toNullableInt(item.unit_id),
       unit_price: parseFloat(item.unit_price || 0),
     }));
 
@@ -331,23 +377,39 @@ export async function updateInvoiceWithItems(
  * @param {Object} filters - Filter options
  * @returns {Promise<Array>} Array of invoices
  */
+const INVOICE_LIST_SELECT = `
+        id,
+        invoice_number,
+        issue_date,
+        due_date,
+        total_amount,
+        currency,
+        status_id,
+        created_at,
+        clients(name)
+      `;
+
+export const INVOICE_PAGE_SIZE = 50;
+
+/**
+ * Get invoices with filters and pagination
+ */
 export async function getInvoicesWithFilters(userId, filters = {}) {
   try {
+    const page = Math.max(1, Number.parseInt(filters.page, 10) || 1);
+    const pageSize = Math.max(
+      1,
+      Math.min(100, Number.parseInt(filters.limit, 10) || INVOICE_PAGE_SIZE)
+    );
+    const from = (page - 1) * pageSize;
+    const to = from + pageSize - 1;
+
     let query = supabase
       .from("invoices")
-      .select(
-        `
-        *,
-        clients(name, company_id),
-        invoice_statuses!inner(name),
-        payment_types!inner(name),
-        due_terms!inner(name, days_count)
-      `
-      )
+      .select(INVOICE_LIST_SELECT, { count: "exact" })
       .eq("user_id", userId)
       .eq("is_deleted", false);
 
-    // Apply filters
     if (filters.status_id) {
       query = query.eq("status_id", filters.status_id);
     }
@@ -356,9 +418,21 @@ export async function getInvoicesWithFilters(userId, filters = {}) {
       query = query.in("status_id", filters.status_ids);
     }
 
+    if (filters.exclude_status_ids && Array.isArray(filters.exclude_status_ids)) {
+      if (filters.exclude_status_ids.length === 1) {
+        query = query.neq("status_id", filters.exclude_status_ids[0]);
+      } else if (filters.exclude_status_ids.length > 1) {
+        query = query.not(
+          "status_id",
+          "in",
+          `(${filters.exclude_status_ids.join(",")})`
+        );
+      }
+    }
+
     if (filters.overdue) {
       const today = new Date().toISOString().split("T")[0];
-      query = query.lt("due_date", today);
+      query = query.lt("due_date", today).eq("is_paid", false).eq("is_canceled", false);
     }
 
     if (filters.client_id) {
@@ -373,34 +447,27 @@ export async function getInvoicesWithFilters(userId, filters = {}) {
       query = query.lte("issue_date", filters.date_to);
     }
 
-    // Apply ordering
     const orderBy = filters.orderBy || "created_at";
     const orderDirection = filters.orderDirection || "desc";
     query = query.order(orderBy, { ascending: orderDirection === "asc" });
+    query = query.range(from, to);
 
-    // Apply pagination
-    if (filters.limit) {
-      query = query.limit(filters.limit);
-    }
-
-    if (filters.offset) {
-      query = query.range(
-        filters.offset,
-        filters.offset + (filters.limit || 50) - 1
-      );
-    }
-
-    const { data: invoices, error } = await query;
+    const { data: invoices, error, count } = await query;
 
     if (error) {
       console.error("Error fetching invoices:", error);
-      return [];
+      return { invoices: [], total: 0, page, pageSize };
     }
 
-    return invoices || [];
+    return {
+      invoices: invoices || [],
+      total: count || 0,
+      page,
+      pageSize,
+    };
   } catch (error) {
     console.error("Error in getInvoicesWithFilters:", error);
-    return [];
+    return { invoices: [], total: 0, page: 1, pageSize: INVOICE_PAGE_SIZE };
   }
 }
 
@@ -411,7 +478,6 @@ export async function getInvoicesWithFilters(userId, filters = {}) {
  */
 export async function getOverdueInvoices(userId) {
   return getInvoicesWithFilters(userId, {
-    status_ids: [1, 2], // Draft and Sent statuses
     overdue: true,
     orderBy: "due_date",
     orderDirection: "asc",
@@ -425,35 +491,93 @@ export async function getOverdueInvoices(userId) {
  */
 export async function getInvoiceStatistics(userId) {
   try {
-    const invoices = await getInvoicesWithFilters(userId);
-
-    const stats = {
-      total: invoices.length,
-      paid: invoices.filter((inv) => inv.status_id === 3).length,
-      unpaid: invoices.filter((inv) => [1, 2].includes(inv.status_id)).length,
-      canceled: invoices.filter((inv) => inv.status_id === 4).length,
-      overdue: 0,
-      totalRevenue: 0,
-      unpaidAmount: 0,
-    };
-
-    // Calculate overdue invoices
     const today = new Date().toISOString().split("T")[0];
-    stats.overdue = invoices.filter(
-      (inv) =>
-        [1, 2].includes(inv.status_id) && inv.due_date && inv.due_date < today
-    ).length;
+    const base = () =>
+      supabase
+        .from("invoices")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", userId)
+        .eq("is_deleted", false);
 
-    // Calculate amounts
-    stats.totalRevenue = invoices
-      .filter((inv) => inv.status_id === 3)
-      .reduce((sum, inv) => sum + parseFloat(inv.total_amount || 0), 0);
+    const [
+      totalRes,
+      paidRes,
+      unpaidRes,
+      canceledRes,
+      overdueRes,
+      paidAmounts,
+      unpaidAmounts,
+      overdueRows,
+    ] = await Promise.all([
+      base(),
+      base().eq("status_id", 3),
+      base().in("status_id", [1, 2]),
+      base().eq("status_id", 4),
+      base().in("status_id", [1, 2]).lt("due_date", today),
+      supabase
+        .from("invoices")
+        .select("total_amount")
+        .eq("user_id", userId)
+        .eq("is_deleted", false)
+        .eq("status_id", 3),
+      supabase
+        .from("invoices")
+        .select("total_amount")
+        .eq("user_id", userId)
+        .eq("is_deleted", false)
+        .in("status_id", [1, 2]),
+      supabase
+        .from("invoices")
+        .select("total_amount, due_date")
+        .eq("user_id", userId)
+        .eq("is_deleted", false)
+        .eq("is_paid", false)
+        .eq("is_canceled", false)
+        .lt("due_date", today),
+    ]);
 
-    stats.unpaidAmount = invoices
-      .filter((inv) => [1, 2].includes(inv.status_id))
-      .reduce((sum, inv) => sum + parseFloat(inv.total_amount || 0), 0);
+    const paidList = paidAmounts.data || [];
+    const unpaidList = unpaidAmounts.data || [];
+    const overdueList = overdueRows.data || [];
+    const totalRevenue = paidList.reduce(
+      (sum, inv) => sum + parseFloat(inv.total_amount || 0),
+      0
+    );
+    const unpaidAmount = unpaidList.reduce(
+      (sum, inv) => sum + parseFloat(inv.total_amount || 0),
+      0
+    );
+    const overdueAmount = overdueList.reduce(
+      (sum, inv) => sum + parseFloat(inv.total_amount || 0),
+      0
+    );
+    const overdueDays =
+      overdueList.length === 0
+        ? 0
+        : Math.round(
+            overdueList.reduce((sum, inv) => {
+              const dueDate = new Date(inv.due_date);
+              return (
+                sum +
+                Math.max(
+                  0,
+                  Math.floor((Date.now() - dueDate.getTime()) / (1000 * 60 * 60 * 24))
+                )
+              );
+            }, 0) / overdueList.length
+          );
 
-    return stats;
+    return {
+      total: totalRes.count || 0,
+      paid: paidRes.count || 0,
+      unpaid: unpaidRes.count || 0,
+      canceled: canceledRes.count || 0,
+      overdue: overdueRes.count || 0,
+      totalRevenue,
+      unpaidAmount,
+      overdueAmount,
+      overdueAverageDays: overdueDays,
+    };
   } catch (error) {
     console.error("Error in getInvoiceStatistics:", error);
     return {
@@ -464,6 +588,8 @@ export async function getInvoiceStatistics(userId) {
       overdue: 0,
       totalRevenue: 0,
       unpaidAmount: 0,
+      overdueAmount: 0,
+      overdueAverageDays: 0,
     };
   }
 }

@@ -9,6 +9,8 @@ export function getRequestIp(request) {
 }
 
 export async function rateLimit({ key, limit, windowSeconds }) {
+  const failClosed = process.env.NODE_ENV === "production";
+
   try {
     const { data, error } = await supabase.rpc("check_rate_limit", {
       key_name: key,
@@ -18,7 +20,7 @@ export async function rateLimit({ key, limit, windowSeconds }) {
 
     if (error) {
       console.error("Rate limit check failed:", error);
-      return { allowed: true, remaining: null, resetAt: null };
+      return { allowed: !failClosed, remaining: null, resetAt: null };
     }
 
     const result = Array.isArray(data) ? data[0] : data;
@@ -29,6 +31,6 @@ export async function rateLimit({ key, limit, windowSeconds }) {
     };
   } catch (error) {
     console.error("Rate limit check error:", error);
-    return { allowed: true, remaining: null, resetAt: null };
+    return { allowed: !failClosed, remaining: null, resetAt: null };
   }
 }

@@ -9,7 +9,6 @@ import { getSubscriptionData } from "@/app/lib/services/getSubscriptionData";
 import {
   formatCurrency,
   formatDateCZ,
-  isInvoiceOverdue,
 } from "@/app/lib/utils";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -22,11 +21,27 @@ import { redirect } from "next/navigation";
 
 async function getDashboardData(userId) {
   try {
-    const [invoicesResult, clientCountResult] = await Promise.all([
+    const today = new Date().toISOString().split("T")[0];
+    const visibleInvoices = (columns, options) =>
       supabase
         .from("invoices")
-        .select(
-          `
+        .select(columns, options)
+        .eq("user_id", userId)
+        .eq("is_deleted", false)
+        .neq("status_id", 4);
+
+    const [
+      recentResult,
+      totalResult,
+      paidCountResult,
+      unpaidCountResult,
+      overdueCountResult,
+      paidAmountsResult,
+      unpaidAmountsResult,
+      clientCountResult,
+    ] = await Promise.all([
+      visibleInvoices(
+        `
           id,
           invoice_number,
           issue_date,
@@ -37,74 +52,56 @@ async function getDashboardData(userId) {
           status_id,
           is_paid,
           is_canceled,
-          is_deleted,
           client_id,
           clients(name)
         `
-        )
-        .eq("user_id", userId)
-        .eq("is_deleted", false)
-        .neq("status_id", 4) // Exclude cancelled invoices (status_id = 4)
-        .order("created_at", { ascending: false }),
+      )
+        .order("created_at", { ascending: false })
+        .limit(5),
+      visibleInvoices("id", { count: "exact", head: true }),
+      visibleInvoices("id", { count: "exact", head: true }).eq("is_paid", true),
+      visibleInvoices("id", { count: "exact", head: true })
+        .eq("is_paid", false)
+        .eq("is_canceled", false)
+        .neq("status_id", 1),
+      visibleInvoices("id", { count: "exact", head: true })
+        .eq("is_paid", false)
+        .eq("is_canceled", false)
+        .neq("status_id", 1)
+        .lt("due_date", today),
+      visibleInvoices("total_amount").eq("is_paid", true),
+      visibleInvoices("total_amount")
+        .eq("is_paid", false)
+        .eq("is_canceled", false)
+        .neq("status_id", 1),
       supabase
         .from("clients")
-        .select("*", { count: "exact", head: true })
+        .select("id", { count: "exact", head: true })
         .eq("user_id", userId),
     ]);
 
-    const { data: invoices, error: invoicesError } = invoicesResult;
-
-    if (invoicesError) {
-      console.error("Error fetching invoices:", invoicesError);
+    if (recentResult.error) {
+      console.error("Error fetching invoices:", recentResult.error);
       return null;
     }
 
-    // Calculate statistics
-    const totalInvoices = invoices.length;
-    const paidInvoices = invoices.filter((inv) => inv.is_paid).length;
-    // Unpaid invoices: only sent invoices (status_id = 2, 5, 6), exclude drafts (status_id = 1)
-    const unpaidInvoices = invoices.filter(
-      (inv) =>
-        !inv.is_paid &&
-        !inv.is_canceled &&
-        inv.status_id !== 1 // Exclude drafts
-    ).length;
-    const overdueInvoices = invoices.filter(
-      (inv) =>
-        !inv.is_paid &&
-        !inv.is_canceled &&
-        inv.status_id !== 1 && // Exclude drafts
-        isInvoiceOverdue(inv.due_date, inv.is_paid)
-    ).length;
-
-    const totalRevenue = invoices
-      .filter((inv) => inv.is_paid)
-      .reduce((sum, inv) => sum + parseFloat(inv.total_amount || 0), 0);
-
-    // Outstanding amount: only sent invoices (status_id = 2, 5, 6), exclude drafts (status_id = 1)
-    const outstandingAmount = invoices
-      .filter(
-        (inv) =>
-          !inv.is_paid && !inv.is_canceled && inv.status_id !== 1 // Exclude drafts
-      )
-      .reduce((sum, inv) => sum + parseFloat(inv.total_amount || 0), 0);
-
-    // Get recent invoices (last 5)
-    const recentInvoices = invoices.slice(0, 5);
-
-    const { count: clientCount } = clientCountResult;
-
     return {
       stats: {
-        totalInvoices,
-        paidInvoices,
-        unpaidInvoices,
-        overdueInvoices,
-        totalRevenue,
-        outstandingAmount,
-        clientCount: clientCount || 0,
+        totalInvoices: totalResult.count || 0,
+        paidInvoices: paidCountResult.count || 0,
+        unpaidInvoices: unpaidCountResult.count || 0,
+        overdueInvoices: overdueCountResult.count || 0,
+        totalRevenue: (paidAmountsResult.data || []).reduce(
+          (sum, inv) => sum + parseFloat(inv.total_amount || 0),
+          0
+        ),
+        outstandingAmount: (unpaidAmountsResult.data || []).reduce(
+          (sum, inv) => sum + parseFloat(inv.total_amount || 0),
+          0
+        ),
+        clientCount: clientCountResult.count || 0,
       },
-      recentInvoices,
+      recentInvoices: recentResult.data || [],
     };
   } catch (error) {
     console.error("Error in getDashboardData:", error);

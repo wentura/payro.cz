@@ -4,11 +4,10 @@
  * Fetches subscription status change history
  */
 
-import { getCurrentUser } from "@/app/lib/auth";
+import { getCurrentUser, isAdminUser } from "@/app/lib/auth";
 import { supabase } from "@/app/lib/supabase";
 import { NextResponse } from "next/server";
 
-const ADMIN_EMAIL = "svoboda.zbynek@gmail.com";
 
 /**
  * GET /api/admin/subscriptions/[id]/history
@@ -18,7 +17,7 @@ export async function GET(request, { params }) {
   try {
     const user = await getCurrentUser();
 
-    if (!user || user.contact_email !== ADMIN_EMAIL) {
+    if (!user || !isAdminUser(user)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

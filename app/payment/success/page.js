@@ -4,7 +4,7 @@
  * Displays payment success confirmation
  */
 
-import Layout from "@/app/components/Layout";
+import ServerLayout from "@/app/components/ServerLayout";
 import Button from "@/app/components/ui/Button";
 import Card from "@/app/components/ui/Card";
 import { getCurrentUser } from "@/app/lib/auth";
@@ -18,10 +18,12 @@ export default async function PaymentSuccessPage({ searchParams }) {
     redirect("/login");
   }
 
-  const { subscription_id, amount, plan_name, billing_cycle } = searchParams;
+  const resolvedSearchParams = await searchParams;
+  const { subscription_id, amount, plan_name, billing_cycle } =
+    resolvedSearchParams;
 
   return (
-    <Layout user={user}>
+    <ServerLayout user={user}>
       <div className="max-w-2xl mx-auto py-12">
         <div>
           <div className="text-center">
@@ -177,6 +179,6 @@ export default async function PaymentSuccessPage({ searchParams }) {
           </div>
         </div>
       </div>
-    </Layout>
+    </ServerLayout>
   );
 }

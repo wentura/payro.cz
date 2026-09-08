@@ -8,6 +8,13 @@ import { supabase } from "@/app/lib/supabase";
 import { NextResponse } from "next/server";
 
 export async function GET() {
+  if (
+    process.env.NODE_ENV === "production" ||
+    process.env.ALLOW_TEST_DB_ENDPOINT !== "true"
+  ) {
+    return NextResponse.json({ success: false, error: "Not found" }, { status: 404 });
+  }
+
   const results = {
     connection: false,
     tables: {},

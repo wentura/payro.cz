@@ -2,7 +2,7 @@ import ServerLayout from "@/app/components/ServerLayout";
 import Badge from "@/app/components/ui/Badge";
 import Button from "@/app/components/ui/Button";
 import Card from "@/app/components/ui/Card";
-import { getCurrentUser } from "@/app/lib/auth";
+import { getCurrentUser, isAdminUser } from "@/app/lib/auth";
 import {
   getAllUsersWithStats,
   getSubscriptionStats,
@@ -21,8 +21,6 @@ import SoftDeleteUserButtonWrapper from "@/app/components/SoftDeleteUserButtonWr
  * Only accessible by admin user (svoboda.zbynek@gmail.com)
  */
 
-const ADMIN_EMAIL = "svoboda.zbynek@gmail.com";
-
 const FILTERS = [
   { id: "active", label: "Aktivní" },
   { id: "deactivated", label: "Deaktivovaní" },
@@ -38,7 +36,7 @@ export default async function AdminPage({ searchParams }) {
   }
 
   // Check if user is admin
-  if (user.contact_email !== ADMIN_EMAIL) {
+  if (!isAdminUser(user)) {
     return (
       <ServerLayout user={user}>
         <div className="text-center py-12">

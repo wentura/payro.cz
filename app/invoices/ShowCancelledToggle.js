@@ -20,6 +20,7 @@ export default function ShowCancelledToggle({ includeCancelled }) {
     } else {
       params.delete("showCancelled");
     }
+    params.delete("page");
 
     router.push(`/invoices?${params.toString()}`);
   };

@@ -6,7 +6,10 @@
 
 import { getCurrentUser } from "@/app/lib/auth";
 import { logAuditEvent } from "@/app/lib/audit";
+import { parseWithSchema } from "@/app/lib/api-validation";
+import { revalidateClientsCache } from "@/app/lib/clients-cache";
 import { supabase } from "@/app/lib/supabase";
+import { clientSchema } from "@/app/lib/validations";
 import { NextResponse } from "next/server";
 
 /**
@@ -64,7 +67,14 @@ export async function POST(request) {
       );
     }
 
-    const body = await request.json();
+    const parsed = parseWithSchema(clientSchema, await request.json());
+    if (!parsed.success) {
+      return NextResponse.json(
+        { success: false, error: parsed.error },
+        { status: 400 }
+      );
+    }
+
     const {
       name,
       company_id,
@@ -77,15 +87,7 @@ export async function POST(request) {
       city,
       zip,
       country,
-    } = body;
-
-    // Validate required fields
-    if (!name) {
-      return NextResponse.json(
-        { success: false, error: "Název je povinný" },
-        { status: 400 }
-      );
-    }
+    } = parsed.data;
 
     // Create address object
     const address = {
@@ -127,6 +129,8 @@ export async function POST(request) {
       entityId: data.id,
       request,
     });
+
+    revalidateClientsCache(user.id);
 
     return NextResponse.json({
       success: true,

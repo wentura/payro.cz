@@ -85,19 +85,7 @@ export default function RegisterForm() {
     // Anti-bot validation: Check math answer
     const userAnswer = parseInt(formData.math_answer, 10);
     if (isNaN(userAnswer) || userAnswer !== mathQuestion.answer) {
-      // Bot detected - fake positive
-      setError("");
-      setIsLoading(false);
-
-      // Show fake success message
-      setSuccessMessage(
-        "Registrace proběhla úspěšně. Zkontrolujte svůj email pro aktivaci účtu."
-      );
-
-      // Redirect to login after 2 seconds
-      setTimeout(() => {
-        router.push("/login");
-      }, 2000);
+      setError("Nesprávná odpověď na kontrolní otázku. Zkuste to znovu.");
       return;
     }
 
@@ -142,12 +130,9 @@ export default function RegisterForm() {
         return;
       }
 
-      // Registration successful - show success message instead of redirecting
-      // User needs to verify email first
-      setError(""); // Clear any errors
+      setError("");
       setIsLoading(false);
 
-      // Show success state
       setFormData({
         name: "",
         contact_email: "",
@@ -158,11 +143,17 @@ export default function RegisterForm() {
         math_answer: "",
       });
 
-      // Store success message to show
-      setSuccessMessage(
-        result.message ||
-          "Registrace proběhla úspěšně. Zkontrolujte svůj email pro aktivaci účtu."
-      );
+      if (result.warning === "EMAIL_SEND_FAILED" || result.emailSent === false) {
+        setSuccessMessage(
+          result.message ||
+            "Účet byl vytvořen, ale aktivační e-mail se nepodařilo odeslat. Použijte „Znovu poslat aktivační email“."
+        );
+      } else {
+        setSuccessMessage(
+          result.message ||
+            "Registrace proběhla úspěšně. Zkontrolujte svůj email pro aktivaci účtu."
+        );
+      }
     } catch (err) {
       console.error("Registration error:", err);
       setError("Neočekávaná chyba při registraci");
@@ -171,13 +162,13 @@ export default function RegisterForm() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-4">
+    <div className="flex-grow flex items-center justify-center bg-white py-16 sm:py-24 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-4 bg-white border border-fktr-border rounded-lg p-8 sm:p-10">
         <div>
-          <h2 className="mt-2 text-center text-3xl font-bold text-gray-900">
+          <h2 className="font-display text-center text-3xl font-medium tracking-tight text-fktr-fg">
             Registrace
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
+          <p className="mt-3 text-center text-sm text-fktr-muted leading-relaxed">
             Vytvořte si nový účet a začněte fakturovat.
           </p>
         </div>
@@ -247,7 +238,7 @@ export default function RegisterForm() {
               <div>
                 <label
                   htmlFor="name"
-                  className="block text-sm font-medium text-gray-700 mb-1"
+                  className="block text-sm font-medium text-fktr-muted mb-1"
                 >
                   Jméno / Název firmy *
                 </label>
@@ -258,7 +249,7 @@ export default function RegisterForm() {
                   required
                   value={formData.name}
                   onChange={handleChange}
-                  className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  className="appearance-none relative block w-full px-3 py-2 border border-fktr-border placeholder-fktr-muted/60 text-fktr-fg rounded-lg focus:outline-none focus:ring-2 focus:ring-fktr-accent/20 focus:border-fktr-accent sm:text-sm bg-white"
                   placeholder="Jan Novák / Moje firma s.r.o."
                 />
               </div>
@@ -266,7 +257,7 @@ export default function RegisterForm() {
               <div>
                 <label
                   htmlFor="contact_email"
-                  className="block text-sm font-medium text-gray-700 mb-1"
+                  className="block text-sm font-medium text-fktr-muted mb-1"
                 >
                   Email *
                 </label>
@@ -277,7 +268,7 @@ export default function RegisterForm() {
                   required
                   value={formData.contact_email}
                   onChange={handleChange}
-                  className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  className="appearance-none relative block w-full px-3 py-2 border border-fktr-border placeholder-fktr-muted/60 text-fktr-fg rounded-lg focus:outline-none focus:ring-2 focus:ring-fktr-accent/20 focus:border-fktr-accent sm:text-sm bg-white"
                   placeholder="vas@email.cz"
                 />
               </div>
@@ -285,7 +276,7 @@ export default function RegisterForm() {
               <div>
                 <label
                   htmlFor="company_id"
-                  className="block text-sm font-medium text-gray-700 mb-1"
+                  className="block text-sm font-medium text-fktr-muted mb-1"
                 >
                   IČO (volitelné)
                 </label>
@@ -295,7 +286,7 @@ export default function RegisterForm() {
                   type="text"
                   value={formData.company_id}
                   onChange={handleChange}
-                  className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  className="appearance-none relative block w-full px-3 py-2 border border-fktr-border placeholder-fktr-muted/60 text-fktr-fg rounded-lg focus:outline-none focus:ring-2 focus:ring-fktr-accent/20 focus:border-fktr-accent sm:text-sm bg-white"
                   placeholder="12345678"
                 />
               </div>
@@ -303,7 +294,7 @@ export default function RegisterForm() {
               <div>
                 <label
                   htmlFor="password"
-                  className="block text-sm font-medium text-gray-700 mb-1"
+                  className="block text-sm font-medium text-fktr-muted mb-1"
                 >
                   Heslo *
                 </label>
@@ -314,10 +305,10 @@ export default function RegisterForm() {
                   required
                   value={formData.password}
                   onChange={handleChange}
-                  className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  className="appearance-none relative block w-full px-3 py-2 border border-fktr-border placeholder-fktr-muted/60 text-fktr-fg rounded-lg focus:outline-none focus:ring-2 focus:ring-fktr-accent/20 focus:border-fktr-accent sm:text-sm bg-white"
                   placeholder="••••••••"
                 />
-                <p className="mt-1 text-xs text-gray-500">
+                <p className="mt-1 text-xs text-fktr-muted">
                   Minimálně 8 znaků
                 </p>
               </div>
@@ -325,7 +316,7 @@ export default function RegisterForm() {
               <div>
                 <label
                   htmlFor="password_confirm"
-                  className="block text-sm font-medium text-gray-700 mb-1"
+                  className="block text-sm font-medium text-fktr-muted mb-1"
                 >
                   Potvrzení hesla *
                 </label>
@@ -336,7 +327,7 @@ export default function RegisterForm() {
                   required
                   value={formData.password_confirm}
                   onChange={handleChange}
-                  className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  className="appearance-none relative block w-full px-3 py-2 border border-fktr-border placeholder-fktr-muted/60 text-fktr-fg rounded-lg focus:outline-none focus:ring-2 focus:ring-fktr-accent/20 focus:border-fktr-accent sm:text-sm bg-white"
                   placeholder="••••••••"
                 />
               </div>
@@ -357,7 +348,7 @@ export default function RegisterForm() {
               <div>
                 <label
                   htmlFor="math_answer"
-                  className="block text-sm font-medium text-gray-700 mb-1"
+                  className="block text-sm font-medium text-fktr-muted mb-1"
                 >
                   Kolik je {numberToCzech(mathQuestion.num1)} +{" "}
                   {numberToCzech(mathQuestion.num2)}? *
@@ -369,11 +360,11 @@ export default function RegisterForm() {
                   required
                   value={formData.math_answer}
                   onChange={handleChange}
-                  className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  className="appearance-none relative block w-full px-3 py-2 border border-fktr-border placeholder-fktr-muted/60 text-fktr-fg rounded-lg focus:outline-none focus:ring-2 focus:ring-fktr-accent/20 focus:border-fktr-accent sm:text-sm bg-white"
                   placeholder="Odpověď"
                   inputMode="numeric"
                 />
-              <p className="mt-1 text-xs text-gray-500">
+              <p className="mt-1 text-xs text-fktr-muted">
                 Ochrana proti robotům – zadejte výsledek.
               </p>
               </div>
@@ -383,18 +374,18 @@ export default function RegisterForm() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="group relative w-full flex justify-center py-2.5 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-fktr-accent hover:bg-fktr-accent-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-fktr-accent disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? "Registrace..." : "Zaregistrovat se"}
               </button>
             </div>
 
             <div className="text-center">
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-fktr-muted">
                 Již máte účet?{" "}
                 <Link
                   href="/login"
-                  className="font-medium text-blue-600 hover:text-blue-500"
+                  className="font-medium text-fktr-accent hover:text-fktr-accent-hover"
                 >
                   Přihlaste se
                 </Link>

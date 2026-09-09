@@ -143,6 +143,7 @@ export const profileUpdateSchema = z.object({
   city: z.string().optional(),
   zip: z.string().optional(),
   country: z.string().optional(),
+  remind_due_term_by_email: z.boolean().optional(),
 });
 
 /**
@@ -171,8 +172,17 @@ export const userSettingsSchema = z.object({
       payment_type_id: z.number().optional(),
       footer_text: z.string().optional(),
       invoice_text: z.string().optional(),
+      remind_due_term_by_email: z.boolean().optional(),
     })
     .optional(),
+});
+
+/**
+ * Send invoice by email
+ */
+export const invoiceSendSchema = z.object({
+  to: z.string().email("Neplatná emailová adresa příjemce"),
+  ccSelf: z.boolean().optional().default(false),
 });
 
 /**

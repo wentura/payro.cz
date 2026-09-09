@@ -6,45 +6,47 @@ import { useState } from "react";
 export default function PricingClient() {
   const [isYearly, setIsYearly] = useState(false);
 
-  // Pricing calculations
   const monthlyPrice = 55;
-  const yearlyPrice = monthlyPrice * 10; // 10 months = 2 months free
+  const yearlyPrice = monthlyPrice * 10;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-28">
-        {/* Header */}
+    <div className="flex-grow bg-white">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28">
         <div className="text-center mb-16">
-          <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
-            <span className="text-blue-600">FKTR</span> ceník
+          <h1 className="font-display text-4xl sm:text-5xl font-medium tracking-tight text-fktr-fg mb-4">
+            <span className="text-fktr-accent">FKTR</span> ceník
           </h1>
+          <p className="text-fktr-muted max-w-md mx-auto leading-relaxed">
+            Jednoduché plány bez skrytých poplatků.
+          </p>
         </div>
 
-        {/* Billing Toggle */}
-        <div className="flex justify-center mb-12">
-          <div className="bg-white rounded-full p-1 shadow-lg border border-gray-200">
-            <div className="flex items-center space-x-4">
+        <div className="flex justify-center mb-14">
+          <div className="bg-fktr-bg rounded-lg p-1 border border-fktr-border">
+            <div className="flex items-center">
               <button
+                type="button"
                 onClick={() => setIsYearly(false)}
-                className={`px-6 py-2 rounded-full font-medium transition-all ${
+                className={`px-5 py-2 rounded-md text-sm font-medium transition-colors ${
                   !isYearly
-                    ? "bg-blue-600 text-white shadow-md"
-                    : "text-gray-600 hover:text-gray-900"
+                    ? "bg-white text-fktr-fg border border-fktr-border"
+                    : "text-fktr-muted hover:text-fktr-fg"
                 }`}
               >
                 Měsíčně
               </button>
               <button
+                type="button"
                 onClick={() => setIsYearly(true)}
-                className={`px-6 py-2 rounded-full font-medium transition-all relative ${
+                className={`px-5 py-2 rounded-md text-sm font-medium transition-colors relative ${
                   isYearly
-                    ? "bg-blue-600 text-white shadow-md"
-                    : "text-gray-600 hover:text-gray-900"
+                    ? "bg-white text-fktr-fg border border-fktr-border"
+                    : "text-fktr-muted hover:text-fktr-fg"
                 }`}
               >
                 Ročně
                 {!isYearly && (
-                  <span className="absolute -top-4 -right-4 bg-green-500 text-white text-xs px-2 py-1 rounded-full font-bold">
+                  <span className="absolute -top-3 -right-2 bg-fktr-accent-soft text-fktr-accent border border-fktr-border text-[10px] px-1.5 py-0.5 rounded font-medium whitespace-nowrap">
                     2 měsíce zdarma
                   </span>
                 )}
@@ -53,73 +55,52 @@ export default function PricingClient() {
           </div>
         </div>
 
-        {/* Pricing Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl mx-auto">
-          {/* Free Tier */}
-          <div className="bg-white rounded-2xl shadow-lg p-8 border-2 border-gray-200 hover:border-blue-300 transition-all">
-            <div className="text-center mb-6">
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+          <div className="bg-white rounded-lg p-8 sm:p-10 border border-fktr-border">
+            <div className="text-center mb-10">
+              <h3 className="text-lg font-medium text-fktr-fg mb-3 tracking-tight">
                 FKTR Free
               </h3>
-              <div className="text-5xl font-bold text-gray-900 mb-4 md:mb-10">
+              <div className="text-4xl font-medium text-fktr-fg mb-3 tracking-tight">
                 0 Kč
               </div>
-
-              <p className="text-gray-600">Pro začínající podnikatele</p>
+              <p className="text-fktr-muted text-sm">Pro začínající podnikatele</p>
             </div>
-
-            <div className="space-y-4 mb-8">
-              <div className="flex items-start">
-                <div className="text-green-500 text-xl mr-3 mt-1">✓</div>
-                <div>
-                  <p className="text-gray-700 font-medium">
-                    Neomezeně klientů
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-start">
-                <div className="text-green-500 text-xl mr-3 mt-1">✓</div>
-                <div>
-                  <p className="text-gray-700 font-medium">4 faktury měsíčně</p>
-                </div>
-              </div>
-              <div className="flex items-start">
-                <div className="text-green-500 text-xl mr-3 mt-1">✓</div>
-                <div>
-                  <p className="text-gray-700 font-medium">České prostředí</p>
-                </div>
-              </div>
-              <div className="flex items-start">
-                <div className="text-green-500 text-xl mr-3 mt-1">✓</div>
-                <div>
-                  <p className="text-gray-700 font-medium">QR kódy na platbu</p>
-                </div>
-              </div>
-            </div>
+            <ul className="space-y-3.5 text-sm text-fktr-muted">
+              {[
+                "Neomezeně klientů",
+                "4 faktury měsíčně",
+                "České prostředí",
+                "QR kódy na platbu",
+              ].map((item) => (
+                <li key={item} className="flex gap-3">
+                  <span className="text-fktr-accent">✓</span>
+                  <span className="text-fktr-fg">{item}</span>
+                </li>
+              ))}
+            </ul>
           </div>
 
-          {/* Pro Tier - Highlighted */}
-          <div className="bg-white rounded-2xl shadow-lg p-8 border-2 border-gray-200 hover:border-blue-300 transition-all relative">
+          <div className="bg-white rounded-lg p-8 sm:p-10 border border-fktr-accent relative">
             {isYearly && (
-              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                <span className="bg-green-500 text-white px-4 py-1 rounded-full text-sm font-semibold">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                <span className="bg-fktr-accent text-white px-3 py-1 rounded text-xs font-medium">
                   2 měsíce zdarma
                 </span>
               </div>
             )}
-
-            <div className="text-center mb-6">
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">
+            <div className="text-center mb-10">
+              <h3 className="text-lg font-medium text-fktr-fg mb-3 tracking-tight">
                 FKTR Pro
               </h3>
-              <div className="text-5xl font-bold text-blue-600 mb-2">
+              <div className="text-4xl font-medium text-fktr-fg mb-2 tracking-tight">
                 {isYearly ? `${yearlyPrice} Kč` : `${monthlyPrice} Kč`}
               </div>
-              <div className="text-sm text-gray-500 mb-4">
+              <div className="text-sm text-fktr-muted mb-3">
                 {isYearly ? (
                   <div>
                     za rok (2 měsíce zdarma)
-                    <div className="text-xs text-green-600 font-medium mt-1">
+                    <div className="text-xs text-fktr-accent font-medium mt-1">
                       = {Math.round(yearlyPrice / 12)} Kč/měsíc
                     </div>
                   </div>
@@ -127,105 +108,68 @@ export default function PricingClient() {
                   "za měsíc"
                 )}
               </div>
-              <p className="text-gray-600">Za jedno espresso měsíčně</p>
+              <p className="text-fktr-muted text-sm">Za jedno espresso měsíčně</p>
             </div>
-
-            <div className="space-y-4 mb-8">
-              <div className="flex items-start">
-                <div className="text-green-500 text-xl mr-3 mt-1">✓</div>
-                <div>
-                  <p className="text-gray-700 font-medium">
-                    Neomezeně klientů
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-start">
-                <div className="text-green-500 text-xl mr-3 mt-1">✓</div>
-                <div>
-                  <p className="text-gray-700 font-medium">
-                    Neomezené faktury
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-start">
-                <div className="text-green-500 text-xl mr-3 mt-1">✓</div>
-                <div>
-                  <p className="text-gray-700 font-medium">České prostředí</p>
-                </div>
-              </div>
-              <div className="flex items-start">
-                <div className="text-green-500 text-xl mr-3 mt-1">✓</div>
-                <div>
-                  <p className="text-gray-700 font-medium">QR kódy na platbu</p>
-                </div>
-              </div>
-              <div className="flex items-start">
-                <div className="text-green-500 text-xl mr-3 mt-1">✓</div>
-                <div>
-                  <p className="text-gray-700 font-medium">Prioritní podpora</p>
-                </div>
-              </div>
-            </div>
+            <ul className="space-y-3.5 text-sm text-fktr-muted">
+              {[
+                "Neomezeně klientů",
+                "Neomezené faktury",
+                "České prostředí",
+                "QR kódy na platbu",
+                "Prioritní podpora",
+              ].map((item) => (
+                <li key={item} className="flex gap-3">
+                  <span className="text-fktr-accent">✓</span>
+                  <span className="text-fktr-fg">{item}</span>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
 
-        {/* FAQ or Additional Info */}
-        <div className="mt-20 max-w-6xl mx-auto">
-          <div className="bg-white rounded-xl shadow-lg p-8">
-            <h2 className="text-3xl font-bold text-gray-900 text-center mb-8">
-              Často kladené otázky
-            </h2>
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  Mohu kdykoliv změnit plán?
+        <div className="mt-20 max-w-2xl mx-auto border-t border-fktr-border pt-16">
+          <h2 className="font-display text-2xl font-medium text-fktr-fg text-center tracking-tight mb-12">
+            Často kladené otázky
+          </h2>
+          <div className="space-y-10 text-left">
+            {[
+              [
+                "Mohu kdykoliv změnit plán?",
+                "Ano, plán můžete kdykoliv upgradovat nebo downgradovat. Změna se projeví okamžitě.",
+              ],
+              [
+                "Jaké platební metody přijímáte?",
+                "QR platba / převod na bankovní účet.",
+              ],
+              [
+                "Co když překročím limit 4 faktur na bezplatném plánu?",
+                "Systém vás upozorní a nabídne upgrade na placený plán. Žádné faktury nebudou ztraceny.",
+              ],
+              [
+                "Jak funguje roční předplatné?",
+                "Při ročním předplatném platíte pouze za 10 měsíců a dostáváte 2 měsíce zdarma.",
+              ],
+            ].map(([q, a]) => (
+              <div key={q}>
+                <h3 className="text-base font-medium text-fktr-fg mb-2 tracking-tight">
+                  {q}
                 </h3>
-                <p className="text-gray-600">
-                  Ano, plán můžete kdykoliv upgradovat nebo downgradovat. Změna
-                  se projeví okamžitě.
-                </p>
+                <p className="text-sm text-fktr-muted leading-relaxed">{a}</p>
               </div>
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  Jaké platební metody přijímáte?
-                </h3>
-                <p className="text-gray-600">
-                  QR platba / převod na bankovní účet.
-                </p>
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  Co když překročím limit 4 faktur na bezplatném plánu?
-                </h3>
-                <p className="text-gray-600">
-                  Systém vás upozorní a nabídne upgrade na placený plán. Žádné
-                  faktury nebudou ztraceny.
-                </p>
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  Jak funguje roční předplatné?
-                </h3>
-                <p className="text-gray-600">
-                  Při ročním předplatném platíte pouze za 10 měsíců a dostáváte 2
-                  měsíce zdarma.
-                </p>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
 
-        {/* CTA */}
-        <div className="mt-16 text-center">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">
+        <div className="mt-20 text-center">
+          <h2 className="font-display text-2xl sm:text-3xl font-medium text-fktr-fg tracking-tight mb-4">
             Připraveni začít fakturovat?
           </h2>
-          <p className="text-xl text-gray-600 mb-8">
+          <p className="text-fktr-muted mb-10 leading-relaxed">
             Registraci stihnete do minuty.
           </p>
           <Link
             href="/register"
-            className="inline-block bg-blue-600 text-white hover:bg-blue-700 px-8 py-4 rounded-lg text-lg font-semibold transition-colors shadow-lg hover:shadow-xl"
+            className="inline-flex items-center justify-center rounded-lg bg-fktr-accent px-8 py-3.5 text-base font-medium text-white transition-colors hover:bg-fktr-accent-hover"
           >
             Začít zdarma →
           </Link>

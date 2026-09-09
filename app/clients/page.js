@@ -57,11 +57,12 @@ export default async function ClientsPage({ searchParams }) {
   return (
     <ServerLayout user={user}>
       <div className="max-w-7xl mx-auto space-y-6">
-        {/* Page Header */}
         <div className="flex justify-between items-center">
           <div className="mx-auto md:mx-0">
-            <h1 className="text-3xl font-bold text-gray-900">Klienti</h1>
-            <p className="mt-2 text-gray-600">
+            <h1 className="text-3xl font-semibold tracking-tight text-fktr-fg">
+              Klienti
+            </h1>
+            <p className="mt-2 text-fktr-muted">
               Správa vašich klientů a zákazníků ({total})
             </p>
           </div>
@@ -70,15 +71,13 @@ export default async function ClientsPage({ searchParams }) {
           </Link>
         </div>
 
-        {/* Clients List */}
         <Card>
           {clients.length === 0 ? (
             <div className="text-center py-12">
-              <div className="text-6xl mb-4">👥</div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
+              <h3 className="text-lg font-medium text-fktr-fg mb-2">
                 Zatím nemáte žádné klienty
               </h3>
-              <p className="text-gray-500 mb-6">
+              <p className="text-fktr-muted mb-6">
                 Začněte přidáním prvního klienta
               </p>
               <Link href="/clients/new">
@@ -87,33 +86,33 @@ export default async function ClientsPage({ searchParams }) {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
+              <table className="min-w-full divide-y divide-fktr-border">
                 <thead>
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-fktr-muted uppercase tracking-wider">
                       Název
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-fktr-muted uppercase tracking-wider hidden md:table-cell">
                       IČO
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-fktr-muted uppercase tracking-wider hidden lg:table-cell">
                       DIČ
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-fktr-muted uppercase tracking-wider hidden md:table-cell">
                       Email
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-fktr-muted uppercase tracking-wider hidden lg:table-cell">
                       Telefon
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-fktr-muted uppercase tracking-wider hidden md:table-cell">
                       Město
                     </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-right text-xs font-medium text-fktr-muted uppercase tracking-wider">
                       Akce
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-fktr-elevated divide-y divide-fktr-border">
                   {clients.map((client) => {
                     const address =
                       typeof client.address === "string"
@@ -121,37 +120,37 @@ export default async function ClientsPage({ searchParams }) {
                         : client.address;
 
                     return (
-                      <tr key={client.id} className="hover:bg-gray-50">
+                      <tr key={client.id} className="hover:bg-fktr-bg/80">
                         <td className="px-6 py-4 whitespace-nowrap text-left">
-                          <div className="text-sm font-medium text-gray-900">
+                          <div className="text-sm font-medium text-fktr-fg">
                             {client.name}
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden md:table-cell text-left">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-fktr-muted hidden md:table-cell text-left">
                           {client.company_id || "-"}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden lg:table-cell text-left">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-fktr-muted hidden lg:table-cell text-left">
                           {client.vat_number || "-"}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden md:table-cell text-left">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-fktr-muted hidden md:table-cell text-left">
                           {client.contact_email || "-"}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden lg:table-cell text-left">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-fktr-muted hidden lg:table-cell text-left">
                           {client.contact_phone || "-"}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden md:table-cell text-left">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-fktr-muted hidden md:table-cell text-left">
                           {address?.city || "-"}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium text-left">
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                           <Link
                             href={`/clients/${client.id}`}
-                            className="text-blue-600 hover:text-blue-900 mr-4"
+                            className="text-fktr-accent hover:text-fktr-accent-hover mr-4"
                           >
                             Upravit
                           </Link>
                           <Link
                             href={`/invoices/new?client_id=${client.id}`}
-                            className="text-green-600 hover:text-green-900"
+                            className="text-fktr-success hover:text-green-800"
                           >
                             Nová faktura
                           </Link>

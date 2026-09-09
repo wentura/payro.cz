@@ -25,6 +25,11 @@ export default function SettingsForm({ userData }) {
       ? JSON.parse(userData.billing_details)
       : userData.billing_details || {};
 
+  const defaults =
+    typeof userData.default_settings === "string"
+      ? JSON.parse(userData.default_settings || "{}")
+      : userData.default_settings || {};
+
   const [formData, setFormData] = useState({
     name: userData.name || "",
     company_id: userData.company_id || "",
@@ -37,12 +42,15 @@ export default function SettingsForm({ userData }) {
     city: billing.city || "",
     zip: billing.zip || "",
     country: billing.country || "Česká republika",
+    remind_due_term_by_email:
+      defaults.remind_due_term_by_email !== false,
   });
 
   const handleChange = (e) => {
+    const { name, type, checked, value } = e.target;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [name]: type === "checkbox" ? checked : value,
     });
   };
 
@@ -87,7 +95,7 @@ export default function SettingsForm({ userData }) {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+        <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-fktr-fg">
           Nastavení
         </h1>
       </div>
@@ -170,7 +178,7 @@ export default function SettingsForm({ userData }) {
               onChange={handleChange}
               placeholder="123456789/0100"
             />
-            <p className="text-xs text-gray-500 text-left">
+            <p className="text-xs text-fktr-muted text-left">
               Číslo účtu bude zobrazeno na faktuře pro platby
             </p>
           </div>
@@ -224,6 +232,27 @@ export default function SettingsForm({ userData }) {
               onChange={handleChange}
             />
           </div>
+        </Card>
+
+        <Card title="Upomínky splatnosti" className="text-left px-1">
+          <label className="flex items-start gap-3 text-sm text-fktr-muted text-left cursor-pointer">
+            <input
+              type="checkbox"
+              name="remind_due_term_by_email"
+              checked={formData.remind_due_term_by_email}
+              onChange={handleChange}
+              className="mt-1 rounded border-fktr-border text-fktr-accent focus:ring-fktr-accent"
+            />
+            <span>
+              <span className="font-medium text-fktr-fg block">
+                Chci připomínat splatnost e-mailem
+              </span>
+              <span className="text-fktr-muted">
+                U nezaplacených faktur uvidíte tlačítko „Poslat upomínku“.
+                Automatické upomínky přijdou později; zatím je posíláte ručně.
+              </span>
+            </span>
+          </label>
         </Card>
 
         {/* Actions */}

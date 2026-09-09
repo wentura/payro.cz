@@ -78,7 +78,14 @@ export async function POST(request) {
         userId: user.id,
         error: emailResult.error,
       });
-      return NextResponse.json(genericSuccess);
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "Aktivační e-mail se nepodařilo odeslat. Zkuste to prosím za chvíli znovu.",
+        },
+        { status: 502 }
+      );
     }
 
     console.info("[Email] resend verification sent:", {

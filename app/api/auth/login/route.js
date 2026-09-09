@@ -41,13 +41,26 @@ export async function POST(request) {
     const result = await loginUser(contact_email, password);
 
     if (!result.success) {
-      // Check if account is not activated
       if (result.error === "ACCOUNT_NOT_ACTIVATED") {
         return NextResponse.json(
           {
             success: false,
             error: result.error,
-            message: result.message || "Účet není aktivován",
+            message:
+              result.message ||
+              "Účet není aktivován. Zkontrolujte e-mail s aktivačním odkazem.",
+          },
+          { status: 403 }
+        );
+      }
+      if (result.error === "ACCOUNT_DEACTIVATED") {
+        return NextResponse.json(
+          {
+            success: false,
+            error: result.error,
+            message:
+              result.message ||
+              "Účet je deaktivovaný. Kontaktujte podporu.",
           },
           { status: 403 }
         );

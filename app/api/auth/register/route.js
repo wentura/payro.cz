@@ -58,7 +58,7 @@ export async function POST(request) {
       });
     }
 
-    // Anti-bot validation: Check math answer
+    // Anti-bot validation: Check math answer — wrong answer is an error (humans make mistakes)
     const userAnswer = parseInt(math_answer, 10);
     const correctAnswer = parseInt(math_num1, 10) + parseInt(math_num2, 10);
     if (
@@ -68,17 +68,13 @@ export async function POST(request) {
       isNaN(correctAnswer) ||
       userAnswer !== correctAnswer
     ) {
-      // Bot detected - fake positive response (no logging of PII)
-      return NextResponse.json({
-        success: true,
-        message: "Registrace proběhla úspěšně. Zkontrolujte svůj email pro aktivaci účtu.",
-        user: {
-          id: null,
-          name: name || "",
-          contact_email: contact_email || "",
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Nesprávná odpověď na kontrolní otázku. Zkuste to znovu.",
         },
-        emailSent: false,
-      });
+        { status: 400 }
+      );
     }
 
     // Validate input
@@ -120,6 +116,7 @@ export async function POST(request) {
     });
 
     // Send verification email if token was created
+    let emailSent = false;
     if (result.token) {
       const emailResult = await sendVerificationEmail(
         {
@@ -131,22 +128,33 @@ export async function POST(request) {
       );
 
       if (!emailResult.success) {
-        // User was created but email failed - log without PII
         console.error("[Email] register verification failed");
-        // Continue - user can request resend later
+        return NextResponse.json({
+          success: true,
+          message:
+            "Účet byl vytvořen, ale aktivační e-mail se nepodařilo odeslat. Použijte „Znovu poslat aktivační email“.",
+          user: {
+            id: result.user.id,
+            name: result.user.name,
+            contact_email: result.user.contact_email,
+          },
+          emailSent: false,
+          warning: "EMAIL_SEND_FAILED",
+        });
       }
+      emailSent = true;
     }
 
-    // Return success (no session created)
     return NextResponse.json({
       success: true,
-      message: "Registrace proběhla úspěšně. Zkontrolujte svůj email pro aktivaci účtu.",
+      message:
+        "Registrace proběhla úspěšně. Zkontrolujte svůj email pro aktivaci účtu.",
       user: {
         id: result.user.id,
         name: result.user.name,
         contact_email: result.user.contact_email,
       },
-      emailSent: !!result.token,
+      emailSent,
       warning: result.warning || null,
     });
   } catch (error) {

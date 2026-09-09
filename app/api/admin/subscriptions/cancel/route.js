@@ -5,6 +5,7 @@
  */
 
 import { getCurrentUser, isAdminUser } from "@/app/lib/auth";
+import { sendSubscriptionCanceledEmail } from "@/app/lib/email";
 import { supabase } from "@/app/lib/supabase";
 import { NextResponse } from "next/server";
 
@@ -23,8 +24,6 @@ export async function POST(request) {
     const body = await request.json();
     const { userId } = body;
 
-    console.log("Admin subscription cancellation request:", { userId });
-
     if (!userId) {
       return NextResponse.json(
         { success: false, error: "Missing userId" },
@@ -32,7 +31,6 @@ export async function POST(request) {
       );
     }
 
-    // Get the Free plan (ID = 1)
     const { data: freePlan, error: freePlanError } = await supabase
       .from("subscription_plans")
       .select("*")
@@ -48,10 +46,14 @@ export async function POST(request) {
       );
     }
 
-    // Get current active subscription
     const { data: currentSubscription, error: currentError } = await supabase
       .from("user_subscriptions")
-      .select("*")
+      .select(
+        `
+        *,
+        subscription_plans!left(id, name)
+      `
+      )
       .eq("user_id", userId)
       .order("created_at", { ascending: false })
       .limit(1)
@@ -72,7 +74,15 @@ export async function POST(request) {
       );
     }
 
-    // If user is already on Free plan, just cancel it
+    const previousPlanName =
+      currentSubscription.subscription_plans?.name || null;
+
+    const { data: targetUser } = await supabase
+      .from("users")
+      .select("id, name, contact_email")
+      .eq("id", userId)
+      .single();
+
     if (currentSubscription.plan_id === freePlan.id) {
       const { data: canceledSubscription, error: cancelError } = await supabase
         .from("user_subscriptions")
@@ -92,6 +102,12 @@ export async function POST(request) {
         );
       }
 
+      if (targetUser?.contact_email) {
+        await sendSubscriptionCanceledEmail(targetUser, {
+          previousPlanName: "Free",
+        });
+      }
+
       return NextResponse.json({
         success: true,
         data: {
@@ -101,14 +117,11 @@ export async function POST(request) {
       });
     }
 
-    // For paid plans, cancel current subscription and create new Free subscription
     const now = new Date();
     const periodEnd = new Date(now);
-    periodEnd.setMonth(periodEnd.getMonth() + 1); // Free plan is monthly
+    periodEnd.setMonth(periodEnd.getMonth() + 1);
 
-    // Start transaction-like operations
     try {
-      // 1. Cancel current subscription
       const { data: canceledSubscription, error: cancelError } = await supabase
         .from("user_subscriptions")
         .update({
@@ -127,7 +140,6 @@ export async function POST(request) {
         );
       }
 
-      // 2. Create new Free subscription
       const { data: newFreeSubscription, error: createError } = await supabase
         .from("user_subscriptions")
         .insert({
@@ -143,7 +155,6 @@ export async function POST(request) {
 
       if (createError) {
         console.error("Error creating Free subscription:", createError);
-        // Try to revert the cancellation
         await supabase
           .from("user_subscriptions")
           .update({
@@ -158,10 +169,11 @@ export async function POST(request) {
         );
       }
 
-      console.log("Successfully canceled subscription and created Free plan:", {
-        canceledId: canceledSubscription.id,
-        newFreeId: newFreeSubscription.id,
-      });
+      if (targetUser?.contact_email) {
+        await sendSubscriptionCanceledEmail(targetUser, {
+          previousPlanName,
+        });
+      }
 
       return NextResponse.json({
         success: true,

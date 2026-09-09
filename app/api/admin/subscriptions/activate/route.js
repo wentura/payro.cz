@@ -6,6 +6,7 @@
 
 import { getCurrentUser, isAdminUser } from "@/app/lib/auth";
 import { logAuditEvent } from "@/app/lib/audit";
+import { sendSubscriptionActivatedEmail } from "@/app/lib/email";
 import { supabase } from "@/app/lib/supabase";
 import { NextResponse } from "next/server";
 
@@ -172,6 +173,22 @@ export async function POST(request) {
       },
       request,
     });
+
+    const { data: targetUser } = await supabase
+      .from("users")
+      .select("id, name, contact_email")
+      .eq("id", userId)
+      .single();
+
+    if (targetUser?.contact_email) {
+      await sendSubscriptionActivatedEmail(targetUser, {
+        planName: subscription.subscription_plans.name,
+        billingCycle: subscription.billing_cycle,
+        periodEnd:
+          updatedSubscription.current_period_end ||
+          subscription.current_period_end,
+      });
+    }
 
     return NextResponse.json({
       success: true,

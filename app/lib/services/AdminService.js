@@ -1,18 +1,65 @@
 /**
  * Admin Service
  *
- * Business logic for admin operations
+ * Business logic for admin operations — camelCase subscription shape
  */
 
 import { supabase } from "@/app/lib/supabase";
 
+function pickCurrentSubscription(subscriptions) {
+  if (!subscriptions?.length) return null;
+  return [...subscriptions].sort(
+    (a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0)
+  )[0];
+}
+
+function mapSubscription(sub, currentUsage = 0) {
+  if (!sub) {
+    return {
+      id: null,
+      planId: null,
+      plan: null,
+      status: null,
+      periodStart: null,
+      periodEnd: null,
+      billingCycle: null,
+      variableSymbol: null,
+      currentUsage,
+      canCreateInvoice: true,
+    };
+  }
+  const plan = sub.subscription_plans || null;
+  return {
+    id: sub.id,
+    planId: sub.plan_id ?? plan?.id ?? null,
+    plan,
+    status: sub.status,
+    periodStart: sub.current_period_start,
+    periodEnd: sub.current_period_end,
+    billingCycle: sub.billing_cycle,
+    variableSymbol: sub.variable_symbol || null,
+    currentUsage,
+    canCreateInvoice:
+      !plan ||
+      plan.invoice_limit_monthly === 0 ||
+      currentUsage < plan.invoice_limit_monthly,
+  };
+}
+
+function currentMonthUsage(usageRows) {
+  const year = new Date().getFullYear();
+  const month = new Date().getMonth() + 1;
+  return (
+    usageRows?.find((u) => u.year === year && u.month === month)
+      ?.invoices_created || 0
+  );
+}
+
 /**
- * Get all users with their statistics and subscription data
- * @returns {Promise<Array>} Array of users with stats and subscription info
+ * Get all users with subscription + month usage (no full invoice scan)
  */
 export async function getAllUsersWithStats() {
   try {
-    // Get all users with subscription and usage data
     const { data: users, error: usersError } = await supabase.from("users")
       .select(`
           id,
@@ -29,6 +76,7 @@ export async function getAllUsersWithStats() {
             current_period_start,
             current_period_end,
             billing_cycle,
+            variable_symbol,
             created_at,
             subscription_plans!left(
               id,
@@ -51,78 +99,22 @@ export async function getAllUsersWithStats() {
       return [];
     }
 
-    const { data: invoiceRows, error: invoicesError } = await supabase
-      .from("invoices")
-      .select("user_id, total_amount, is_paid, is_canceled")
-      .eq("is_deleted", false);
-
-    if (invoicesError) {
-      console.error("Error fetching invoice stats:", invoicesError);
-    }
-
-    const statsByUser = new Map();
-    for (const inv of invoiceRows || []) {
-      const current = statsByUser.get(inv.user_id) || {
-        totalInvoices: 0,
-        paidInvoices: 0,
-        unpaidInvoices: 0,
-        totalRevenue: 0,
-      };
-      current.totalInvoices += 1;
-      if (inv.is_paid) {
-        current.paidInvoices += 1;
-        current.totalRevenue += parseFloat(inv.total_amount || 0);
-      } else if (!inv.is_canceled) {
-        current.unpaidInvoices += 1;
-      }
-      statsByUser.set(inv.user_id, current);
-    }
-
-    const userStats = users.map((user) => {
-      const stats = statsByUser.get(user.id) || {
-        totalInvoices: 0,
-        paidInvoices: 0,
-        unpaidInvoices: 0,
-        totalRevenue: 0,
-      };
-
-      // Get current subscription (most recent one, regardless of status)
-      const currentSubscription =
-        user.user_subscriptions?.length > 0
-          ? user.user_subscriptions.sort(
-              (a, b) =>
-                new Date(b.created_at || 0) - new Date(a.created_at || 0)
-            )[0]
-          : null;
-      const currentPlan = currentSubscription?.subscription_plans;
-
-      // Get current month usage
-      const currentYear = new Date().getFullYear();
-      const currentMonth = new Date().getMonth() + 1;
-      const currentUsage =
-        user.invoice_usage?.find(
-          (usage) => usage.year === currentYear && usage.month === currentMonth
-        )?.invoices_created || 0;
-
+    return (users || []).map((user) => {
+      const currentSubscription = pickCurrentSubscription(
+        user.user_subscriptions
+      );
+      const usage = currentMonthUsage(user.invoice_usage);
       return {
-        ...user,
-        stats,
-        subscription: {
-          id: currentSubscription?.id,
-          plan: currentPlan,
-          status: currentSubscription?.status,
-          periodStart: currentSubscription?.current_period_start,
-          periodEnd: currentSubscription?.current_period_end,
-          billingCycle: currentSubscription?.billing_cycle,
-          currentUsage,
-          canCreateInvoice:
-            currentPlan?.invoice_limit_monthly === 0 ||
-            currentUsage < currentPlan?.invoice_limit_monthly,
-        },
+        id: user.id,
+        name: user.name,
+        contact_email: user.contact_email,
+        company_id: user.company_id,
+        created_at: user.created_at,
+        deactivated_at: user.deactivated_at,
+        deleted_at: user.deleted_at,
+        subscription: mapSubscription(currentSubscription, usage),
       };
     });
-
-    return userStats;
   } catch (error) {
     console.error("Error in getAllUsersWithStats:", error);
     return [];
@@ -130,12 +122,116 @@ export async function getAllUsersWithStats() {
 }
 
 /**
- * Get subscription plan statistics
- * @returns {Promise<Array|null>} Array of plan statistics or null on error
+ * Single user for admin detail (includes invoice stats for that user only)
+ */
+export async function getAdminUserDetail(userId) {
+  try {
+    const { data: user, error } = await supabase
+      .from("users")
+      .select(
+        `
+        id,
+        name,
+        contact_email,
+        company_id,
+        created_at,
+        last_login,
+        deactivated_at,
+        deleted_at,
+        user_subscriptions!left(
+          id,
+          plan_id,
+          status,
+          current_period_start,
+          current_period_end,
+          billing_cycle,
+          variable_symbol,
+          created_at,
+          subscription_plans!left(
+            id,
+            name,
+            price_monthly,
+            price_yearly,
+            invoice_limit_monthly,
+            features
+          )
+        ),
+        invoice_usage!left(
+          year,
+          month,
+          invoices_created
+        )
+      `
+      )
+      .eq("id", userId)
+      .single();
+
+    if (error || !user) {
+      return null;
+    }
+
+    const { data: invoiceRows } = await supabase
+      .from("invoices")
+      .select("total_amount, is_paid, is_canceled")
+      .eq("user_id", userId)
+      .eq("is_deleted", false);
+
+    const stats = {
+      totalInvoices: 0,
+      paidInvoices: 0,
+      unpaidInvoices: 0,
+      totalRevenue: 0,
+    };
+    for (const inv of invoiceRows || []) {
+      stats.totalInvoices += 1;
+      if (inv.is_paid) {
+        stats.paidInvoices += 1;
+        stats.totalRevenue += parseFloat(inv.total_amount || 0);
+      } else if (!inv.is_canceled) {
+        stats.unpaidInvoices += 1;
+      }
+    }
+
+    const currentSubscription = pickCurrentSubscription(
+      user.user_subscriptions
+    );
+    const usage = currentMonthUsage(user.invoice_usage);
+
+    let history = [];
+    if (currentSubscription?.id) {
+      const { data: historyRows } = await supabase
+        .from("subscription_status_history")
+        .select("id, old_status, new_status, reason, created_at")
+        .eq("subscription_id", currentSubscription.id)
+        .order("created_at", { ascending: false })
+        .limit(20);
+      history = historyRows || [];
+    }
+
+    return {
+      id: user.id,
+      name: user.name,
+      contact_email: user.contact_email,
+      company_id: user.company_id,
+      created_at: user.created_at,
+      last_login: user.last_login,
+      deactivated_at: user.deactivated_at,
+      deleted_at: user.deleted_at,
+      stats,
+      subscription: mapSubscription(currentSubscription, usage),
+      history,
+    };
+  } catch (error) {
+    console.error("Error in getAdminUserDetail:", error);
+    return null;
+  }
+}
+
+/**
+ * Subscription plan statistics with correct MRR
  */
 export async function getSubscriptionStats() {
   try {
-    // Get subscription plan statistics
     const { data: plans, error: plansError } = await supabase
       .from("subscription_plans")
       .select(
@@ -159,29 +255,29 @@ export async function getSubscriptionStats() {
       return null;
     }
 
-    // Calculate stats for each plan
-    const planStats = plans.map((plan) => ({
-      ...plan,
-      activeSubscriptions: plan.user_subscriptions.filter(
+    return (plans || []).map((plan) => {
+      const activePaid = plan.user_subscriptions.filter(
         (sub) => sub.status === "active" && plan.id > 1
-      ).length,
-      monthlyRevenue:
-        plan.user_subscriptions.filter(
-          (sub) =>
-            sub.status === "active" &&
-            sub.billing_cycle === "monthly" &&
-            plan.id > 1
-        ).length * plan.price_monthly,
-      yearlyRevenue:
-        plan.user_subscriptions.filter(
-          (sub) =>
-            sub.status === "active" &&
-            sub.billing_cycle === "yearly" &&
-            plan.id > 1
-        ).length * plan.price_yearly,
-    }));
+      );
+      const monthlyCount = activePaid.filter(
+        (s) => s.billing_cycle === "monthly"
+      ).length;
+      const yearlyCount = activePaid.filter(
+        (s) => s.billing_cycle === "yearly"
+      ).length;
+      const monthlyRevenue = monthlyCount * Number(plan.price_monthly || 0);
+      const yearlyRevenue = yearlyCount * Number(plan.price_yearly || 0);
+      const mrr =
+        monthlyRevenue + yearlyCount * (Number(plan.price_yearly || 0) / 12);
 
-    return planStats;
+      return {
+        ...plan,
+        activeSubscriptions: activePaid.length,
+        monthlyRevenue,
+        yearlyRevenue,
+        mrr,
+      };
+    });
   } catch (error) {
     console.error("Error in getSubscriptionStats:", error);
     return null;
@@ -189,12 +285,10 @@ export async function getSubscriptionStats() {
 }
 
 /**
- * Get pending payments data
- * @returns {Promise<Array>} Array of pending payments
+ * Pending payments (camelCase)
  */
 export async function getPendingPayments() {
   try {
-    // Get all users with pending payment subscriptions
     const { data: users, error: usersError } = await supabase
       .from("users")
       .select(
@@ -230,12 +324,9 @@ export async function getPendingPayments() {
       return [];
     }
 
-    // Process users with pending payments
-    const pendingPayments = users.map((user) => {
+    return (users || []).map((user) => {
       const subscription = user.user_subscriptions[0];
       const plan = subscription?.subscription_plans;
-
-      // Calculate amount based on billing cycle
       const amount =
         subscription.billing_cycle === "yearly"
           ? plan.price_yearly
@@ -249,20 +340,27 @@ export async function getPendingPayments() {
         created_at: user.created_at,
         subscription: {
           id: subscription.id,
-          plan: plan,
+          planId: subscription.plan_id,
+          plan,
           status: subscription.status,
-          billing_cycle: subscription.billing_cycle,
-          period_start: subscription.current_period_start,
-          period_end: subscription.current_period_end,
-          variable_symbol: subscription.variable_symbol,
-          amount: amount,
+          billingCycle: subscription.billing_cycle,
+          periodStart: subscription.current_period_start,
+          periodEnd: subscription.current_period_end,
+          variableSymbol: subscription.variable_symbol,
+          amount,
         },
       };
     });
-
-    return pendingPayments;
   } catch (error) {
     console.error("Error in getPendingPayments:", error);
     return [];
   }
+}
+
+export function getAdminBankAccount() {
+  return (
+    process.env.ADMIN_BANK_ACCOUNT ||
+    process.env.NEXT_PUBLIC_ADMIN_BANK_ACCOUNT ||
+    "Nastavte ADMIN_BANK_ACCOUNT"
+  );
 }

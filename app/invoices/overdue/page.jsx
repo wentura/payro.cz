@@ -66,8 +66,8 @@ export default async function OverdueInvoicesPage({ searchParams }) {
         {/* Page Header */}
         <div className="flex justify-between text-center md:text-left">
           <div className="mx-auto md:mx-0">
-            <h1 className="text-3xl font-bold text-gray-900">Po splatnosti</h1>
-            <p className="mt-2 text-gray-600">
+            <h1 className="text-3xl font-semibold tracking-tight text-fktr-fg">Po splatnosti</h1>
+            <p className="mt-2 text-fktr-muted">
               Přehled všech faktur po splatnosti ({total})
             </p>
           </div>
@@ -89,7 +89,7 @@ export default async function OverdueInvoicesPage({ searchParams }) {
             </Link>
           </div>
         </div>
-        <div className="flex space-x-3 md:hidden text-blue-600 hover:text-blue-900 justify-center">
+        <div className="flex space-x-3 md:hidden text-fktr-accent hover:text-fktr-accent-hover justify-center">
           <Link href="/invoices">Všechny faktury</Link>
           <Link href="/invoices/unpaid">Nezaplacené</Link>
           <Link href="/invoices/paid">Zaplacené</Link>
@@ -102,10 +102,10 @@ export default async function OverdueInvoicesPage({ searchParams }) {
           {invoices.length === 0 ? (
             <div className="text-center py-12">
               <div className="text-6xl mb-4">🎉</div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
+              <h3 className="text-lg font-medium text-fktr-fg mb-2">
                 Žádné faktury po splatnosti!
               </h3>
-              <p className="text-gray-500 mb-6">
+              <p className="text-fktr-muted mb-6">
                 Všechny vaše faktury jsou v termínu nebo již zaplacené
               </p>
               <div className="flex justify-center space-x-4">
@@ -119,36 +119,36 @@ export default async function OverdueInvoicesPage({ searchParams }) {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
+              <table className="min-w-full divide-y divide-fktr-border">
                 <thead>
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-fktr-muted uppercase tracking-wider">
                       Číslo faktury
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-fktr-muted uppercase tracking-wider">
                       Klient
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-fktr-muted uppercase tracking-wider hidden md:table-cell">
                       Datum vystavení
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-fktr-muted uppercase tracking-wider">
                       Splatnost
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-fktr-muted uppercase tracking-wider">
                       Dny po splatnosti
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-fktr-muted uppercase tracking-wider">
                       Částka
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-fktr-muted uppercase tracking-wider hidden md:table-cell">
                       Status
                     </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
+                    <th className="px-6 py-3 text-right text-xs font-medium text-fktr-muted uppercase tracking-wider hidden md:table-cell">
                       Akce
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-fktr-elevated divide-y divide-fktr-border">
                   {invoices.map((invoice) => {
                     // Calculate days overdue
                     const today = new Date();
@@ -158,22 +158,22 @@ export default async function OverdueInvoicesPage({ searchParams }) {
                     );
 
                     return (
-                      <tr key={invoice.id} className="hover:bg-gray-50">
+                      <tr key={invoice.id} className="hover:bg-fktr-bg/80">
                         <td className="px-6 py-4 whitespace-nowrap text-left">
                           <Link
                             href={`/invoices/${invoice.id}`}
-                            className="text-blue-600 hover:text-blue-900 font-medium"
+                            className="text-fktr-accent hover:text-fktr-accent-hover font-medium"
                           >
                             {invoice.invoice_number || "Koncept"}
                           </Link>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 max-w-[8ch] md:max-w-56 overflow-hidden text-ellipsis text-left">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-fktr-fg max-w-[8ch] md:max-w-56 overflow-hidden text-ellipsis text-left">
                           {invoice.clients?.name || "Malý odběratel"}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden md:table-cell text-left">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-fktr-muted hidden md:table-cell text-left">
                           {formatDateCZ(invoice.issue_date)}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-left">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-fktr-muted text-left">
                           {formatDateCZ(invoice.due_date)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-left">
@@ -189,7 +189,7 @@ export default async function OverdueInvoicesPage({ searchParams }) {
                             {daysOverdue} dní
                           </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-left text-gray-900">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-left text-fktr-fg">
                           {formatCurrency(
                             invoice.total_amount,
                             invoice.currency
@@ -201,7 +201,7 @@ export default async function OverdueInvoicesPage({ searchParams }) {
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium hidden md:table-cell text-left">
                           <Link
                             href={`/invoices/${invoice.id}`}
-                            className="text-blue-600 hover:text-blue-900 hidden md:table-cell"
+                            className="text-fktr-accent hover:text-fktr-accent-hover hidden md:table-cell"
                           >
                             Detail
                           </Link>
@@ -233,7 +233,7 @@ export default async function OverdueInvoicesPage({ searchParams }) {
                 <div className="text-3xl font-bold text-red-600">
                   {stats.overdue}
                 </div>
-                <div className="text-sm text-gray-500 mt-1">
+                <div className="text-sm text-fktr-muted mt-1">
                   Faktury po splatnosti
                 </div>
               </div>
@@ -243,7 +243,7 @@ export default async function OverdueInvoicesPage({ searchParams }) {
                 <div className="text-3xl font-bold text-red-700">
                   {formatCurrency(stats.overdueAmount, "CZK")}
                 </div>
-                <div className="text-sm text-gray-500 mt-1">
+                <div className="text-sm text-fktr-muted mt-1">
                   Celková částka po splatnosti
                 </div>
               </div>
@@ -253,7 +253,7 @@ export default async function OverdueInvoicesPage({ searchParams }) {
                 <div className="text-3xl font-bold text-orange-600">
                   {stats.overdueAverageDays}
                 </div>
-                <div className="text-sm text-gray-500 mt-1">
+                <div className="text-sm text-fktr-muted mt-1">
                   Průměrně dní po splatnosti
                 </div>
               </div>

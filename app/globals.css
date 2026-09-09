@@ -1,40 +1,141 @@
 @import "tailwindcss";
 
+/*
+ * FKTR design tokens — Swiss light mint
+ * White space first; accent sparingly. Light-only app UI.
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #fafafa;
+  --foreground: #1c1917;
+  --fktr-bg: #fafafa;
+  --fktr-bg-elevated: #ffffff;
+  --fktr-fg: #1c1917;
+  --fktr-muted: #78716c;
+  --fktr-accent: #0d9488;
+  --fktr-accent-hover: #0f766e;
+  --fktr-accent-soft: #f0fdfa;
+  --fktr-accent-fg: #ffffff;
+  --fktr-border: #e7e5e4;
+  --fktr-danger: #b91c1c;
+  --fktr-danger-soft: #fee2e2;
+  --fktr-success: #15803d;
+  --fktr-success-soft: #dcfce7;
+  --fktr-warning: #c2410c;
+  --fktr-warning-soft: #ffedd5;
+  --fktr-radius: 0.5rem;
+  --fktr-shadow: 0 1px 0 rgb(28 25 23 / 0.04);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-fktr-bg: var(--fktr-bg);
+  --color-fktr-elevated: var(--fktr-bg-elevated);
+  --color-fktr-fg: var(--fktr-fg);
+  --color-fktr-muted: var(--fktr-muted);
+  --color-fktr-accent: var(--fktr-accent);
+  --color-fktr-accent-hover: var(--fktr-accent-hover);
+  --color-fktr-accent-soft: var(--fktr-accent-soft);
+  --color-fktr-border: var(--fktr-border);
+  --color-fktr-danger: var(--fktr-danger);
+  --color-fktr-success: var(--fktr-success);
+  --color-fktr-warning: var(--fktr-warning);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-display: var(--font-fraunces), var(--font-geist-sans), ui-serif, Georgia, serif;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  background: var(--fktr-bg);
+  color: var(--fktr-fg);
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  line-height: 1.6;
+}
+
+.font-display {
+  font-family: var(--font-display);
 }
 
 form input,
 form select,
 form textarea {
-  color: #374151;
+  color: var(--fktr-fg);
 }
 
-/* Dotted grid background pattern */
-.bg-dotted-grid {
-  background-image: radial-gradient(circle, rgba(99, 102, 241, 0.2) 1.5px, transparent 1.5px);
-  background-size: 21px 21px;
+/* Near-flat white + faint mint wash for marketing */
+.fktr-mesh {
+  background-color: #ffffff;
+  background-image:
+    radial-gradient(ellipse 70% 50% at 15% 0%, rgb(13 148 136 / 0.04), transparent 55%),
+    radial-gradient(ellipse 50% 40% at 90% 10%, rgb(13 148 136 / 0.03), transparent 50%);
+}
+
+/* Legal / long-form reading */
+.fktr-prose {
+  color: var(--fktr-muted);
+  font-size: 1.0625rem;
+  line-height: 1.75;
+}
+
+.fktr-prose h2 {
+  color: var(--fktr-fg);
+  font-size: 1.25rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  margin-top: 2.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.fktr-prose h3 {
+  color: var(--fktr-fg);
+  font-size: 1.125rem;
+  font-weight: 500;
+  margin-top: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.fktr-prose p,
+.fktr-prose ul {
+  margin-bottom: 1rem;
+}
+
+.fktr-prose strong {
+  color: var(--fktr-fg);
+  font-weight: 500;
+}
+
+.fktr-prose a {
+  color: var(--fktr-accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  font-weight: 500;
+}
+
+.fktr-prose a:hover {
+  color: var(--fktr-accent-hover);
+}
+
+.fktr-hero-fade {
+  animation: fktr-fade-up 0.7s ease-out both;
+}
+
+.fktr-hero-fade-delay {
+  animation: fktr-fade-up 0.7s ease-out 0.12s both;
+}
+
+.fktr-hero-fade-delay-2 {
+  animation: fktr-fade-up 0.7s ease-out 0.24s both;
+}
+
+@keyframes fktr-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Print Styles */
@@ -51,12 +152,10 @@ form textarea {
     print-color-adjust: exact;
   }
 
-  /* Hide non-printable elements */
   .print\:hidden {
     display: none !important;
   }
 
-  /* Ensure content fits on page */
   .print\:p-0 {
     padding: 0 !important;
   }
@@ -65,7 +164,6 @@ form textarea {
     max-width: none !important;
   }
 
-  /* Avoid page breaks inside elements */
   table,
   tr,
   td,
@@ -73,13 +171,11 @@ form textarea {
     page-break-inside: avoid;
   }
 
-  /* Invoice specific print styles */
   .invoice-print {
     max-width: none !important;
     padding: 0 !important;
   }
 
-  /* Make sure colors print correctly */
   * {
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;

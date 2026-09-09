@@ -9,6 +9,8 @@ import { formatCurrency, formatDateCZ, formatNumber } from "@/app/lib/utils";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import DuplicateInvoiceButtonWrapper from "./DuplicateInvoiceButtonWrapper";
+import SendInvoiceEmailButton from "./SendInvoiceEmailButton";
+import { canSendPaymentReminder } from "@/app/lib/invoice-email";
 
 /**
  * Invoice Detail Page
@@ -392,6 +394,23 @@ export default async function InvoiceDetailPage({ params }) {
         <Card title="Akce" className="px-1 md:px-4 md:pt-4 pt-2">
           <div className="flex flex-wrap gap-4 text-left">
             <DuplicateInvoiceButtonWrapper invoiceId={invoice.id} />
+            {invoice.status_id !== 4 && !invoice.is_canceled && (
+              <SendInvoiceEmailButton
+                invoiceId={invoice.id}
+                defaultTo={invoice.clients?.contact_email || ""}
+                senderEmail={user.contact_email || ""}
+                mode="invoice"
+              />
+            )}
+            {canSendPaymentReminder(invoice) &&
+              (user.default_settings?.remind_due_term_by_email !== false) && (
+              <SendInvoiceEmailButton
+                invoiceId={invoice.id}
+                defaultTo={invoice.clients?.contact_email || ""}
+                senderEmail={user.contact_email || ""}
+                mode="reminder"
+              />
+            )}
             {invoice.status_id === 1 && (
               <>
                 <Link href={`/invoices/${invoice.id}/edit`}>
@@ -449,8 +468,16 @@ export default async function InvoiceDetailPage({ params }) {
             )}
 
             <Link href={`/invoices/${invoice.id}/print`} target="_blank">
-              <Button variant="outline">🖨️ Tisknout / PDF</Button>
+              <Button variant="outline">🖨️ Tisknout</Button>
             </Link>
+            {invoice.status_id !== 4 && !invoice.is_canceled && (
+              <a
+                href={`/api/invoices/${invoice.id}/send`}
+                className="inline-flex items-center justify-center font-medium rounded-md border-2 border-blue-600 text-blue-600 hover:bg-blue-50 px-4 py-2 text-base"
+              >
+                Stáhnout PDF
+              </a>
+            )}
           </div>
         </Card>
       </div>

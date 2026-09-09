@@ -58,10 +58,10 @@ export default async function CanceledInvoicesPage({ searchParams }) {
         {/* Page Header */}
         <div className="flex justify-between text-center md:text-left max-w-7xl mx-auto">
           <div className="mx-auto md:mx-0 max-w-7xl">
-            <h1 className="text-3xl font-bold text-gray-900 mx-auto">
+            <h1 className="text-3xl font-semibold tracking-tight text-fktr-fg mx-auto">
               Zrušené faktury
             </h1>
-            <p className="mt-2 text-gray-600">
+            <p className="mt-2 text-fktr-muted">
               Přehled všech zrušených faktur ({total})
             </p>
           </div>
@@ -83,7 +83,7 @@ export default async function CanceledInvoicesPage({ searchParams }) {
             </Link>
           </div>
         </div>
-        <div className="flex space-x-3 md:hidden text-blue-600 hover:text-blue-900 justify-center">
+        <div className="flex space-x-3 md:hidden text-fktr-accent hover:text-fktr-accent-hover justify-center">
           <Link href="/invoices">Všechny faktury</Link>
           <Link href="/invoices/unpaid">Nezaplacené</Link>
           <Link href="/invoices/paid">Zaplacené</Link>
@@ -95,10 +95,10 @@ export default async function CanceledInvoicesPage({ searchParams }) {
           {invoices.length === 0 ? (
             <div className="text-center py-12">
               <div className="text-6xl mb-4">✅</div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
+              <h3 className="text-lg font-medium text-fktr-fg mb-2">
                 Žádné zrušené faktury
               </h3>
-              <p className="text-gray-500 mb-6">
+              <p className="text-fktr-muted mb-6">
                 Nemáte žádné zrušené faktury
               </p>
               <div className="flex justify-center space-x-4">
@@ -112,53 +112,53 @@ export default async function CanceledInvoicesPage({ searchParams }) {
             </div>
           ) : (
             <div className="overflow-x-auto max-w-full mx-auto">
-              <table className="min-w-full divide-y divide-gray-200 max-w-7xl mx-auto">
+              <table className="min-w-full divide-y divide-fktr-border max-w-7xl mx-auto">
                 <thead>
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-fktr-muted uppercase tracking-wider">
                       Číslo faktury
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-fktr-muted uppercase tracking-wider">
                       Klient
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-fktr-muted uppercase tracking-wider hidden md:table-cell">
                       Datum vystavení
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-fktr-muted uppercase tracking-wider">
                       Splatnost
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-fktr-muted uppercase tracking-wider">
                       Částka
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-fktr-muted uppercase tracking-wider hidden md:table-cell">
                       Status
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-fktr-muted uppercase tracking-wider hidden md:table-cell">
                       Akce
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-fktr-elevated divide-y divide-fktr-border">
                   {invoices.map((invoice) => (
-                    <tr key={invoice.id} className="hover:bg-gray-50">
+                    <tr key={invoice.id} className="hover:bg-fktr-bg/80">
                       <td className="px-6 py-4 whitespace-nowrap text-left">
                         <Link
                           href={`/invoices/${invoice.id}`}
-                          className="text-blue-600 hover:text-blue-900 font-medium"
+                          className="text-fktr-accent hover:text-fktr-accent-hover font-medium"
                         >
                           {invoice.invoice_number || "Koncept"}
                         </Link>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 max-w-[8ch] md:max-w-56 overflow-hidden text-ellipsis text-left">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-fktr-fg max-w-[8ch] md:max-w-56 overflow-hidden text-ellipsis text-left">
                         {invoice.clients?.name || "Malý odběratel"}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden md:table-cell text-left">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-fktr-muted hidden md:table-cell text-left">
                         {formatDateCZ(invoice.issue_date)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-left">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-fktr-muted text-left">
                         {formatDateCZ(invoice.due_date)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-left text-gray-900">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-left text-fktr-fg">
                         {formatCurrency(invoice.total_amount, invoice.currency)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap hidden md:table-cell text-left">
@@ -170,7 +170,7 @@ export default async function CanceledInvoicesPage({ searchParams }) {
                         <div className="flex flex-col sm:flex-row gap-2">
                           <Link
                             href={`/invoices/${invoice.id}`}
-                            className="text-blue-600 hover:text-blue-900"
+                            className="text-fktr-accent hover:text-fktr-accent-hover"
                           >
                             Detail
                           </Link>
@@ -200,17 +200,17 @@ export default async function CanceledInvoicesPage({ searchParams }) {
           <div className="grid grid-cols-2 md:grid-cols-2 gap-6">
             <Card>
               <div className="text-center">
-                <div className="text-3xl font-bold text-gray-600">
+                <div className="text-3xl font-bold text-fktr-muted">
                   {invoices.length}
                 </div>
-                <div className="text-sm text-gray-500 mt-1">
+                <div className="text-sm text-fktr-muted mt-1">
                   Zrušené faktury
                 </div>
               </div>
             </Card>
             <Card>
               <div className="text-center">
-                <div className="text-3xl font-bold text-gray-600">
+                <div className="text-3xl font-bold text-fktr-muted">
                   {formatCurrency(
                     invoices.reduce(
                       (sum, invoice) => sum + (invoice.total_amount || 0),
@@ -219,7 +219,7 @@ export default async function CanceledInvoicesPage({ searchParams }) {
                     "CZK"
                   )}
                 </div>
-                <div className="text-sm text-gray-500 mt-1">
+                <div className="text-sm text-fktr-muted mt-1">
                   Celková částka zrušených faktur
                 </div>
               </div>

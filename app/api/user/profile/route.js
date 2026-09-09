@@ -67,6 +67,7 @@ export async function PUT(request) {
       city,
       zip,
       country,
+      remind_due_term_by_email,
     } = parsed.data;
 
     const nextEmail = normalizeEmail(contact_email);
@@ -110,6 +111,18 @@ export async function PUT(request) {
       country: country || "Česká republika",
     };
 
+    const existingSettings =
+      typeof user.default_settings === "string"
+        ? JSON.parse(user.default_settings || "{}")
+        : user.default_settings || {};
+
+    const default_settings = {
+      ...existingSettings,
+      ...(typeof remind_due_term_by_email === "boolean"
+        ? { remind_due_term_by_email }
+        : {}),
+    };
+
     const { data, error } = await supabase
       .from("users")
       .update({
@@ -120,6 +133,7 @@ export async function PUT(request) {
         contact_website: contact_website || null,
         bank_account: bank_account || null,
         billing_details,
+        default_settings,
       })
       .eq("id", user.id)
       .select(USER_PUBLIC_COLUMNS)

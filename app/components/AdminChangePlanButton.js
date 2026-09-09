@@ -119,7 +119,7 @@ export default function AdminChangePlanButton({
   return (
     <>
       <button
-        className="text-blue-600 hover:text-blue-900 text-xs"
+        className="text-fktr-accent hover:text-fktr-accent-hover text-xs font-medium"
         type="button"
         onClick={() => setIsOpen(true)}
       >

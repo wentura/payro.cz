@@ -7,12 +7,27 @@
 import { hashPassword, hashToken } from "@/app/lib/auth";
 import { logAuditEvent } from "@/app/lib/audit";
 import { parseWithSchema } from "@/app/lib/api-validation";
+import { getRequestIp, rateLimit } from "@/app/lib/rate-limit";
 import { supabase } from "@/app/lib/supabase";
 import { passwordResetSchema } from "@/app/lib/validations";
 import { NextResponse } from "next/server";
 
 export async function POST(request) {
   try {
+    const ip = getRequestIp(request);
+    const rate = await rateLimit({
+      key: `auth:reset-password:${ip}`,
+      limit: 10,
+      windowSeconds: 600,
+    });
+
+    if (!rate.allowed) {
+      return NextResponse.json(
+        { success: false, error: "Příliš mnoho pokusů. Zkuste to později." },
+        { status: 429 }
+      );
+    }
+
     const body = await request.json();
     const parsed = parseWithSchema(passwordResetSchema, {
       ...body,
@@ -39,10 +54,8 @@ export async function POST(request) {
       );
     }
 
-    // Check if token is expired
     const expiresAt = new Date(resetToken.expires_at);
     if (expiresAt < new Date()) {
-      // Delete expired token
       await supabase
         .from("password_reset_tokens")
         .delete()
@@ -54,10 +67,8 @@ export async function POST(request) {
       );
     }
 
-    // Hash new password
     const passwordHash = await hashPassword(password);
 
-    // Update user password
     const { error: updateError } = await supabase
       .from("users")
       .update({
@@ -73,7 +84,6 @@ export async function POST(request) {
       );
     }
 
-    // Delete used token
     await supabase
       .from("password_reset_tokens")
       .delete()

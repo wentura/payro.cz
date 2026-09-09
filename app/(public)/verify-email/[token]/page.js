@@ -1,12 +1,14 @@
 /**
  * Email Verification Page
  *
- * Server component that verifies email token and activates account
+ * Verifies token and creates session in this request (cookie must stick).
  */
 
-import { headers } from "next/headers";
-import { redirect } from "next/navigation";
+import { createSession, verifyEmailToken } from "@/app/lib/auth";
+import { logAuditEvent } from "@/app/lib/audit";
+import { supabase } from "@/app/lib/supabase";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 export const metadata = {
   title: "Ověření emailu",
@@ -14,35 +16,53 @@ export const metadata = {
     index: false,
     follow: false,
   },
-  alternates: {
-    canonical: "/resend-verification",
-  },
 };
 
-async function verifyEmail(token) {
-  try {
-    const headerStore = await headers();
-    const host = headerStore.get("host");
-    const proto = headerStore.get("x-forwarded-proto") || "http";
-    const baseUrl =
-      process.env.NEXT_PUBLIC_APP_URL || (host ? `${proto}://${host}` : "");
-    const response = await fetch(
-      new URL(`/api/auth/verify-email/${token}`, baseUrl),
-      {
-      method: "GET",
-      cache: "no-store",
-      }
-    );
+async function activateFromToken(token) {
+  const tokenResult = await verifyEmailToken(token);
 
-    const result = await response.json();
-    return result;
-  } catch (error) {
-    console.error("Error verifying email:", error);
-    return {
-      success: false,
-      error: "Neočekávaná chyba při ověřování emailu",
-    };
+  if (!tokenResult.success) {
+    return { success: false, error: tokenResult.error };
   }
+
+  const { data: user, error: userError } = await supabase
+    .from("users")
+    .select("id, contact_email, activated_at")
+    .eq("id", tokenResult.userId)
+    .single();
+
+  if (userError || !user) {
+    return { success: false, error: "Uživatel nenalezen" };
+  }
+
+  if (!user.activated_at) {
+    const { error: updateError } = await supabase
+      .from("users")
+      .update({ activated_at: new Date().toISOString() })
+      .eq("id", user.id);
+
+    if (updateError) {
+      console.error("Error activating user:", updateError);
+      return { success: false, error: "Chyba při aktivaci účtu" };
+    }
+
+    await supabase
+      .from("email_verification_tokens")
+      .delete()
+      .eq("user_id", user.id);
+  }
+
+  await createSession(user.id, user.contact_email);
+
+  await logAuditEvent({
+    userId: user.id,
+    action: "auth.email_verified",
+    entityType: "user",
+    entityId: user.id,
+    metadata: { alreadyActivated: Boolean(user.activated_at) },
+  });
+
+  return { success: true };
 }
 
 export default async function VerifyEmailPage({ params }) {
@@ -50,136 +70,53 @@ export default async function VerifyEmailPage({ params }) {
 
   if (!token) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full">
-          <div className="rounded-md bg-red-50 p-4 border border-red-200">
-            <div className="flex">
-              <div className="flex-shrink-0">
-                <svg
-                  className="h-5 w-5 text-red-400"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </div>
-              <div className="ml-3">
-                <h3 className="text-sm font-medium text-red-800">
-                  Neplatný odkaz
-                </h3>
-                <div className="mt-2 text-sm text-red-700">
-                  <p>Chybí verifikační token v odkazu.</p>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="mt-4 text-center">
-            <Link
-              href="/login"
-              className="text-sm font-medium text-blue-600 hover:text-blue-500"
-            >
-              Přejít na přihlášení
-            </Link>
-          </div>
+      <div className="flex-grow flex items-center justify-center bg-white py-16 px-4">
+        <div className="max-w-md w-full border border-fktr-border rounded-lg p-8">
+          <h1 className="text-lg font-medium text-fktr-fg mb-2">Neplatný odkaz</h1>
+          <p className="text-sm text-fktr-muted mb-6">
+            Chybí verifikační token v odkazu.
+          </p>
+          <Link
+            href="/login"
+            className="text-sm font-medium text-fktr-accent hover:text-fktr-accent-hover"
+          >
+            Přejít na přihlášení
+          </Link>
         </div>
       </div>
     );
   }
 
-  const result = await verifyEmail(token);
+  const result = await activateFromToken(token);
 
   if (result.success) {
-    // Redirect to dashboard after 2 seconds
     redirect("/dashboard?verified=true");
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full">
-        {result.success ? (
-          <div className="rounded-md bg-green-50 p-4 border border-green-200">
-            <div className="flex">
-              <div className="flex-shrink-0">
-                <svg
-                  className="h-5 w-5 text-green-400"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </div>
-              <div className="ml-3">
-                <h3 className="text-sm font-medium text-green-800">
-                  Účet aktivován!
-                </h3>
-                <div className="mt-2 text-sm text-green-700">
-                  <p>
-                    {result.alreadyActivated
-                      ? "Váš účet je již aktivován."
-                      : "Váš účet byl úspěšně aktivován."}
-                  </p>
-                  <p className="mt-2">Přesměrováváme vás na dashboard...</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className="rounded-md bg-red-50 p-4 border border-red-200">
-            <div className="flex">
-              <div className="flex-shrink-0">
-                <svg
-                  className="h-5 w-5 text-red-400"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </div>
-              <div className="ml-3">
-                <h3 className="text-sm font-medium text-red-800">
-                  Aktivace se nezdařila
-                </h3>
-                <div className="mt-2 text-sm text-red-700">
-                  <p>{result.error || "Nastala chyba při aktivaci účtu."}</p>
-                </div>
-                <div className="mt-4">
-                  <p className="text-sm text-red-600">
-                    Možné příčiny:
-                  </p>
-                  <ul className="list-disc list-inside text-sm text-red-600 mt-2 space-y-1">
-                    <li>Odkaz již vypršel (platnost 4 hodiny)</li>
-                    <li>Odkaz byl již použit</li>
-                    <li>Neplatný nebo poškozený odkaz</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-        <div className="mt-4 text-center space-x-4">
-          {!result.success && (
-            <Link
-              href="/resend-verification"
-              className="text-sm font-medium text-blue-600 hover:text-blue-500"
-            >
-              Znovu poslat aktivační email
-            </Link>
-          )}
+    <div className="flex-grow flex items-center justify-center bg-white py-16 px-4">
+      <div className="max-w-md w-full border border-fktr-border rounded-lg p-8">
+        <h1 className="text-lg font-medium text-fktr-fg mb-2">
+          Aktivace se nezdařila
+        </h1>
+        <p className="text-sm text-fktr-muted mb-4">
+          {result.error || "Nastala chyba při aktivaci účtu."}
+        </p>
+        <ul className="list-disc list-inside text-sm text-fktr-muted space-y-1 mb-6">
+          <li>Odkaz již vypršel (platnost 4 hodiny)</li>
+          <li>Odkaz byl již použit</li>
+          <li>Neplatný nebo poškozený odkaz</li>
+        </ul>
+        <div className="flex flex-wrap gap-4 text-sm">
+          <Link
+            href="/resend-verification"
+            className="font-medium text-fktr-accent hover:text-fktr-accent-hover"
+          >
+            Znovu poslat aktivační email
+          </Link>
           <Link
             href="/login"
-            className="text-sm font-medium text-blue-600 hover:text-blue-500"
+            className="font-medium text-fktr-accent hover:text-fktr-accent-hover"
           >
             Přejít na přihlášení
           </Link>
@@ -188,5 +125,3 @@ export default async function VerifyEmailPage({ params }) {
     </div>
   );
 }
-
-

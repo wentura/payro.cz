@@ -11,32 +11,32 @@ export default function Pagination({ page, pageSize, total, makeHref }) {
 
   return (
     <nav
-      className="flex items-center justify-between px-4 py-3 border-t border-gray-200"
+      className="flex items-center justify-between px-4 py-3 border-t border-fktr-border"
       aria-label="Stránkování"
     >
-      <p className="text-sm text-gray-600">
+      <p className="text-sm text-fktr-muted">
         Stránka {page} z {totalPages}
       </p>
       <div className="flex gap-3">
         {page > 1 ? (
           <Link
             href={makeHref(prevPage)}
-            className="text-sm font-medium text-blue-600 hover:text-blue-800"
+            className="text-sm font-medium text-fktr-accent hover:text-fktr-accent-hover"
           >
             Předchozí
           </Link>
         ) : (
-          <span className="text-sm text-gray-400">Předchozí</span>
+          <span className="text-sm text-fktr-muted/50">Předchozí</span>
         )}
         {page < totalPages ? (
           <Link
             href={makeHref(nextPage)}
-            className="text-sm font-medium text-blue-600 hover:text-blue-800"
+            className="text-sm font-medium text-fktr-accent hover:text-fktr-accent-hover"
           >
             Další
           </Link>
         ) : (
-          <span className="text-sm text-gray-400">Další</span>
+          <span className="text-sm text-fktr-muted/50">Další</span>
         )}
       </div>
     </nav>

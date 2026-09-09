@@ -1,25 +1,13 @@
-import ServerLayout from "@/app/components/ServerLayout";
-import Badge from "@/app/components/ui/Badge";
-import Button from "@/app/components/ui/Button";
-import Card from "@/app/components/ui/Card";
-import { getCurrentUser, isAdminUser } from "@/app/lib/auth";
 import {
   getAllUsersWithStats,
+  getPendingPayments,
   getSubscriptionStats,
+  getAdminBankAccount,
 } from "@/app/lib/services/AdminService";
-import { getPlans } from "@/app/lib/services/getPlans";
-import { formatDateCZ } from "@/app/lib/utils";
+import Badge from "@/app/components/ui/Badge";
+import Card from "@/app/components/ui/Card";
+import { formatCurrency, formatDateCZ } from "@/app/lib/utils";
 import Link from "next/link";
-import { redirect } from "next/navigation";
-import DeactivateUserButtonWrapper from "@/app/components/DeactivateUserButtonWrapper";
-import AdminChangePlanButton from "@/app/components/AdminChangePlanButton";
-import SoftDeleteUserButtonWrapper from "@/app/components/SoftDeleteUserButtonWrapper";
-
-/**
- * Admin Page
- *
- * Only accessible by admin user (svoboda.zbynek@gmail.com)
- */
 
 const FILTERS = [
   { id: "active", label: "Aktivní" },
@@ -28,39 +16,38 @@ const FILTERS = [
   { id: "all", label: "Všichni" },
 ];
 
+const PAGE_SIZE = 50;
+
+function statusBadge(status) {
+  if (status === "active") return <Badge variant="paid">active</Badge>;
+  if (status === "pending_payment")
+    return <Badge variant="overdue">pending</Badge>;
+  if (status === "canceled") return <Badge variant="canceled">canceled</Badge>;
+  return <Badge>{status || "—"}</Badge>;
+}
+
 export default async function AdminPage({ searchParams }) {
-  const user = await getCurrentUser();
+  const params = await searchParams;
+  const currentFilter = params?.filter || "active";
+  const q = (params?.q || "").toString().trim().toLowerCase();
+  const page = Math.max(1, Number.parseInt(params?.page, 10) || 1);
 
-  if (!user) {
-    redirect("/login");
-  }
-
-  // Check if user is admin
-  if (!isAdminUser(user)) {
-    return (
-      <ServerLayout user={user}>
-        <div className="text-center py-12">
-          <div className="text-6xl mb-4">🚫</div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">
-            Přístup odepřen
-          </h1>
-          <p className="text-gray-600">
-            Tato stránka je přístupná pouze administrátorům.
-          </p>
-        </div>
-      </ServerLayout>
-    );
-  }
-
-  // Get all users with stats and subscription data
-  const [allUsers, subscriptionStats, availablePlans] = await Promise.all([
+  const [allUsers, subscriptionStats, pendingPayments] = await Promise.all([
     getAllUsersWithStats(),
     getSubscriptionStats(),
-    getPlans(),
+    getPendingPayments(),
   ]);
-  const resolvedSearchParams = await searchParams;
-  const currentFilter = resolvedSearchParams?.filter || "active";
-  const filteredUsers = allUsers.filter((userData) => {
+
+  const bankAccount = getAdminBankAccount();
+  const totalMrr = (subscriptionStats || []).reduce(
+    (sum, p) => sum + (p.mrr || 0),
+    0
+  );
+  const paidActive = allUsers.filter(
+    (u) => u.subscription?.status === "active" && u.subscription?.planId > 1
+  ).length;
+
+  let filteredUsers = allUsers.filter((userData) => {
     if (currentFilter === "all") return true;
     if (currentFilter === "deleted") return userData.deleted_at !== null;
     if (currentFilter === "deactivated") {
@@ -69,374 +56,262 @@ export default async function AdminPage({ searchParams }) {
     return userData.deactivated_at === null && userData.deleted_at === null;
   });
 
+  if (q) {
+    filteredUsers = filteredUsers.filter(
+      (u) =>
+        u.name?.toLowerCase().includes(q) ||
+        u.contact_email?.toLowerCase().includes(q) ||
+        u.company_id?.toLowerCase().includes(q)
+    );
+  }
+
+  const total = filteredUsers.length;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const pageUsers = filteredUsers.slice(
+    (safePage - 1) * PAGE_SIZE,
+    safePage * PAGE_SIZE
+  );
+
+  const filterHref = (filterId) => {
+    const search = new URLSearchParams();
+    if (filterId !== "active") search.set("filter", filterId);
+    if (q) search.set("q", q);
+    const qs = search.toString();
+    return qs ? `/admin?${qs}` : "/admin";
+  };
+
+  const pageHref = (nextPage) => {
+    const search = new URLSearchParams();
+    if (currentFilter !== "active") search.set("filter", currentFilter);
+    if (q) search.set("q", q);
+    if (nextPage > 1) search.set("page", String(nextPage));
+    const qs = search.toString();
+    return qs ? `/admin?${qs}` : "/admin";
+  };
+
   return (
-    <ServerLayout user={user}>
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Administrace</h1>
-          <p className="mt-2 text-gray-600">
-            Administrátorské nástroje a přehled systému
+    <div className="space-y-10">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Card>
+          <div className="text-sm text-fktr-muted">Uživatelé</div>
+          <div className="mt-2 text-3xl font-medium text-fktr-fg tracking-tight">
+            {allUsers.length}
+          </div>
+        </Card>
+        <Card>
+          <div className="text-sm text-fktr-muted">Placená active</div>
+          <div className="mt-2 text-3xl font-medium text-fktr-accent tracking-tight">
+            {paidActive}
+          </div>
+        </Card>
+        <Card>
+          <div className="text-sm text-fktr-muted">Čeká na platbu</div>
+          <div className="mt-2 text-3xl font-medium text-fktr-warning tracking-tight">
+            {pendingPayments.length}
+          </div>
+        </Card>
+        <Card>
+          <div className="text-sm text-fktr-muted">MRR (odhad)</div>
+          <div className="mt-2 text-2xl font-medium text-fktr-fg tracking-tight">
+            {formatCurrency(totalMrr)}
+          </div>
+        </Card>
+      </div>
+
+      {pendingPayments.length > 0 && (
+        <Card title={`Čekající platby (${pendingPayments.length})`}>
+          <p className="text-left text-sm text-fktr-muted mb-4">
+            Účet pro převod:{" "}
+            <span className="font-medium text-fktr-fg">{bankAccount}</span>
           </p>
-        </div>
-
-        {/* System Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-          <Card>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-blue-600">
-                {allUsers.length}
-              </div>
-              <div className="text-sm text-gray-500 mt-1">Celkem uživatelů</div>
-            </div>
-          </Card>
-          <Card>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-green-600">
-                {
-                  allUsers.filter(
-                    (u) =>
-                      u.subscription?.status === "active" &&
-                      u.subscription?.plan?.id > 1
-                  ).length
-                }
-              </div>
-              <div className="text-sm text-gray-500 mt-1">
-                Aktivní placená předplatné
-              </div>
-            </div>
-          </Card>
-          <Card>
-            <Link href="/admin/pending-payments" className="text-center">
-              <div className="text-3xl font-bold text-yellow-600">
-                {
-                  allUsers.filter(
-                    (u) => u.subscription?.status === "pending_payment"
-                  ).length
-                }
-              </div>
-              <div className="text-sm text-gray-500 mt-1">Čeká na platbu</div>
-            </Link>
-          </Card>
-          <Card>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-purple-600">
-                {allUsers.reduce((sum, u) => sum + u.stats.totalInvoices, 0)}
-              </div>
-              <div className="text-sm text-gray-500 mt-1">Celkem faktur</div>
-            </div>
-          </Card>
-          <Card>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-orange-600">
-                {subscriptionStats
-                  ? subscriptionStats
-                      .reduce(
-                        (sum, plan) =>
-                          sum + plan.monthlyRevenue + plan.yearlyRevenue,
-                        0
-                      )
-                      .toLocaleString("cs-CZ") + " CZK"
-                  : "0 CZK"}
-              </div>
-              <div className="text-sm text-gray-500 mt-1">Měsíční příjem</div>
-            </div>
-          </Card>
-        </div>
-
-        {/* Subscription Plans Overview */}
-        {subscriptionStats && (
-          <Card title="Přehled předplatných">
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead>
-                  <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Plán
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Cena/měsíc
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Aktivní placení uživatelé
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Měsíční příjem
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Limit faktur
-                    </th>
+          <div className="overflow-x-auto text-left">
+            <table className="min-w-full divide-y divide-fktr-border text-sm">
+              <thead>
+                <tr className="text-fktr-muted text-xs uppercase tracking-wider">
+                  <th className="py-2 pr-3 text-left">Uživatel</th>
+                  <th className="py-2 pr-3 text-left">Plán</th>
+                  <th className="py-2 pr-3 text-left">Částka</th>
+                  <th className="py-2 pr-3 text-left">VS</th>
+                  <th className="py-2 text-right">Akce</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-fktr-border">
+                {pendingPayments.map((p) => (
+                  <tr key={p.subscription.id}>
+                    <td className="py-3 pr-3">
+                      <div className="font-medium text-fktr-fg">{p.name}</div>
+                      <div className="text-fktr-muted text-xs">{p.email}</div>
+                    </td>
+                    <td className="py-3 pr-3">
+                      {p.subscription.plan?.name} /{" "}
+                      {p.subscription.billingCycle === "yearly"
+                        ? "rok"
+                        : "měsíc"}
+                    </td>
+                    <td className="py-3 pr-3">
+                      {formatCurrency(p.subscription.amount)}
+                    </td>
+                    <td className="py-3 pr-3 font-mono text-xs">
+                      {p.subscription.variableSymbol || "—"}
+                    </td>
+                    <td className="py-3 text-right">
+                      <Link
+                        href={`/admin/users/${p.id}`}
+                        className="text-fktr-accent hover:text-fktr-accent-hover font-medium"
+                      >
+                        Detail / aktivovat →
+                      </Link>
+                    </td>
                   </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {subscriptionStats.map((plan) => (
-                    <tr key={plan.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <Badge
-                            variant={
-                              plan.name === "Free"
-                                ? "secondary"
-                                : plan.name === "Pro"
-                                ? "primary"
-                                : "success"
-                            }
-                          >
-                            {plan.name}
-                          </Badge>
-                        </div>
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {plan.price_monthly.toLocaleString("cs-CZ")} CZK
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {plan.activeSubscriptions}
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-green-600">
-                        {(
-                          plan.monthlyRevenue + plan.yearlyRevenue
-                        ).toLocaleString("cs-CZ")}{" "}
-                        CZK
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {plan.invoice_limit_monthly === 0
-                          ? "Neomezeno"
-                          : plan.invoice_limit_monthly}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </Card>
-        )}
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      )}
 
-        {/* Users List with Subscription Info */}
-        <Card title="Uživatelé a předplatné">
-          <div className="mb-4 flex flex-wrap gap-2">
-            {FILTERS.map((filter) => (
+      <div className="space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="flex flex-wrap gap-2">
+            {FILTERS.map((f) => (
               <Link
-                key={filter.id}
-                href={`/admin?filter=${filter.id}`}
-                className={`text-sm px-3 py-1 rounded-full border transition-colors ${
-                  currentFilter === filter.id
-                    ? "bg-blue-600 text-white border-blue-600"
-                    : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
+                key={f.id}
+                href={filterHref(f.id)}
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium border ${
+                  currentFilter === f.id
+                    ? "border-fktr-accent bg-fktr-accent-soft text-fktr-accent"
+                    : "border-fktr-border text-fktr-muted hover:text-fktr-fg"
                 }`}
               >
-                {filter.label}
+                {f.label}
               </Link>
             ))}
           </div>
-          {filteredUsers.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              <p>Žádní uživatelé nenalezeni</p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead>
+          <form className="flex gap-2" action="/admin" method="get">
+            {currentFilter !== "active" && (
+              <input type="hidden" name="filter" value={currentFilter} />
+            )}
+            <input
+              type="search"
+              name="q"
+              defaultValue={q}
+              placeholder="Hledat jméno, e-mail, IČO…"
+              className="rounded-lg border border-fktr-border px-3 py-2 text-sm w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-fktr-accent/20 focus:border-fktr-accent"
+            />
+            <button
+              type="submit"
+              className="rounded-lg bg-fktr-accent text-white px-4 py-2 text-sm font-medium hover:bg-fktr-accent-hover"
+            >
+              Hledat
+            </button>
+          </form>
+        </div>
+
+        <Card title={`Uživatelé (${total})`}>
+          <div className="overflow-x-auto text-left">
+            <table className="min-w-full divide-y divide-fktr-border text-sm">
+              <thead>
+                <tr className="text-fktr-muted text-xs uppercase tracking-wider">
+                  <th className="py-2 pr-3 text-left">Jméno</th>
+                  <th className="py-2 pr-3 text-left hidden md:table-cell">
+                    E-mail
+                  </th>
+                  <th className="py-2 pr-3 text-left">Plán</th>
+                  <th className="py-2 pr-3 text-left">Status</th>
+                  <th className="py-2 pr-3 text-left hidden lg:table-cell">
+                    Registrace
+                  </th>
+                  <th className="py-2 text-right">Akce</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-fktr-border">
+                {pageUsers.length === 0 ? (
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Uživatel
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Předplatné
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Využití
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Faktury
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Registrován
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Akce
-                    </th>
+                    <td
+                      colSpan={6}
+                      className="py-8 text-center text-fktr-muted"
+                    >
+                      Žádní uživatelé
+                    </td>
                   </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredUsers.map((userData) => (
-                    <tr key={userData.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-4 whitespace-nowrap">
-                        <div>
-                          <div className="text-sm font-medium text-gray-900">
-                            {userData.name}
-                          </div>
-                          <div className="text-sm text-gray-500">
-                            {userData.contact_email}
-                          </div>
-                          {userData.company_id && (
-                            <div className="text-xs text-gray-400">
-                              IČO: {userData.company_id}
-                            </div>
-                          )}
-                        </div>
+                ) : (
+                  pageUsers.map((u) => (
+                    <tr key={u.id} className="hover:bg-fktr-bg/80">
+                      <td className="py-3 pr-3 font-medium text-fktr-fg">
+                        {u.name}
+                        {u.deactivated_at && (
+                          <span className="ml-2 text-xs text-fktr-warning">
+                            deakt.
+                          </span>
+                        )}
+                        {u.deleted_at && (
+                          <span className="ml-2 text-xs text-fktr-danger">
+                            smazán
+                          </span>
+                        )}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap">
-                        <div className="flex flex-col space-y-1">
-                          <Badge
-                            variant={
-                              userData.subscription?.plan?.name === "Free"
-                                ? "secondary"
-                                : userData.subscription?.plan?.name === "Pro"
-                                ? "primary"
-                                : "success"
-                            }
-                          >
-                            {userData.subscription?.plan?.name || "N/A"}
-                          </Badge>
-                          <div className="text-xs text-gray-500">
-                            {userData.subscription?.plan?.id === 1
-                              ? "Free plán"
-                              : userData.subscription?.status === "active"
-                              ? "Aktivní"
-                              : userData.subscription?.status ===
-                                "pending_payment"
-                              ? "Čeká na platbu"
-                              : userData.subscription?.status === "canceled"
-                              ? "Zrušené"
-                              : "Neaktivní"}
-                          </div>
-                          {userData.subscription?.billingCycle && (
-                            <div className="text-xs text-gray-400">
-                              {userData.subscription.billingCycle === "monthly"
-                                ? "Měsíčně"
-                                : "Ročně"}
-                            </div>
-                          )}
-                        </div>
+                      <td className="py-3 pr-3 text-fktr-muted hidden md:table-cell">
+                        {u.contact_email}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap">
-                        <div className="flex flex-col space-y-1">
-                          <div className="text-sm">
-                            <span className="font-medium text-gray-900">
-                              {userData.subscription?.currentUsage || 0}
-                            </span>
-                            <span className="text-gray-500">
-                              /{" "}
-                              {userData.subscription?.plan
-                                ?.invoice_limit_monthly === 0
-                                ? "∞"
-                                : userData.subscription?.plan
-                                    ?.invoice_limit_monthly || 0}
-                            </span>
-                          </div>
-                          {userData.subscription?.plan?.invoice_limit_monthly >
-                            0 && (
-                            <div className="w-full bg-gray-200 rounded-full h-1.5">
-                              <div
-                                className={`h-1.5 rounded-full ${
-                                  userData.subscription.currentUsage /
-                                    userData.subscription.plan
-                                      .invoice_limit_monthly >=
-                                  0.9
-                                    ? "bg-red-500"
-                                    : userData.subscription.currentUsage /
-                                        userData.subscription.plan
-                                          .invoice_limit_monthly >=
-                                      0.75
-                                    ? "bg-orange-500"
-                                    : "bg-green-500"
-                                }`}
-                                style={{
-                                  width: `${Math.min(
-                                    (userData.subscription.currentUsage /
-                                      userData.subscription.plan
-                                        .invoice_limit_monthly) *
-                                      100,
-                                    100
-                                  )}%`,
-                                }}
-                              ></div>
-                            </div>
-                          )}
-                          {!userData.subscription?.canCreateInvoice && (
-                            <div className="text-xs text-red-600 font-medium">
-                              Limit dosažen
-                            </div>
-                          )}
-                        </div>
+                      <td className="py-3 pr-3">
+                        {u.subscription?.plan?.name || "—"}
+                        {u.subscription?.billingCycle && (
+                          <span className="text-fktr-muted text-xs ml-1">
+                            /{" "}
+                            {u.subscription.billingCycle === "yearly"
+                              ? "rok"
+                              : "měs."}
+                          </span>
+                        )}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap">
-                        <div className="flex flex-col space-y-1">
-                          <div className="text-sm font-medium text-gray-900">
-                            {userData.stats.totalInvoices} celkem
-                          </div>
-                          <div className="flex space-x-1">
-                            <Badge variant="paid" className="text-xs">
-                              {userData.stats.paidInvoices}
-                            </Badge>
-                            <Badge variant="unpaid" className="text-xs">
-                              {userData.stats.unpaidInvoices}
-                            </Badge>
-                          </div>
-                          {userData.stats.totalRevenue > 0 && (
-                            <div className="text-xs text-green-600 font-medium">
-                              {userData.stats.totalRevenue.toLocaleString(
-                                "cs-CZ"
-                              )}{" "}
-                              CZK
-                            </div>
-                          )}
-                        </div>
+                      <td className="py-3 pr-3">
+                        {statusBadge(u.subscription?.status)}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {formatDateCZ(userData.created_at)}
+                      <td className="py-3 pr-3 text-fktr-muted hidden lg:table-cell">
+                        {formatDateCZ(u.created_at)}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="flex flex-col space-y-2">
-                          <div className="flex space-x-2">
-                            <AdminChangePlanButton
-                              userId={userData.id}
-                              currentPlanId={userData.subscription?.plan?.id}
-                              currentBillingCycle={
-                                userData.subscription?.billingCycle || "monthly"
-                              }
-                              initialPlans={availablePlans}
-                            />
-                            <button className="text-orange-600 hover:text-orange-900 text-xs">
-                              Detaily
-                            </button>
-                          </div>
-                          <DeactivateUserButtonWrapper
-                            userId={userData.id}
-                            isDeactivated={userData.deactivated_at !== null}
-                          />
-                          <SoftDeleteUserButtonWrapper
-                            userId={userData.id}
-                            isDeleted={userData.deleted_at !== null}
-                            isDeactivated={userData.deactivated_at !== null}
-                          />
-                        </div>
+                      <td className="py-3 text-right">
+                        <Link
+                          href={`/admin/users/${u.id}`}
+                          className="text-fktr-accent hover:text-fktr-accent-hover font-medium"
+                        >
+                          Detail
+                        </Link>
                       </td>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+          {totalPages > 1 && (
+            <div className="flex justify-between items-center mt-4 pt-4 border-t border-fktr-border text-sm">
+              <span className="text-fktr-muted">
+                Stránka {safePage} / {totalPages}
+              </span>
+              <div className="flex gap-3">
+                {safePage > 1 && (
+                  <Link
+                    href={pageHref(safePage - 1)}
+                    className="text-fktr-accent font-medium"
+                  >
+                    Předchozí
+                  </Link>
+                )}
+                {safePage < totalPages && (
+                  <Link
+                    href={pageHref(safePage + 1)}
+                    className="text-fktr-accent font-medium"
+                  >
+                    Další
+                  </Link>
+                )}
+              </div>
             </div>
           )}
         </Card>
-
-        {/* Subscription Management Links */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Link href="/admin/subscriptions">
-            <Button variant="primary">Správa předplatných</Button>
-          </Link>
-          <Link href="/admin/pending-payments">
-            <Button variant="warning">
-              Čekající platby (
-              {
-                allUsers.filter(
-                  (u) => u.subscription?.status === "pending_payment"
-                ).length
-              }
-              )
-            </Button>
-          </Link>
-        </div>
       </div>
-    </ServerLayout>
+    </div>
   );
 }

@@ -1,13 +1,13 @@
 /**
  * Admin User Change Plan API
  *
- * Sets plan to active without payment
+ * Sets plan to active without payment + notifies user by email
  */
 
 import { getCurrentUser, isAdminUser } from "@/app/lib/auth";
+import { sendSubscriptionPlanChangedEmail } from "@/app/lib/email";
 import { supabase } from "@/app/lib/supabase";
 import { NextResponse } from "next/server";
-
 
 function getPeriodEnd(billingCycle) {
   const now = new Date();
@@ -56,7 +56,14 @@ export async function POST(request, { params }) {
     const { data: currentSubscription, error: subscriptionError } =
       await supabase
         .from("user_subscriptions")
-        .select("id, status")
+        .select(
+          `
+          id,
+          status,
+          plan_id,
+          subscription_plans!left(id, name)
+        `
+        )
         .eq("user_id", id)
         .order("created_at", { ascending: false })
         .limit(1)
@@ -68,6 +75,8 @@ export async function POST(request, { params }) {
         { status: 500 }
       );
     }
+
+    const oldPlanName = currentSubscription?.subscription_plans?.name || null;
 
     const { periodStart, periodEnd } = getPeriodEnd(billingCycle);
     const updateData = {
@@ -121,6 +130,20 @@ export async function POST(request, { params }) {
       reason: "Admin change",
       created_by: adminUser.id,
     });
+
+    const { data: targetUser } = await supabase
+      .from("users")
+      .select("id, name, contact_email")
+      .eq("id", id)
+      .single();
+
+    if (targetUser?.contact_email) {
+      await sendSubscriptionPlanChangedEmail(targetUser, {
+        oldPlanName,
+        newPlanName: targetPlan.name,
+        billingCycle,
+      });
+    }
 
     return NextResponse.json({
       success: true,

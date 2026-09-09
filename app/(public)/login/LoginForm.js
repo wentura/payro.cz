@@ -48,13 +48,22 @@ export default function LoginForm() {
       const result = await response.json();
 
       if (!response.ok || !result.success) {
-        // Check if account is not activated
         if (result.error === "ACCOUNT_NOT_ACTIVATED") {
-          setError(result.message || "Účet není aktivován");
+          setError(
+            result.message ||
+              "Účet není aktivován. Zkontrolujte e-mail s aktivačním odkazem."
+          );
           setIsLoading(false);
           return;
         }
-        setError(result.error || "Chyba při přihlašování");
+        if (result.error === "ACCOUNT_DEACTIVATED") {
+          setError(
+            result.message || "Účet je deaktivovaný. Kontaktujte podporu."
+          );
+          setIsLoading(false);
+          return;
+        }
+        setError(result.message || result.error || "Chyba při přihlašování");
         setIsLoading(false);
         return;
       }
@@ -70,13 +79,13 @@ export default function LoginForm() {
   };
 
   return (
-    <div className="flex-grow flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
+    <div className="flex-grow flex items-center justify-center bg-white py-16 sm:py-24 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8 bg-white border border-fktr-border rounded-lg p-8 sm:p-10">
         <div>
-          <h2 className="mt-2 text-center text-3xl font-bold text-gray-900">
+          <h2 className="font-display text-center text-3xl font-medium tracking-tight text-fktr-fg">
             Přihlášení
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
+          <p className="mt-3 text-center text-sm text-fktr-muted leading-relaxed">
             Přihlaste se do svého účtu
           </p>
         </div>
@@ -126,7 +135,7 @@ export default function LoginForm() {
             <div>
               <label
                 htmlFor="contact_email"
-                className="block text-sm font-medium text-gray-700 mb-1"
+                className="block text-sm font-medium text-fktr-muted mb-1"
               >
                 Email
               </label>
@@ -137,7 +146,7 @@ export default function LoginForm() {
                 required
                 value={formData.contact_email}
                 onChange={handleChange}
-                className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                className="appearance-none relative block w-full px-3 py-2.5 border border-fktr-border placeholder-fktr-muted/60 text-fktr-fg rounded-lg focus:outline-none focus:ring-2 focus:ring-fktr-accent/20 focus:border-fktr-accent sm:text-sm bg-white"
                 placeholder="vas@email.cz"
               />
             </div>
@@ -145,7 +154,7 @@ export default function LoginForm() {
             <div>
               <label
                 htmlFor="password"
-                className="block text-sm font-medium text-gray-700 mb-1"
+                className="block text-sm font-medium text-fktr-muted mb-1"
               >
                 Heslo
               </label>
@@ -156,7 +165,7 @@ export default function LoginForm() {
                 required
                 value={formData.password}
                 onChange={handleChange}
-                className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                className="appearance-none relative block w-full px-3 py-2.5 border border-fktr-border placeholder-fktr-muted/60 text-fktr-fg rounded-lg focus:outline-none focus:ring-2 focus:ring-fktr-accent/20 focus:border-fktr-accent sm:text-sm bg-white"
                 placeholder="••••••••"
               />
             </div>
@@ -166,7 +175,7 @@ export default function LoginForm() {
             <div className="text-sm">
               <Link
                 href="/reset-password"
-                className="font-medium text-blue-600 hover:text-blue-500"
+                className="font-medium text-fktr-accent hover:text-fktr-accent-hover"
               >
                 Zapomenuté heslo?
               </Link>
@@ -177,18 +186,18 @@ export default function LoginForm() {
             <button
               type="submit"
               disabled={isLoading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="group relative w-full flex justify-center py-2.5 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-fktr-accent hover:bg-fktr-accent-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-fktr-accent disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? "Přihlašování..." : "Přihlásit se"}
             </button>
           </div>
 
           <div className="text-center">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-fktr-muted">
               Nemáte účet?{" "}
               <Link
                 href="/register"
-                className="font-medium text-blue-600 hover:text-blue-500"
+                className="font-medium text-fktr-accent hover:text-fktr-accent-hover"
               >
                 Zaregistrujte se
               </Link>
